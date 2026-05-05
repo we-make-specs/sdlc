@@ -1,0 +1,119 @@
+# prework:step-catalog · prework:orchestration-design — the step list and how it chains
+# Pipeline manifest — single source of truth for step order, type, isolation, model routing,
+# and the outputs the orchestrator validates after each step.
+#
+# Artifact structure is NOT defined here. Each artifact has one contract in
+# artifact-definitions/ — this file only names which artifacts a step must have produced.
+#
+# Context binding is NOT defined here either. How registry articles reach a step —
+# repo declaration, manifest map, per-step resolution via applies-to — is one contract
+# in context-protocol.md. Resolution is a step duty; the orchestrator only greps
+# for its traces (the manifest's `## Context` section, each artifact's `Context loaded:` line).
+#
+# isolation:
+#   subagent — the orchestrator runs the step in a fresh subagent context, so the step
+#              inherits nothing from the orchestrator's session and rehydrates from disk.
+#              The step-runner rules travel in the delegation prompt (see skills/run),
+#              so no per-repo files are needed. An optional sdlc-step agent profile
+#              (user-level ~/.claude/agents/ · ~/.copilot/agents/, or repo-level) adds
+#              tool scoping and per-step model routing on top.
+#   main     — the step runs live in the orchestrator's session; every step a human
+#              takes part in (collab, gate) stays here. Never delegate those.
+#
+# Status: draft. Tier assignment per step is an initial proposal — review together.
+# Concrete model names depend on the open model/budget decision — fill the mapping then.
+# Candidate mechanism now that steps run as subagents: both runtimes support a per-agent
+# model override (Claude Code agent frontmatter · Copilot custom agent / SDK) — verify.
+
+# prework:model-tiers
+model_tiers:
+  strong: TODO      # strongest available reasoning model — analysis, research, planning, review
+  standard: TODO    # mid-tier — implementation against a precise plan
+  fast: TODO        # small/cheap — mechanical steps
+  none: ~           # human-only steps, no model involved
+
+steps:
+  - id: "00"
+    skill: 00-ensure-workspace
+    type: auto
+    isolation: subagent
+    model: fast
+    skippable: false
+    outputs: [00_manifest.state.md]
+    # context_map_present: the manifest contains a `## Context` section — the step read each
+    # repo's `## Context Registries` declaration and froze it, or blocked (context-protocol.md).
+    checks: [context_map_present]
+
+  - id: "01"
+    skill: 01-research-current-solution
+    type: auto
+    isolation: subagent
+    model: strong
+    skippable: true
+    outputs: [01_current-solution.research.md]
+
+  - id: "02"
+    skill: 02-analyze
+    type: auto
+    isolation: subagent
+    model: strong
+    skippable: false
+    outputs: [02_questions.log.md, 02_questions.html]
+
+  - id: "03"
+    skill: 03-align
+    type: collab
+    isolation: main
+    model: strong
+    skippable: false
+    outputs: [03_alignment.log.md, 03_target-solution.spec.md, 03_test-scenarios.spec.md, 03_target-overview.html]
+
+  - id: "04"
+    skill: 04-approve-target-solution
+    type: gate
+    isolation: main
+    model: none
+    skippable: false
+    checks: [target_solution_approved, test_scenarios_approved, no_critical_question_open]
+
+  - id: "05"
+    skill: 05-plan
+    type: auto
+    isolation: subagent
+    model: strong
+    skippable: false
+    outputs: [05_implementation.plan.md]
+
+  - id: "06"
+    skill: 06-implement
+    type: auto
+    isolation: subagent
+    model: standard
+    skippable: false
+    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/ —
+    # a mechanical guard against artifact-only pull requests.
+    checks: [pr_exists, pr_touches_code]
+
+  - id: "07"
+    skill: 07-review
+    type: auto
+    isolation: subagent
+    model: strong
+    skippable: true
+    checks: [pr_has_review]
+
+  - id: "08"
+    skill: 08-review-pr
+    type: gate
+    isolation: main
+    model: none
+    skippable: false
+    checks: [pr_approved]
+
+  - id: "09"
+    skill: 09-merge
+    type: collab
+    isolation: main
+    model: standard
+    skippable: false
+    checks: [pr_merged]

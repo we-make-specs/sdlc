@@ -1,0 +1,19 @@
+{
+  "name": "sdlc",
+  "description": "Controlled multi-stage delivery pipeline. Ten steps (autonomous, collaborative, and human-gate) that hand defined artifacts to each other via files on disk. Includes the orchestrator and the artifact contracts.",
+  "version": "0.4.1",
+  "author": {
+    "name": "Markus-Arndt"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sdlc",
+    "pipeline",
+    "orchestration",
+    "spec-driven",
+    "delivery",
+    "artifacts",
+    "quality-gates"
+  ],
+  "category": "developer-tools"
+}
