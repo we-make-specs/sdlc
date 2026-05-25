@@ -1,0 +1,17 @@
+{
+  "name": "sdlc-context",
+  "description": "Context-registry lifecycle for the agentic SDLC: scaffold a registry, connect project repos to their registries, and keep indexes, links, and crosslinks current.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Markus-Arndt"
+  },
+  "license": "MIT",
+  "keywords": [
+    "context-registry",
+    "knowledge-base",
+    "agents-md",
+    "sdlc",
+    "documentation"
+  ],
+  "category": "developer-tools"
+}
