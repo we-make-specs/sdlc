@@ -1,0 +1,24 @@
+{
+  "name": "agentic-sdlc-marketplace",
+  "owner": {
+    "name": "Markus-Arndt"
+  },
+  "metadata": {
+    "description": "Generic agentic software-delivery pipeline: orchestrator, delivery steps, and artifact contracts. Project-independent.",
+    "version": "0.7.0"
+  },
+  "plugins": [
+    {
+      "name": "sdlc",
+      "description": "Controlled multi-stage delivery pipeline. Ten steps (autonomous, collaborative, and human-gate) that hand defined artifacts to each other via files on disk. Includes the orchestrator and the artifact contracts.",
+      "version": "0.4.1",
+      "source": "./plugins/sdlc"
+    },
+    {
+      "name": "sdlc-context",
+      "description": "Context-registry lifecycle for the agentic SDLC: scaffold a registry, connect project repos to their registries, and keep indexes, links, and crosslinks current.",
+      "version": "0.3.0",
+      "source": "./plugins/sdlc-context"
+    }
+  ]
+}
