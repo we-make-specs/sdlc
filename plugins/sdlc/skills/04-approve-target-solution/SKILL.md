@@ -38,7 +38,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 
 ## Required context
 
-- `../../context-protocol.md` — resolve mechanically: articles with `applies-to: 04-approve-target-solution` (an approval checklist, a definition of done) join the briefing, and `Context loaded:` is noted in it. The decision itself stays human; an empty binding set is the normal case.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure and pull any approval-checklist or definition-of-done article the registries hold into the briefing, noting a `Context loaded:` line in it. The decision itself stays human; nothing declared, or nothing relevant, is the normal case (`none applicable`).
 
 ## Artifacts
 

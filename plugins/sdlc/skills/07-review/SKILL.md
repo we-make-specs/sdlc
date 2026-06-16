@@ -38,7 +38,7 @@ Reviews the pull request against the agreement and the design — not against th
 
 ## Required context
 
-- `../../context-protocol.md` — resolve this step's binding context: the manifest's `## Context` map, filtered by `applies-to: 07-review`. Record it as `Context loaded:` in the review body. The bound articles are the quality bar the diff is judged against — a violation of one is a citable finding (name the article), not a matter of taste.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the guideline and convention articles the diff must be judged against. Record a `Context loaded:` line in the review body (`none applicable` when nothing is declared); a violation of one is a citable finding (name the article), not a matter of taste.
 
 ## Artifacts
 

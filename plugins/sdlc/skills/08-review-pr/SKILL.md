@@ -39,7 +39,7 @@ Gives the human everything needed to judge the implemented pull request in one p
 
 ## Required context
 
-- `../../context-protocol.md` — resolve mechanically: articles with `applies-to: 08-review-pr` (a merge checklist, a release rule) join the briefing, and `Context loaded:` is noted in it. The decision itself stays human; an empty binding set is the normal case.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure and pull any merge-checklist or release-rule article the registries hold into the briefing, noting a `Context loaded:` line in it. The decision itself stays human; nothing declared, or nothing relevant, is the normal case (`none applicable`).
 
 ## Artifacts
 

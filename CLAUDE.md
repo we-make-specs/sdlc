@@ -4,7 +4,7 @@ This repo is an agent plugin marketplace for agentic software delivery. It holds
 
 ## Map
 
-- `plugins/sdlc/` - the pipeline: `/sdlc:run` (orchestrator) + `/sdlc:00-...` ... `/sdlc:09-...` (one skill per step), `artifact-definitions/` (one contract per artifact), `workflow.yml` (step order, type, model tier, outputs), and the context binding (`context-protocol.md`)
+- `plugins/sdlc/` - the pipeline: `/sdlc:run` (orchestrator) + `/sdlc:00-...` ... `/sdlc:09-...` (one skill per step), `artifact-definitions/` (one contract per artifact), and `workflow.yml` (step order, type, model tier, outputs)
 - `plugins/sdlc-context/` - registry lifecycle plugin: `create` scaffolds a registry, `connect` declares registries in a project repo, `update-index-and-crosslinks` keeps indexes, links, and crosslinks current
 - `.claude-plugin/` + `.github/plugin/` - the two marketplace manifests, one per runtime
 - `README.md` - the concept, the pipeline, and how to install and use it
@@ -12,7 +12,7 @@ This repo is an agent plugin marketplace for agentic software delivery. It holds
 
 ## Rules
 
-- **Separation principle:** a skill never carries project knowledge, it points at the registry. The binding runs the other way: registry articles name the steps they reach (`applies-to:`), repos name their registries (`## Context Registries` in the root instruction file), and `plugins/sdlc/context-protocol.md` is the one place the mechanism is defined.
+- **Separation principle:** a skill never carries project knowledge, it points at the registry. A repo declares its registries in a `## Context Registries` section in its root instruction file (written by `/sdlc-context:connect`); agents entering the repo follow that procedure, navigating each registry's `index.md` tables to the articles their task needs. The registry format is defined in `plugins/sdlc-context/reference.md`.
 - **Skill names carry no prefix.** The command is `<plugin name>:<frontmatter name>`, so a skill called `sdlc-04-plan` inside plugin `sdlc` would read `/sdlc:sdlc-04-plan`. Step skills are named for their number alone (`04-plan`); the entry point is `run`.
 - Navigate a registry via its index.md tables (two levels deep, no Last Read tracking); the format is defined in `plugins/sdlc-context/reference.md`.
 - Verify facts against the code, never against older documents.

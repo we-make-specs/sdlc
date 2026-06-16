@@ -56,7 +56,7 @@ These hold for every artifact and are not repeated in the individual contracts.
 4. **Verify facts against the code, never against older documents.** A stale migration number, endpoint, or field name copied forward from a document is a recurring, expensive failure.
 5. **Unfinished is marked unfinished.** `TODO:` and "unresolved" sections are valid content. Plausible-sounding filler is not — it destroys trust in the whole chain.
 6. **One step edits only what it owns.** Ticking someone else's checklist row or rewriting an upstream artifact breaks the audit trail.
-7. **Binding context is loaded and logged.** Every step resolves its context per `../context-protocol.md` — the manifest's `## Context` map, filtered by each article's `applies-to` — and records a `Context loaded:` line near the top of its primary artifact (step 06 in the plan's progress log, step 07 in its review body). An empty set is stated (`none applicable`), never silent.
+7. **Registry context is consulted and logged.** Every step follows the repo's `## Context Registries` procedure (in its `AGENTS.md`), reads the registry articles relevant to it, and records a `Context loaded:` line near the top of its primary artifact (step 06 in the plan's progress log, step 07 in its review body). Nothing declared, or nothing relevant, is stated (`none applicable`), never silent.
 
 ---
 

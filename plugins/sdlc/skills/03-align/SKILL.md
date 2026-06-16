@@ -41,7 +41,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 
 ## Required context
 
-- `../../context-protocol.md` — resolve this step's binding context: the manifest's `## Context` map, filtered by `applies-to: 03-align`. Record it as `Context loaded:` near the top of the alignment record. Domain language and component knowledge reach this step that way — never by a path hardcoded here.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the domain-language and component articles this step touches. Record a `Context loaded:` line near the top of the alignment record; state `none applicable` when nothing is declared.
 
 ## Artifacts
 

@@ -19,7 +19,6 @@ It also preserves the **original input verbatim** — the source of truth agains
 |---|---|---|
 | frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`) |
 | `## Original input` | yes | ticket text or brain dump, **unmodified** |
-| `## Context` | yes | the frozen registry map: per repo, each declared registry with source (git URL or path), pinned commit, and materialized local path (`.sdlc/context/<name>`), in declared order — or `none (declared)`. Written by step 00 per `../context-protocol.md`, read by every later step, never re-derived |
 | `## Artifact checklist` | yes | one row per artifact; only `00_manifest.state.md` ticked at creation |
 | `## Blockers` | when blocked | append-only; one entry per blocker — see below |
 | `## People` | no | who clarifies, implements, reviews |
@@ -37,7 +36,6 @@ Entry fields: **Missing** (what, concretely) · **Needed from** (person / team /
 - [ ] Branch name and folder path match the frontmatter.
 - [ ] `folder:` names the directory this file actually lives in — repo-relative, under `docs/sdlc/features/`, **inside the working repository**. Every step and the orchestrator treat it as authoritative; nothing re-derives the location, and nothing is ever written next to the input source.
 - [ ] `status: blocked` if and only if at least one Blockers entry is unresolved.
-- [ ] `## Context` lists only registries that materialized or resolved at workspace creation — URL registries carry the pinned commit and a local path that exists; `none (declared)` appears only when the repo's declaration literally says `none`. A repo row is never guessed, defaulted, or left out.
 - [ ] Only `00_manifest.state.md` is ticked at creation.
 - [ ] Free-text stories (no ticket) use `ticket: none` and derive the title from the first meaningful line.
 
@@ -60,11 +58,6 @@ status: in-progress
 ## Original input
 
 <ticket text or brain dump, unmodified>
-
-## Context
-
-- <repo>:
-  - <name> — <git url or path> @ <short-sha> → .sdlc/context/<name>
 
 ## Artifact checklist
 

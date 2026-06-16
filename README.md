@@ -40,8 +40,10 @@ state lives on disk, not in a session.
 **Context Registry.** Project knowledge that agents read: development guidelines,
 architecture notes, domain language, testing conventions. It is plain Markdown in Git,
 kept separate from the pipeline so the same generic pipeline can serve any project. A
-repository declares which registries it uses, and each step pulls in only the parts it
-needs. The mechanism is described in `plugins/sdlc/context-protocol.md`.
+repository declares which registries it uses in a `## Context Registries` section in its
+root instruction file, and each step consults the parts it needs by navigating the
+registry's index. The `sdlc-context` plugin's `connect` skill writes that declaration;
+the registry format is defined in `plugins/sdlc-context/reference.md`.
 
 **Specification Registry.** The set of artifacts the pipeline produces for a feature,
 the filled-in chain from analysis through decisions. Each artifact type has one contract

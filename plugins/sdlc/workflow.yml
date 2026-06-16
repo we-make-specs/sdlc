@@ -5,10 +5,10 @@
 # Artifact structure is NOT defined here. Each artifact has one contract in
 # artifact-definitions/ — this file only names which artifacts a step must have produced.
 #
-# Context binding is NOT defined here either. How registry articles reach a step —
-# repo declaration, manifest map, per-step resolution via applies-to — is one contract
-# in context-protocol.md. Resolution is a step duty; the orchestrator only greps
-# for its traces (the manifest's `## Context` section, each artifact's `Context loaded:` line).
+# Context binding is NOT defined here either. Registry articles reach a step through the
+# repo's own `## Context Registries` declaration (written by /sdlc-context:connect);
+# consulting them is each step's duty, and the orchestrator only greps for the trace
+# (each artifact's `Context loaded:` line).
 #
 # isolation:
 #   subagent — the orchestrator runs the step in a fresh subagent context, so the step
@@ -40,9 +40,6 @@ steps:
     model: fast
     skippable: false
     outputs: [00_manifest.state.md]
-    # context_map_present: the manifest contains a `## Context` section — the step read each
-    # repo's `## Context Registries` declaration and froze it, or blocked (context-protocol.md).
-    checks: [context_map_present]
 
   - id: "01"
     skill: 01-research-current-solution

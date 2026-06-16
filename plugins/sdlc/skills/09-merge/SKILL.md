@@ -38,7 +38,7 @@ Closes out the feature: presents the state compactly, pair-programs any last fix
 
 ## Required context
 
-- `../../context-protocol.md` — resolve mechanically for the merge itself (`applies-to: 09-merge`; empty is normal). Work borrowed from another step follows that step's bindings: a fix made here loads `06-implement`'s set first, exactly as the protocol prescribes.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure for the merge itself (usually `none applicable`). Work borrowed from another step follows that step's needs: a fix made here loads what `06-implement` would, the same guideline and domain-language articles.
 
 ## Artifacts
 

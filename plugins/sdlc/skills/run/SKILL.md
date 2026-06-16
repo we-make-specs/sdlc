@@ -44,7 +44,7 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 
 - `../../workflow.yml` — step order, type, isolation, model tier, outputs to validate
 - `../../artifact-definitions/README.md` — the artifact chain and its cross-cutting rules
-- `../../context-protocol.md` — how registry knowledge reaches steps; the orchestrator's only part is grepping for its traces
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — how registry knowledge reaches steps; consulting it is each step's own duty, and the orchestrator's only part is grepping for the `Context loaded:` trace each step leaves.
 
 ---
 
@@ -56,7 +56,7 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
    - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its four slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
    - An `sdlc-step` agent profile is an **optional container** for tool scoping and per-step model routing — when the runtime knows one (user-level `~/.claude/agents/` / `~/.copilot/agents/`, or repo-level), delegate into it, still sending the full step-runner prompt. No profile is required: the rules travel in the prompt, not the profile.
    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
-4. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. This is a file check, not a content judgment. Missing → stop and report; never silently continue. Two grep-checks of the same class: after step 00, the manifest contains a `## Context` section (`context_map_present`); after any later step with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its binding context.
+4. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. This is a file check, not a content judgment. Missing → stop and report; never silently continue. One grep-check of the same class: after any step with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries.
 5. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
 6. **Report** after each step: step, outcome, artifacts written, what comes next.
 
@@ -73,8 +73,8 @@ Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
 1. Read the skill file completely and follow it exactly — its workflow, constraints,
    and success criteria are your entire job description.
 2. Rehydrate only from disk: the feature folder's artifacts, whatever the skill
-   names as required context, and your binding context per the context protocol the
-   skill points to — the manifest's `## Context` section names the registries.
+   names as required context, and the context registries the repo declares in its
+   `## Context Registries` section — consulted per that procedure.
    You inherit nothing from the session that spawned you — that isolation is
    deliberate; do not ask it for more context.
 3. Write only the artifacts the skill declares, per their contracts, inside the
@@ -131,7 +131,7 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 - **Never run a subagent step inline.** Executing it in this session leaks the orchestrator's context into the step; if the runtime offers no delegation mechanism, say so and let the human start the step in a fresh session instead.
 - **Never skip a failed validation.** If outputs are missing, stop and say so — do not paper over it.
 - **A blocker that is not in the manifest does not exist.** When a step reports one, verify the Blockers entry and `status: blocked` are on disk, like any declared output — failure must survive this session, because the next orchestrator may be a script or a CI job reading only the file.
-- **Never resolve context.** Which registries apply is frozen in the manifest by step 00; which articles bind is each step's own lookup. The orchestrator greps for the traces (`## Context` section, `Context loaded:` lines) and nothing more — anything an orchestrator would have to *compute* belongs in a step or in a file, or the next orchestrator (a script, a CI job) has to reimplement it.
+- **Never resolve context.** Which registries the repo declares lives in its `## Context Registries` section; which articles a step reads is that step's own lookup. The orchestrator greps for the trace (`Context loaded:` lines) and nothing more — anything an orchestrator would have to *compute* belongs in a step or in a file, or the next orchestrator (a script, a CI job) has to reimplement it.
 - **Stay thin.** Carry only ticket, branch, and folder. All real content lives on disk; once a step returns, its artifact is the record.
 - **Do not do step work.** If a step fails, report it — do not finish the job yourself.
 - **Respect skippable.** A step marked skippable may be skipped when clearly irrelevant — say so and why.
@@ -142,7 +142,7 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 
 - [ ] Every step announced before it runs
 - [ ] Every auto step's outputs validated before advancing
-- [ ] The manifest's `## Context` section verified after step 00, and each later `.md`-producing step's `Context loaded:` line verified — by grep, never by resolving anything
+- [ ] Each `.md`-producing step's `Context loaded:` line verified — by grep, never by resolving anything
 - [ ] Both gates stopped for an explicit human decision
 - [ ] A resumed run continued at the correct step without redoing finished work
 - [ ] Every `isolation: subagent` step ran in a fresh context, not inline, carrying the step-runner prompt

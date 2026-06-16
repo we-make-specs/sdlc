@@ -38,7 +38,7 @@ Turns the approved design into the single work list implementation executes: tas
 
 ## Required context
 
-- `../../context-protocol.md` — resolve this step's binding context: the manifest's `## Context` map, filtered by `applies-to: 05-plan`. Record it as `Context loaded:` near the top of the plan. Guidelines, architecture, and known-deviations articles reach this step that way, and what they prescribe must be visible **in the tasks themselves** — a build step a guideline demands (code generation, a migration command) is a task detail, not background knowledge.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the guidelines, architecture, and known-deviations articles this step touches. Record a `Context loaded:` line near the top of the plan (`none applicable` when nothing is declared), and make what they prescribe visible **in the tasks themselves** — a build step a guideline demands (code generation, a migration command) is a task detail, not background knowledge.
 
 ## Artifacts
 

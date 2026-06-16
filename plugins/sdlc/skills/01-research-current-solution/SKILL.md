@@ -40,7 +40,7 @@ Produces a factual, code-grounded baseline of how the affected functionality wor
 
 ## Required context
 
-- `../../context-protocol.md` — resolve this step's binding context: the manifest's `## Context` map, filtered by `applies-to: 01-research-current-solution`. Record it as `Context loaded:` near the top of the research document. Architecture and component-catalog articles reach this step that way — never by a path hardcoded here.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the architecture and component-catalog articles this step touches. Record what you read as a `Context loaded:` line near the top of the research document; state `none applicable` when nothing is declared.
 
 ## Artifacts
 
