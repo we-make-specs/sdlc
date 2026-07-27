@@ -179,6 +179,6 @@ specifications live in a context registry, never inside the pipeline.
 
 The marketplace installs in both Claude Code and GitHub Copilot. The two runtimes read
 their manifests from different paths, so a handful of files are mirrored and must stay
-identical between the two. The details are in `MARKETPLACE.md` and in the root
+byte-identical between the two. The details are in `MARKETPLACE.md` and in the root
 instruction files. If you only use one runtime, you can ignore the mirroring and just
 install as shown above.
