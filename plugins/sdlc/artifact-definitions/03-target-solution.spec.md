@@ -1,12 +1,12 @@
 ---
-artifact: 03_target-solution.spec.md
+artifact: 03-target-solution.spec.md
 produced_by: 03-align
-consumed_by: [04-approve-target-solution, 05-plan, 07-review]
+consumed_by: [04-approve-target-solution, 05-plan, 06-implement, 07-review]
 required: true
 carries_approval: true
 ---
 
-# Contract — `03_target-solution.spec.md` (the design)
+# Contract — `03-target-solution.spec.md` (the design)
 
 ## Purpose
 
@@ -24,7 +24,7 @@ It carries the approval status in its header — approval lives in the artifact,
 | `## Architecture` | yes | affected components, new/modified files, data-model changes, port/adapter impact |
 | `## Data Flow` | yes | step-by-step trace of the primary flow(s) |
 | `## Migration / Rollout` | if applicable | migrations, flags, backward compatibility, phased rollout — or "not applicable" |
-| `## Testing Strategy` | yes | the *technical* strategy: which test type on which layer, what needs a harness or fixture. The **functional scenarios live in [`03_test-scenarios.spec.md`](03_test-scenarios.spec.md)** — do not duplicate them here |
+| `## Testing Strategy` | yes | the *technical* strategy: which test type on which layer, what needs a harness or fixture. The **functional scenarios live in [`03-test-scenarios.spec.md`](03-test-scenarios.spec.md)** — do not duplicate them here |
 
 ## Quality criteria
 
@@ -32,10 +32,10 @@ It carries the approval status in its header — approval lives in the artifact,
 - [ ] Architecture claims name **concrete paths**, not areas.
 - [ ] Data-model claims (migration numbers, schema state) are verified against the repository, not carried over from another document.
 - [ ] Edge cases are present: empty inputs, concurrency, failure paths, partial state, backward compatibility.
-- [ ] Consistent with `03_alignment.log.md` — the design satisfies every AC there, and adds no scope beyond it.
+- [ ] Consistent with `03-alignment.spec.md` — the design satisfies every AC there, and adds no scope beyond it.
 - [ ] Status is `APPROVED` with a name and a date before step 05 starts.
 
-## Companion — `03_target-overview.html` (required)
+## Companion — `03-target-overview.view.html` (required)
 
 A single self-contained page (inline CSS, diagrams as inline SVG, no external requests, renders offline from `file://`) — **the pre-read of gate 04**. It summarises intent, acceptance criteria, key decisions, architecture and data flow, renders the test scenarios under the verbatim scenario question (**"Which of these are wrong, and what is missing?"**), and shows the question-inventory status (Critical/Important all answered; deferrals listed). Its purpose is to make the gate a real review rather than a rubber stamp: the human opens one page instead of skimming three documents — the page links all three at the end, and approval is still given on the artifacts, not on the summary.
 
@@ -46,7 +46,7 @@ A single self-contained page (inline CSS, diagrams as inline SVG, no external re
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
 - **Status:** DRAFT | IN REVIEW | APPROVED · **Approved by:** <who> · **on:** <YYYY-MM-DD>
-- **Discussion:** [03_alignment.log.md](03_alignment.log.md)
+- **Discussion:** [03-alignment.spec.md](03-alignment.spec.md)
 
 ## Overview
 
@@ -77,5 +77,5 @@ A single self-contained page (inline CSS, diagrams as inline SVG, no external re
 - **Unit:** <…>
 - **Integration:** <…>
 - **Harness / fixtures needed:** <…>
-- **Functional scenarios:** see [03_test-scenarios.spec.md](03_test-scenarios.spec.md)
+- **Functional scenarios:** see [03-test-scenarios.spec.md](03-test-scenarios.spec.md)
 ```

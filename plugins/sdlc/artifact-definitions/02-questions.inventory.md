@@ -1,15 +1,15 @@
 ---
-artifact: 02_questions.log.md
+artifact: 02-questions.inventory.md
 produced_by: 02-analyze
-consumed_by: [03-align, 04-approve-target-solution]
+consumed_by: [03-align, 04-approve-target-solution, 05-plan]
 required: true
 ---
 
-# Contract — `02_questions.log.md` (question inventory)
+# Contract — `02-questions.inventory.md` (question inventory)
 
 ## Purpose
 
-Every point the story leaves open, written as questions a human can decide — found by step 02, asked and answered in step 03, checked at gate 04. The functional sibling of [`05_questions.log.md`](05_questions.log.md): same tiers, same fill-in lifecycle, one stage earlier.
+Every point the story leaves open, written as questions a human can decide — found by step 02, asked and answered in step 03, checked at gate 04. The functional sibling of [`05-technical-questions.inventory.md`](05-technical-questions.inventory.md): same tiers, same fill-in lifecycle, one stage earlier.
 
 The file does two jobs at once: it is the **agenda** of the alignment conversation, and the **trace** of how each point was settled. The alignment record distills what was agreed; this file keeps the full path — question, options, answer, rationale.
 
@@ -71,11 +71,11 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 - [ ] After step 03: no Critical or Important entry unanswered; deferrals carry an explicit rationale and reappear under Open Questions in the alignment record.
 - [ ] Answers that create durable commitments are also recorded in `decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
 
-## Companion — `02_questions.html` (required)
+## Companion — `02-questions.view.html` (required)
 
 A single self-contained page: inline CSS, diagrams as inline SVG, no external requests, renders offline from `file://`. It shows the inventory as a tiered, tracked agenda — counts up front, one card per question, coverage record at the end. Where a question sits in a flow, a small SVG sketch with the affected node marked beats a paragraph.
 
-Step 02 writes it; step 03 regenerates it after answers land, so it always shows the current state. Its purpose matches the target-overview page one gate later: the human opens one page and sees the whole conversation ahead instead of scrolling a log.
+Step 02 writes it; step 03 regenerates it after answers land, so it always shows the current state. Its purpose matches the target-overview page one gate later: the human opens one page and sees the whole conversation ahead instead of scrolling the raw inventory.
 
 ## Skeleton
 
@@ -83,7 +83,7 @@ Step 02 writes it; step 03 regenerates it after answers land, so it always shows
 # Question Inventory: <title>
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
-- **Manifest:** [00_manifest.state.md](00_manifest.state.md) · **Current state:** [01_current-solution.research.md](01_current-solution.research.md)
+- **Manifest:** [00-manifest.state.md](00-manifest.state.md) · **Current state:** [01-current-solution.research.md](01-current-solution.research.md)
 - **Open:** <n> Critical · <n> Important · <n> Clarification
 
 ## Critical

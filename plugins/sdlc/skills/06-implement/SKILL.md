@@ -44,10 +44,10 @@ Executes the plan's task list group by group, committing once per task, keeping 
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `05_implementation.plan.md` — the execution contract | [`artifact-definitions/05_implementation.plan.md`](../../artifact-definitions/05_implementation.plan.md) |
-| reads | `03_target-solution.spec.md` — reference only, when the plan is underspecified | [`artifact-definitions/03_target-solution.spec.md`](../../artifact-definitions/03_target-solution.spec.md) |
-| reads | `03_test-scenarios.spec.md` | [`artifact-definitions/03_test-scenarios.spec.md`](../../artifact-definitions/03_test-scenarios.spec.md) |
-| updates | `05_implementation.plan.md` — task checkboxes and progress log **only** | same contract |
+| reads | `05-implementation.plan.md` — the execution contract | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
+| reads | `03-target-solution.spec.md` — reference only, when the plan is underspecified | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
+| reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| updates | `05-implementation.plan.md` — task checkboxes and progress log **only** | same contract |
 | writes | `decisions.log.md` — decisions made during implementation | [`artifact-definitions/decisions.log.md`](../../artifact-definitions/decisions.log.md) |
 
 ---

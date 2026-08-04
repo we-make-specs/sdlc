@@ -1,6 +1,6 @@
 ---
 artifact: decisions.log.md
-produced_by: [05-plan, 06-implement, 09-merge]
+produced_by: [03-align, 05-plan, 06-implement, 09-merge]
 consumed_by: [all]
 required: false
 ---

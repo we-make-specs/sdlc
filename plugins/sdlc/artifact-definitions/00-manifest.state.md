@@ -1,11 +1,11 @@
 ---
-artifact: 00_manifest.state.md
+artifact: 00-manifest.state.md
 produced_by: 00-ensure-workspace
 consumed_by: [all]
 required: true
 ---
 
-# Contract — `00_manifest.state.md` (story identity)
+# Contract — `00-manifest.state.md` (story identity)
 
 ## Purpose
 
@@ -19,7 +19,7 @@ It also preserves the **original input verbatim** — the source of truth agains
 |---|---|---|
 | frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`) |
 | `## Original input` | yes | ticket text or brain dump, **unmodified** |
-| `## Artifact checklist` | yes | one row per artifact; only `00_manifest.state.md` ticked at creation |
+| `## Artifact checklist` | yes | one row per artifact; only `00-manifest.state.md` ticked at creation |
 | `## Blockers` | when blocked | append-only; one entry per blocker — see below |
 | `## People` | no | who clarifies, implements, reviews |
 | `## Affected components` | no | services/modules, checked against the component catalog |
@@ -36,7 +36,7 @@ Entry fields: **Missing** (what, concretely) · **Needed from** (person / team /
 - [ ] Branch name and folder path match the frontmatter.
 - [ ] `folder:` names the directory this file actually lives in — repo-relative, under `docs/sdlc/features/`, **inside the working repository**. Every step and the orchestrator treat it as authoritative; nothing re-derives the location, and nothing is ever written next to the input source.
 - [ ] `status: blocked` if and only if at least one Blockers entry is unresolved.
-- [ ] Only `00_manifest.state.md` is ticked at creation.
+- [ ] Only `00-manifest.state.md` is ticked at creation.
 - [ ] Free-text stories (no ticket) use `ticket: none` and derive the title from the first meaningful line.
 
 ## Skeleton
@@ -61,17 +61,17 @@ status: in-progress
 
 ## Artifact checklist
 
-- [x] `00_manifest.state.md` — this file
-- [ ] `01_current-solution.research.md` — current state (step 01)
-- [ ] `02_questions.log.md` — question inventory (step 02, answered in step 03)
-- [ ] `02_questions.html` — question pre-read (step 02, regenerated in step 03)
-- [ ] `03_alignment.log.md` — alignment record (step 03)
-- [ ] `03_target-solution.spec.md` — target design (step 03)
-- [ ] `03_test-scenarios.spec.md` — test scenarios (step 03)
-- [ ] `03_target-overview.html` — gate pre-read (step 03)
-- [ ] `05_technical-analysis.research.md` — technical analysis (step 05, optional)
-- [ ] `05_questions.log.md` — technical questions (step 05, optional)
-- [ ] `05_implementation.plan.md` — executable plan incl. progress log (step 05)
+- [x] `00-manifest.state.md` — this file
+- [ ] `01-current-solution.research.md` — current state (step 01)
+- [ ] `02-questions.inventory.md` — question inventory (step 02, answered in step 03)
+- [ ] `02-questions.view.html` — question pre-read (step 02, regenerated in step 03)
+- [ ] `03-alignment.spec.md` — alignment record (step 03)
+- [ ] `03-target-solution.spec.md` — target design (step 03)
+- [ ] `03-test-scenarios.spec.md` — test scenarios (step 03)
+- [ ] `03-target-overview.view.html` — gate pre-read (step 03)
+- [ ] `05-technical-analysis.research.md` — technical analysis (step 05, optional)
+- [ ] `05-technical-questions.inventory.md` — technical questions (step 05, optional)
+- [ ] `05-implementation.plan.md` — executable plan incl. progress log (step 05)
 - [ ] `decisions.log.md` — decision log (cross-cutting)
 
 ## Blockers

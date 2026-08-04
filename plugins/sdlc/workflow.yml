@@ -39,7 +39,7 @@ steps:
     isolation: subagent
     model: fast
     skippable: false
-    outputs: [00_manifest.state.md]
+    outputs: [00-manifest.state.md]
 
   - id: "01"
     skill: 01-research-current-solution
@@ -47,7 +47,7 @@ steps:
     isolation: subagent
     model: strong
     skippable: true
-    outputs: [01_current-solution.research.md]
+    outputs: [01-current-solution.research.md]
 
   - id: "02"
     skill: 02-analyze
@@ -55,7 +55,7 @@ steps:
     isolation: subagent
     model: strong
     skippable: false
-    outputs: [02_questions.log.md, 02_questions.html]
+    outputs: [02-questions.inventory.md, 02-questions.view.html]
 
   - id: "03"
     skill: 03-align
@@ -63,7 +63,7 @@ steps:
     isolation: main
     model: strong
     skippable: false
-    outputs: [03_alignment.log.md, 03_target-solution.spec.md, 03_test-scenarios.spec.md, 03_target-overview.html]
+    outputs: [03-alignment.spec.md, 03-target-solution.spec.md, 03-test-scenarios.spec.md, 03-target-overview.view.html]
 
   - id: "04"
     skill: 04-approve-target-solution
@@ -79,7 +79,7 @@ steps:
     isolation: subagent
     model: strong
     skippable: false
-    outputs: [05_implementation.plan.md]
+    outputs: [05-implementation.plan.md]
 
   - id: "06"
     skill: 06-implement

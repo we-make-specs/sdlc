@@ -46,7 +46,7 @@ Bootstraps or recognises the feature workspace: parses the input, ensures the br
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| writes | `00_manifest.state.md` | [`artifact-definitions/00_manifest.state.md`](../../artifact-definitions/00_manifest.state.md) |
+| writes | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
 
 ---
 

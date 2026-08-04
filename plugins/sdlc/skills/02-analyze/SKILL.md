@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Decomposes the story into atomic claims, probes each claim against the current state and against itself, and writes every unresolved point as a **self-contained, tiered, tracked question** into `02_questions.log.md` — the agenda the alignment conversation works through, and the pre-read the human opens as `02_questions.html`.
+Decomposes the story into atomic claims, probes each claim against the current state and against itself, and writes every unresolved point as a **self-contained, tiered, tracked question** into `02-questions.inventory.md` — the agenda the alignment conversation works through, and the pre-read the human opens as `02-questions.view.html`.
 
 This step **finds** the questions; it never asks them. Asking is step 03's job, live with the human.
 
@@ -41,16 +41,16 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 
 ## Required context
 
-- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the glossary and component-catalog articles this step touches. Record a `Context loaded:` line near the top of the question log (`none applicable` when nothing is declared); term mismatches are hunted against whatever glossary the registries hold.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the glossary and component-catalog articles this step touches. Record a `Context loaded:` line near the top of the question inventory (`none applicable` when nothing is declared); term mismatches are hunted against whatever glossary the registries hold.
 
 ## Artifacts
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `00_manifest.state.md` | [`artifact-definitions/00_manifest.state.md`](../../artifact-definitions/00_manifest.state.md) |
-| reads *(when present)* | `01_current-solution.research.md` | [`artifact-definitions/01_current-solution.research.md`](../../artifact-definitions/01_current-solution.research.md) |
-| writes | `02_questions.log.md` | [`artifact-definitions/02_questions.log.md`](../../artifact-definitions/02_questions.log.md) |
-| writes | `02_questions.html` — the human's pre-read | companion section of the same contract |
+| reads | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
+| reads *(when present)* | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
+| writes | `02-questions.inventory.md` | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
+| writes | `02-questions.view.html` — the human's pre-read | companion section of the same contract |
 
 ---
 
@@ -84,7 +84,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 
 ## Output contract
 
-`02_questions.log.md` and `02_questions.html` written per contract, manifest row ticked. Returns a digest: question counts by tier and track, the Critical titles, and the categories that came back clean. Detail stays in the artifacts.
+`02-questions.inventory.md` and `02-questions.view.html` written per contract, manifest row ticked. Returns a digest: question counts by tier and track, the Critical titles, and the categories that came back clean. Detail stays in the artifacts.
 
 ---
 
@@ -103,5 +103,5 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 - [ ] Every hunt category has findings or an explicit "none found" in the coverage record
 - [ ] Every entry is self-contained, tiered, and tracked
 - [ ] Every entry carries options and a recommendation; agent-answerable ones carry a proposed answer
-- [ ] `02_questions.html` written and consistent with the log
+- [ ] `02-questions.view.html` written and consistent with the inventory
 - [ ] Nothing asked, nothing designed, nothing outside the story's scope

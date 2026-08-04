@@ -86,7 +86,7 @@ The same principle applies to project knowledge: a step declares *which* context
 | | |
 |---|---|
 | **Skills** | `run` (the orchestrator) + `00-…` … `09-…` — one skill per pipeline step |
-| **Artifacts** | 9 contracts covering the chain from manifest to decision log |
+| **Artifacts** | 10 contracts covering the chain from manifest to decision log |
 | **Manifest** | `workflow.yml` — step order, type (auto/collab/gate), model tier, outputs to validate |
 
 See [`plugins/sdlc/skills/run/SKILL.md`](plugins/sdlc/skills/run/SKILL.md) for how the pipeline runs, and [`plugins/sdlc/artifact-definitions/README.md`](plugins/sdlc/artifact-definitions/README.md) for the artifact chain.

@@ -44,15 +44,15 @@ Turns the approved design into the single work list implementation executes: tas
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `00_manifest.state.md` | [`artifact-definitions/00_manifest.state.md`](../../artifact-definitions/00_manifest.state.md) |
-| reads | `01_current-solution.research.md` | [`artifact-definitions/01_current-solution.research.md`](../../artifact-definitions/01_current-solution.research.md) |
-| reads | `03_alignment.log.md` — source of the verbatim copy | [`artifact-definitions/03_alignment.log.md`](../../artifact-definitions/03_alignment.log.md) |
-| reads | `03_target-solution.spec.md` — must be `APPROVED` | [`artifact-definitions/03_target-solution.spec.md`](../../artifact-definitions/03_target-solution.spec.md) |
-| reads | `03_test-scenarios.spec.md` | [`artifact-definitions/03_test-scenarios.spec.md`](../../artifact-definitions/03_test-scenarios.spec.md) |
-| reads *(optional)* | `02_questions.log.md` — the answered rationales, when the plan needs the why behind a decision | [`artifact-definitions/02_questions.log.md`](../../artifact-definitions/02_questions.log.md) |
-| writes | `05_implementation.plan.md` | [`artifact-definitions/05_implementation.plan.md`](../../artifact-definitions/05_implementation.plan.md) |
-| writes *(optional)* | `05_technical-analysis.research.md` | [`artifact-definitions/05_technical-analysis.research.md`](../../artifact-definitions/05_technical-analysis.research.md) |
-| writes *(optional)* | `05_questions.log.md` | [`artifact-definitions/05_questions.log.md`](../../artifact-definitions/05_questions.log.md) |
+| reads | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
+| reads | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
+| reads | `03-alignment.spec.md` — source of the verbatim copy | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-target-solution.spec.md` — must be `APPROVED` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
+| reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| reads *(optional)* | `02-questions.inventory.md` — the answered rationales, when the plan needs the why behind a decision | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
+| writes | `05-implementation.plan.md` | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
+| writes *(optional)* | `05-technical-analysis.research.md` | [`artifact-definitions/05-technical-analysis.research.md`](../../artifact-definitions/05-technical-analysis.research.md) |
+| writes *(optional)* | `05-technical-questions.inventory.md` | [`artifact-definitions/05-technical-questions.inventory.md`](../../artifact-definitions/05-technical-questions.inventory.md) |
 
 ---
 
@@ -69,7 +69,7 @@ Turns the approved design into the single work list implementation executes: tas
 
 ## Output contract
 
-`05_implementation.plan.md` written per contract with an empty progress log, optional pre-stage artifacts, manifest rows ticked. Returns task count, group structure, and any uncertainty encoded as a check. No commits, no code.
+`05-implementation.plan.md` written per contract with an empty progress log, optional pre-stage artifacts, manifest rows ticked. Returns task count, group structure, and any uncertainty encoded as a check. No commits, no code.
 
 ---
 

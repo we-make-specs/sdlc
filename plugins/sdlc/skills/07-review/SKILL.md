@@ -44,10 +44,10 @@ Reviews the pull request against the agreement and the design — not against th
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `03_alignment.log.md` — the acceptance criteria are the pass/fail gates | [`artifact-definitions/03_alignment.log.md`](../../artifact-definitions/03_alignment.log.md) |
-| reads | `03_target-solution.spec.md` — the design reviewed against | [`artifact-definitions/03_target-solution.spec.md`](../../artifact-definitions/03_target-solution.spec.md) |
-| reads | `03_test-scenarios.spec.md` | [`artifact-definitions/03_test-scenarios.spec.md`](../../artifact-definitions/03_test-scenarios.spec.md) |
-| **must not read** | `05_implementation.plan.md` | [`artifact-definitions/05_implementation.plan.md`](../../artifact-definitions/05_implementation.plan.md) |
+| reads | `03-alignment.spec.md` — the acceptance criteria are the pass/fail gates | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-target-solution.spec.md` — the design reviewed against | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
+| reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| **must not read** | `05-implementation.plan.md` | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
 | writes | PR review (no repository files) | — |
 
 > ⛔ **The plan is off-limits.** It carries the implementer's framing, task list, and progress log. Reading it means inheriting their conclusions, and an independent review becomes a rubber stamp. Ignore references to it in other artifacts.

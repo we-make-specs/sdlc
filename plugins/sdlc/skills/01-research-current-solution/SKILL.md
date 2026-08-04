@@ -4,7 +4,7 @@ description: Pipeline step 01 (AUTO) — investigate how the functionality affec
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.5.0'
   tags: sdlc, step, research, current-state
 ---
 
@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Produces a factual, code-grounded baseline of how the affected functionality works today: structure, key files, data flow, extension points. It describes the existing system and nothing else.
+Produces a factual, code-grounded baseline of how the affected functionality works today: concepts, structure, flows, data across the layers, test coverage. It describes the existing system and nothing else. The document reads clean: evidence IDs in the body, exact `path:line` locations only in the source map at the end.
 
 ## When to use this skill
 
@@ -46,8 +46,8 @@ Produces a factual, code-grounded baseline of how the affected functionality wor
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `00_manifest.state.md` | [`artifact-definitions/00_manifest.state.md`](../../artifact-definitions/00_manifest.state.md) |
-| writes | `01_current-solution.research.md` | [`artifact-definitions/01_current-solution.research.md`](../../artifact-definitions/01_current-solution.research.md) |
+| reads | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
+| writes | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
 
 ---
 
@@ -58,13 +58,13 @@ Produces a factual, code-grounded baseline of how the affected functionality wor
 3. **Investigate:** search broadly first (many directories, few reads), then grep for concrete symbols, routes, and config keys, then read only the highest-signal files. Follow imports from entry points inward.
 4. **Trust the code over the docs.** Use documentation only for confirmation; where the two disagree, report the code's behaviour and note the discrepancy.
 5. **Stop** once you can describe what the functionality does today, which files participate, how data flows, and where a change would naturally land.
-6. **Write the artifact** per its contract, then tick the manifest row.
+6. **Write the artifact** per its contract: conceptual model first, functional groups along the decomposition axis that fits the story, evidence IDs in the body, exact locations only in the source map. Then tick the manifest row.
 
 ---
 
 ## Output contract
 
-`01_current-solution.research.md` written per contract, manifest row ticked. Returns a 3–5 line summary: what it does today, the key files, and the top open questions for the analysis. Detail stays in the document.
+`01-current-solution.research.md` written per contract, manifest row ticked. Returns a 3–5 line summary: what it does today, the key files, and the top open questions for the analysis. Detail stays in the document.
 
 ---
 
@@ -73,13 +73,15 @@ Produces a factual, code-grounded baseline of how the affected functionality wor
 - **No speculation.** Anything not verifiable in code goes under "Unresolved". This is the defining rule of the artifact.
 - **No proposals.** No changes, alternatives, or improvements — that is step 03.
 - **No builds or tests.** This step is investigative, not executive.
+- **No companion files.** The research document is the only output of this step: no HTML preview, no overview page, no details appendix.
 - **No partial documents.** On abort, leave nothing behind.
 
 ---
 
 ## Success criteria
 
-- [ ] Every load-bearing claim carries a `path:line` citation
+- [ ] Every factual claim carries an evidence ID that resolves exactly once in the source map to an exact `path:line` location
+- [ ] Full paths appear only in the source map; the body stays readable
 - [ ] The unresolved section is genuinely populated where the code was ambiguous
 - [ ] Scope stayed inside the story text
 - [ ] Nothing proposed, only described

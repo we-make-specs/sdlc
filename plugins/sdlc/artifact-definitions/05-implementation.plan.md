@@ -1,12 +1,12 @@
 ---
-artifact: 05_implementation.plan.md
+artifact: 05-implementation.plan.md
 produced_by: 05-plan
 consumed_by: [06-implement, 08-review-pr]
 forbidden_for: [07-review]
 required: true
 ---
 
-# Contract — `05_implementation.plan.md` (executable plan)
+# Contract — `05-implementation.plan.md` (executable plan)
 
 ## Purpose
 
@@ -21,8 +21,8 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 | Section | Required | Content |
 |---|---|---|
 | frontmatter | yes | ticket, based_on, created, `max_advisor_rounds` |
-| `## Acceptance Criteria` | yes | **verbatim** from `03_alignment.log.md` |
-| `## Out of Scope` | yes | **verbatim** from `03_alignment.log.md` |
+| `## Acceptance Criteria` | yes | **verbatim** from `03-alignment.spec.md` |
+| `## Out of Scope` | yes | **verbatim** from `03-alignment.spec.md` |
 | `## Tasks` | yes | each with Group, Files, Done-when; optional Depends-on |
 | `## Advisor Checks` | yes | verification beyond the ACs |
 | `## Progress Log` | yes | empty placeholder at creation; step 06 appends |
@@ -39,10 +39,10 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 
 ## Quality criteria
 
-- [ ] ACs and out-of-scope are **character-identical** to `03_alignment.log.md`. Not reordered, not "improved", nothing dropped.
+- [ ] ACs and out-of-scope are **character-identical** to `03-alignment.spec.md`. Not reordered, not "improved", nothing dropped.
 - [ ] Every task has exact file paths and exactly one done-when that can be checked mechanically (file exists, test passes).
 - [ ] Parallelism is conservative — tasks are only in the same group when they obviously touch disjoint files. When in doubt, sequential.
-- [ ] Every task traces back to something `03_target-solution.spec.md` specifies. A task with no basis there is scope creep.
+- [ ] Every task traces back to something `03-target-solution.spec.md` specifies. A task with no basis there is scope creep.
 - [ ] Genuine ambiguity is encoded as an advisor check, not silently decided.
 - [ ] Progress log is empty at creation — step 05 never pre-fills it.
 
@@ -51,7 +51,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 ```markdown
 ---
 ticket: <ID>
-based_on: 03_alignment.log.md, 03_target-solution.spec.md
+based_on: 03-alignment.spec.md, 03-target-solution.spec.md
 created: <YYYY-MM-DD HH:MM>
 max_advisor_rounds: 3
 ---
@@ -59,16 +59,16 @@ max_advisor_rounds: 3
 # Plan: <title>
 
 **Story:** <one-sentence recap>
-**Manifest:** [00_manifest.state.md](00_manifest.state.md)
-**Target Solution:** [03_target-solution.spec.md](03_target-solution.spec.md)
+**Manifest:** [00-manifest.state.md](00-manifest.state.md)
+**Target Solution:** [03-target-solution.spec.md](03-target-solution.spec.md)
 
 ## Acceptance Criteria
-*(copied verbatim from 03_alignment.log.md)*
+*(copied verbatim from 03-alignment.spec.md)*
 
 - [ ] <verbatim>
 
 ## Out of Scope
-*(copied verbatim from 03_alignment.log.md)*
+*(copied verbatim from 03-alignment.spec.md)*
 
 - <verbatim>
 

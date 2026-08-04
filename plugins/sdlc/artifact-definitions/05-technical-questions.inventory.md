@@ -1,15 +1,15 @@
 ---
-artifact: 05_questions.log.md
+artifact: 05-technical-questions.inventory.md
 produced_by: 05-plan
 consumed_by: [05-plan]
 required: false
 ---
 
-# Contract — `05_questions.log.md` (technical questions, optional)
+# Contract — `05-technical-questions.inventory.md` (technical questions, optional)
 
 ## Purpose
 
-Technical questions that surface during planning — collected, **prioritised**, and answered with a rationale. Optional, and normally created together with `05_technical-analysis.research.md`. The technical sibling of [`02_questions.log.md`](02_questions.log.md): same tiers, same fill-in lifecycle, one stage later.
+Technical questions that surface during planning — collected, **prioritised**, and answered with a rationale. Optional, and normally created together with `05-technical-analysis.research.md`. The technical sibling of [`02-questions.inventory.md`](02-questions.inventory.md): same tiers, same fill-in lifecycle, one stage later.
 
 The rationale is the actual value. An answer without one gets re-litigated; an answer with one settles the matter.
 

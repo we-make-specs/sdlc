@@ -1,11 +1,11 @@
 ---
-artifact: 05_technical-analysis.research.md
+artifact: 05-technical-analysis.research.md
 produced_by: 05-plan
 consumed_by: [05-plan]
 required: false
 ---
 
-# Contract — `05_technical-analysis.research.md` (technical pre-stage, optional)
+# Contract — `05-technical-analysis.research.md` (technical pre-stage, optional)
 
 ## Purpose
 
@@ -48,7 +48,7 @@ Every deviation needs a stated handling, e.g. *"existing code stays as is, new c
 # Technical Analysis: <title>
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
-- **Based on:** 03_alignment.log.md, 03_target-solution.spec.md
+- **Based on:** 03-alignment.spec.md, 03-target-solution.spec.md
 
 ## Technical summary
 

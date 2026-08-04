@@ -44,20 +44,20 @@ Stops the pipeline and asks a human to approve the design before automated plann
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `02_questions.log.md` — no Critical entry may be open | [`artifact-definitions/02_questions.log.md`](../../artifact-definitions/02_questions.log.md) |
-| reads | `03_alignment.log.md` | [`artifact-definitions/03_alignment.log.md`](../../artifact-definitions/03_alignment.log.md) |
-| reads | `03_target-solution.spec.md` | [`artifact-definitions/03_target-solution.spec.md`](../../artifact-definitions/03_target-solution.spec.md) |
-| reads | `03_test-scenarios.spec.md` | [`artifact-definitions/03_test-scenarios.spec.md`](../../artifact-definitions/03_test-scenarios.spec.md) |
-| updates | `03_target-solution.spec.md` — status, approver, date | same contract |
-| updates | `03_test-scenarios.spec.md` — status, approver, date | same contract |
+| reads | `02-questions.inventory.md` — no Critical entry may be open | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
+| reads | `03-alignment.spec.md` | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
+| reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| updates | `03-target-solution.spec.md` — status, approver, date | same contract |
+| updates | `03-test-scenarios.spec.md` — status, approver, date | same contract |
 
 ---
 
 ## Workflow
 
-1. **Pre-check** that all three artifacts and the overview page exist and that no Critical entry in `02_questions.log.md` is unanswered — where missing-input entries count as answered **only when the input is actually present and verifiable**, not merely promised. Anything missing or open → report that step 03 is incomplete and stop. Do not ask for approval on an incomplete set.
+1. **Pre-check** that all three artifacts and the overview page exist and that no Critical entry in `02-questions.inventory.md` is unanswered — where missing-input entries count as answered **only when the input is actually present and verifiable**, not merely promised. Anything missing or open → report that step 03 is incomplete and stop. Do not ask for approval on an incomplete set.
 2. **Present the briefing** with precise, clickable pointers:
-   - what to open: `03_target-overview.html` first — it is the pre-read this gate runs on — then the alignment record (acceptance criteria, key decisions) and the target solution (the design)
+   - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the alignment record (acceptance criteria, key decisions) and the target solution (the design)
    - **inline**, so the human knows what to scrutinise: the acceptance criteria and open questions verbatim, plus the key-decision titles
    - what to verify: do intent and ACs match what was discussed? Are architecture and data flow accurate? Is anything important missing or misrepresented?
    - the test scenarios, shown as a **question, not a list**: "Which of these are wrong, and what is missing?" — a scenario pass needs an answer, not a nod
@@ -69,7 +69,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 
 ## Output contract
 
-No new files. Either the approval recorded in `03_target-solution.spec.md` and `03_test-scenarios.spec.md` and control returned to advance, or the requested changes handed back to step 03.
+No new files. Either the approval recorded in `03-target-solution.spec.md` and `03-test-scenarios.spec.md` and control returned to advance, or the requested changes handed back to step 03.
 
 ---
 
