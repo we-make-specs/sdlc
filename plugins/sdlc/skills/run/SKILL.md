@@ -50,7 +50,7 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 
 ## Workflow
 
-1. **Resume or start.** Locate the feature folder: find the `00-manifest.state.md` under `docs/sdlc/features/**` whose `branch` matches the current branch — its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. Otherwise, the first step whose declared `outputs` are missing is the next step. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
+1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. Otherwise, the first step whose declared `outputs` are missing is the next step. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
 2. **Collect the delivery profile at kickoff.** For a new run in an interactive session, ask the three profile questions the manifest contract defines (PR audience, review placement, questioning mode) before invoking step 00, and pass the answers along for it to record. Headless, or when the human gives no preference: the defaults apply silently. Never re-ask on a resume — the manifest already carries the profile.
 3. **Announce the step** (number, name, type) so the run stays legible.
 4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`.
@@ -79,8 +79,8 @@ Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
    You inherit nothing from the session that spawned you — that isolation is
    deliberate; do not ask it for more context.
 3. Write only the artifacts the skill declares, per their contracts, inside the
-   feature folder — never outside the working repository — and tick only your own
-   manifest row.
+   feature folder — never outside the working repository — and update only your
+   own manifest ledger rows.
 4. Ask no human questions. Anything undecidable goes into the artifact the skill
    designates for open points, marked as such. If you are blocked, append a Blockers
    entry to the manifest (what is missing · needed from · blocking step · since ·
