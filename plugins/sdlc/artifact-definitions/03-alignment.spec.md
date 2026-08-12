@@ -17,6 +17,7 @@ It is the origin of the acceptance criteria, which every later stage quotes verb
 
 | Section | Required | Content |
 |---|---|---|
+| header block | yes | ticket, created; after approval, dated `Correction:` / `Amendment:` entries per the amendment protocol (catalog README, rule 8) when a change happens |
 | `## Intent` | yes | 1–2 sentences: what the story is about and why |
 | `## Acceptance Criteria` | yes | numbered checkbox list, each item concrete and testable |
 | `## Key Decisions` | yes | every direction-setting call, each with a `Rationale:` |

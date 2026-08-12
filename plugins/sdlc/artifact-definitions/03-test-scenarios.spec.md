@@ -20,7 +20,7 @@ This artifact exists because of a specific failure: tests get written, but *what
 
 | Section | Required | Content |
 |---|---|---|
-| header block | yes | ticket, created, **status** (`DRAFT` / `IN REVIEW` / `APPROVED`), approved-by, approved-on |
+| header block | yes | ticket, created, **status** (`DRAFT` / `IN REVIEW` / `APPROVED`), approved-by, approved-on; after approval, dated `Correction:` / `Amendment:` entries per the amendment protocol (catalog README, rule 8) when a change happens |
 | `## Happy Path Scenarios` | yes | the normal business cases, numbered, one line each |
 | `## Exceptional Scenarios` | yes | error, conflict, empty, boundary and permission cases |
 | `## Test Data` | yes | rough data per scenario — enough to recognise it, not a fixture file |
