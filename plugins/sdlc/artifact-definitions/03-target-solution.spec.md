@@ -38,7 +38,7 @@ It carries the approval status in its header — approval lives in the artifact,
 
 ## Companion — `03-target-overview.view.html` (required)
 
-A single self-contained page (inline CSS, diagrams as inline SVG, no external requests, renders offline from `file://`) — **the pre-read of gate 04**. It summarises intent, acceptance criteria, key decisions, architecture and data flow, renders the test scenarios under the verbatim scenario question (**"Which of these are wrong, and what is missing?"**), and shows the question-inventory status (Critical/Important all answered; deferrals listed). Its purpose is to make the gate a real review rather than a rubber stamp: the human opens one page instead of skimming three documents — the page links all three at the end, and approval is still given on the artifacts, not on the summary.
+A single self-contained page (inline CSS, diagrams as inline SVG, no external requests, renders offline from `file://`) — **the pre-read of gate 04**. It summarises intent, acceptance criteria, key decisions, architecture and data flow, renders the test scenarios under the verbatim scenario question (**"Which of these are wrong, and what is missing?"**), and shows the question-inventory status (Critical/Important all answered; deferrals listed). It also lists every `assumed` answer with its verification owner and due point, and, once one exists, the corrections and amendments recorded since approval, so the one page carries everything the decision rests on. Its purpose is to make the gate a real review rather than a rubber stamp: the human opens one page instead of skimming three documents — the page links all three at the end, and approval is still given on the artifacts, not on the summary.
 
 ## Skeleton
 
