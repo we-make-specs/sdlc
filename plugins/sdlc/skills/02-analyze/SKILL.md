@@ -57,7 +57,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 ## Workflow
 
 1. **Rehydrate.** Feature folder or manifest missing → abort with a clear error. Read the original input and the current-state research fully.
-2. **Decompose the story into atomic claims.** Every sentence that asserts a behaviour, a constraint, or a scope boundary becomes one numbered claim. This list is the working surface for the hunt.
+2. **Decompose the story into atomic claims.** Every sentence that asserts a behaviour, a constraint, or a scope boundary becomes one numbered claim. This list is the working surface for the hunt, and it is recorded as the inventory's atomic-claims table; entries cite these IDs in their Evidence.
 3. **Run every probe in the hunt table** over the claims and the current state. Top to bottom, skip none.
 4. **Write each finding as a self-contained entry** per the contract: tier, track, category, context, evidence, the question itself, options with trade-offs, your own recommendation — and, where you can answer with high confidence yourself, a proposed answer for the human to merely confirm.
 5. **Record coverage.** Every category ends with findings or an explicit `none found` line. A category without a line means the hunt is unfinished, not that nothing was found.
@@ -101,6 +101,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 ## Success criteria
 
 - [ ] Every hunt category has findings or an explicit "none found" in the coverage record
+- [ ] The atomic-claims table is recorded, and every entry's Evidence names the claims it probes
 - [ ] Every entry is self-contained, tiered, and tracked
 - [ ] Every entry carries options and a recommendation; agent-answerable ones carry a proposed answer
 - [ ] `02-questions.view.html` written and consistent with the inventory
