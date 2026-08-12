@@ -59,6 +59,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 2. **Present the briefing** with precise, clickable pointers:
    - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the alignment record (acceptance criteria, key decisions) and the target solution (the design)
    - **inline**, so the human knows what to scrutinise: the acceptance criteria and open questions verbatim, plus the key-decision titles
+   - the open assumptions: every `assumed` answer verbatim, with its verification owner and due point. Approving over one is a conscious act, not an oversight
    - what to verify: do intent and ACs match what was discussed? Are architecture and data flow accurate? Is anything important missing or misrepresented?
    - the test scenarios, shown as a **question, not a list**: "Which of these are wrong, and what is missing?" — a scenario pass needs an answer, not a nod
 3. **Ask decision-friendly:** "A: approve and continue to planning. B: name the changes; I return to step 03 and revise."
@@ -85,6 +86,7 @@ No new files. Either the approval recorded in `03-target-solution.spec.md` and `
 
 - [ ] The human was given exact things to open, not a summary to trust
 - [ ] Acceptance criteria were shown inline, verbatim
+- [ ] Open assumptions were shown verbatim with owner and due point
 - [ ] An explicit decision was recorded
 - [ ] The scenario question got an explicit answer
 - [ ] On approval: status, a real name or handle (no placeholders), and date written into the artifact

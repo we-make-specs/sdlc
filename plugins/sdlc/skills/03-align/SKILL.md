@@ -63,7 +63,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 1. **Rehydrate.** Inventory missing → abort and point at step 02. Read manifest, current state, and every inventory entry.
 2. **Open with the digest:** question counts by tier and track, and the pointer to `02-questions.view.html` as the pre-read. Offer the async option explicitly — the human may answer any entry directly in the file instead of live.
 3. **Work the agenda, Critical first, one question per round** (two only when tightly coupled). Render every question with the template below — as a normal chat message, whatever the runtime. Entries with a proposed answer are presented for confirmation, not re-derived.
-4. **Record before moving on.** Each answer goes into the inventory immediately — answer, rationale, who/when — and directional answers are mirrored back and confirmed before the next round.
+4. **Record before moving on.** Each answer goes into the inventory immediately — answer, rationale, who/when — and directional answers are mirrored back and confirmed before the next round. A question the human cannot settle authoritatively may be answered as an explicit assumption: record it as `assumed` with a named verification owner and due point, and mirror it into the alignment record's Constraints.
 5. **Keep hunting.** Answers create new gaps: when one appears, append it to the inventory in the same format and tier, and say so. The inventory seeds the conversation; it does not bound it.
 6. **Iterate until the human signals alignment.** When unsure, ask with concrete options: "A: I write the artifacts now. B: We clarify <point> first."
 7. **Draft the test scenarios and ask the scenario question.** Functional scenarios + rough test data + the exceptional cases — then ask, verbatim: **"Which of these are wrong, and what is missing?"** A nod is not an answer; iterate until the human names changes or explicitly confirms they checked.
@@ -113,6 +113,7 @@ The counter gives the human progress; the recommendation gives them a default; t
 
 - [ ] Every Critical and Important entry answered, or explicitly deferred with a rationale
 - [ ] Every answer recorded in the inventory with rationale and who/when; live findings appended, not lost
+- [ ] Every assumed answer carries a verification owner and due point and reappears under Constraints
 - [ ] Every question rendered with the template — none improvised
 - [ ] Every acceptance criterion is concrete and testable
 - [ ] Every key decision carries a rationale
