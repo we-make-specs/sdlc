@@ -17,6 +17,12 @@ The file does two jobs at once: it is the **agenda** of the alignment conversati
 
 **Every entry is self-contained.** Step 03 may run in another session, another runtime, or another surface entirely (CLI, chat window, workshop page). Each entry therefore carries everything needed to ask it well — context, evidence, options, recommendation — without access to the analysis session's memory. An entry that needs the analysis session to be understood is not finished.
 
+## Atomic claims
+
+The inventory opens with the story's decomposition: every assertion the story makes about behaviour, a constraint, or a scope boundary becomes one numbered claim (`C1`, `C2`, …) in a table of claim, assertion, and evidence. The hunt runs over these claims, and each entry names the claim IDs it probes in its Evidence field.
+
+Recording the claims makes coverage checkable in both directions: a claim no entry references was either genuinely unambiguous or missed, and the written table is what lets a reviewer tell which.
+
 ## Lifecycle
 
 | Phase | Who | What happens to this file |
@@ -49,7 +55,7 @@ A question that is genuinely both is `functional` — what-questions outrank how
 | title line | yes | `Q<n> — [tier] [track] <short name>` |
 | Category | yes | the hunt category that found it (see step 02's hunt table) |
 | Context | yes | 1–2 sentences of background a newcomer needs |
-| Evidence | yes | story quote and/or `path:line` — what makes this a real question |
+| Evidence | yes | the claim IDs this entry probes, plus story quote and/or `path:line` — what makes this a real question |
 | Question | yes | one sentence, answerable |
 | Options | yes | each with its trade-off |
 | Recommendation | yes | the agent's own pick, with the reason — never a menu without a pick |
@@ -64,6 +70,7 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 ## Quality criteria
 
 - [ ] Every entry passes the stranger test: someone who never saw the analysis session could ask it well from the file alone.
+- [ ] The atomic-claims table is present, and every entry's Evidence names the claims it probes.
 - [ ] A **missing-inputs** entry is answered only when the input itself is available and verified — the file in the repo, the schema resolvable, the access confirmed. A policy or a promise ("use the official one") keeps the entry open; implementation cannot execute a promise. Every missing-inputs entry carries `Needed from:`.
 - [ ] Every entry is tiered and tracked; both-track collisions resolve to `functional`.
 - [ ] Every option list ends with a recommendation.
@@ -86,13 +93,20 @@ Step 02 writes it; step 03 regenerates it after answers land, so it always shows
 - **Manifest:** [00-manifest.state.md](00-manifest.state.md) · **Current state:** [01-current-solution.research.md](01-current-solution.research.md)
 - **Open:** <n> Critical · <n> Important · <n> Clarification
 
+## Atomic claims
+
+| Claim | Story assertion | Evidence |
+|---|---|---|
+| C1 | <one assertion the story makes> | "<story quote>" · `path/to/file:42` |
+| C2 | <the next assertion> | "<story quote>" |
+
 ## Critical
 
 ### Q1 — [Critical] [technical] <short name>
 
 - **Category:** <hunt category>
 - **Context:** <1–2 sentences a newcomer needs>
-- **Evidence:** "<story quote>" · `path/to/file:42`
+- **Evidence:** C1 · "<story quote>" · `path/to/file:42`
 - **Question:** <one sentence>
 - **Options:**
   - **A:** <option> — <trade-off>
