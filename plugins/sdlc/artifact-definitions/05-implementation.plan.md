@@ -25,6 +25,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 | `## Out of Scope` | yes | **verbatim** from `03-alignment.spec.md` |
 | `## Tasks` | yes | each with Group, Files, Done-when; optional Depends-on |
 | `## Advisor Checks` | yes | verification beyond the ACs |
+| `## Release Readiness Gates` | if applicable | delivery gates that are not pull requests: each names its condition, its owner, and what it blocks |
 | `## Progress Log` | yes | empty placeholder at creation; step 06 appends |
 
 ### Task fields
@@ -44,6 +45,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 - [ ] Parallelism is conservative — tasks are only in the same group when they obviously touch disjoint files. When in doubt, sequential.
 - [ ] Every task traces back to something `03-target-solution.spec.md` specifies. A task with no basis there is scope creep.
 - [ ] Genuine ambiguity is encoded as an advisor check, not silently decided.
+- [ ] A condition outside the repository (a deployment precondition, an external party's confirmation, post-release verification) is a release readiness gate with a named owner. It is never a task, and never silently assumed; a merged branch with an unmet gate is not done.
 - [ ] Progress log is empty at creation — step 05 never pre-fills it.
 
 ## Skeleton
@@ -93,6 +95,11 @@ max_advisor_rounds: 3
 
 - [ ] All tasks marked complete
 - [ ] <custom check, e.g. "no references to removed symbol X">
+
+## Release Readiness Gates
+*(delivery gates, not pull requests; omit the section when none exist)*
+
+- [ ] **G1:** <condition> · **Owner:** <who resolves it> · **Blocks:** <deployment of X | delivery close>
 
 ## Progress Log
 <!-- appended during implementation, one line per task: -->
