@@ -63,13 +63,13 @@ Turns the approved design into the single work list implementation executes: tas
 3. **Confirm code context.** Verify the paths and patterns the design references, read-only. **Verify states like migration numbers against the repository**, never carry them over from a document.
 4. **Draft the tasks.** Be conservative with parallelism — same group only when tasks obviously touch disjoint files; when in doubt, sequential.
 5. **Draft advisor checks.** What a clean-context verifier should confirm beyond the ACs. **Genuine ambiguity becomes a check** ("verify decision on X at implementation time") rather than a silent guess. Conditions outside the repository (a deployment precondition, an external party's confirmation, post-release verification) become **release readiness gates**, each with a named owner and what it blocks. Every planning-uncertainty entry from the technical analysis becomes a just-in-time check, phrased "immediately before T<n>, verify <fact>".
-6. **Write the plan** per its contract, then tick the manifest row.
+6. **Write the plan** per its contract, then mark the artifact present in the manifest ledger.
 
 ---
 
 ## Output contract
 
-`05-implementation.plan.md` written per contract with an empty progress log, optional pre-stage artifacts, manifest rows ticked. Returns task count, group structure, and any uncertainty encoded as a check. No commits, no code.
+`05-implementation.plan.md` written per contract with an empty progress log, optional pre-stage artifacts, manifest ledger updated. Returns task count, group structure, and any uncertainty encoded as a check. No commits, no code.
 
 ---
 

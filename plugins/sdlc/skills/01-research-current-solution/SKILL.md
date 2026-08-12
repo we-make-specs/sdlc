@@ -58,13 +58,13 @@ Produces a factual, code-grounded baseline of how the affected functionality wor
 3. **Investigate:** search broadly first (many directories, few reads), then grep for concrete symbols, routes, and config keys, then read only the highest-signal files. Follow imports from entry points inward.
 4. **Trust the code over the docs.** Use documentation only for confirmation; where the two disagree, report the code's behaviour and note the discrepancy.
 5. **Stop** once you can describe what the functionality does today, which files participate, how data flows, and where a change would naturally land.
-6. **Write the artifact** per its contract: conceptual model first, functional groups along the decomposition axis that fits the story, evidence IDs in the body, exact locations only in the source map. Then tick the manifest row.
+6. **Write the artifact** per its contract: conceptual model first, functional groups along the decomposition axis that fits the story, evidence IDs in the body, exact locations only in the source map. Then mark the artifact present in the manifest ledger.
 
 ---
 
 ## Output contract
 
-`01-current-solution.research.md` written per contract, manifest row ticked. Returns a 3–5 line summary: what it does today, the key files, and the top open questions for the analysis. Detail stays in the document.
+`01-current-solution.research.md` written per contract, manifest ledger updated. Returns a 3–5 line summary: what it does today, the key files, and the top open questions for the analysis. Detail stays in the document.
 
 ---
 

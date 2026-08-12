@@ -95,7 +95,7 @@ The counter gives the human progress; the recommendation gives them a default; t
 
 ## Output contract
 
-`03-agreement.spec.md`, `03-target-solution.spec.md` and `03-test-scenarios.spec.md` written per contract, mutually consistent; `02-questions.inventory.md` fully answered or explicitly deferred, `02-questions.view.html` regenerated; `03-target-overview.view.html` written — the gate does not open without its pre-read. Manifest rows ticked. No commits, no code, nothing outside the feature folder.
+`03-agreement.spec.md`, `03-target-solution.spec.md` and `03-test-scenarios.spec.md` written per contract, mutually consistent; `02-questions.inventory.md` fully answered or explicitly deferred, `02-questions.view.html` regenerated; `03-target-overview.view.html` written — the gate does not open without its pre-read. Manifest ledger updated. No commits, no code, nothing outside the feature folder.
 
 ---
 

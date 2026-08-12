@@ -61,7 +61,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 3. **Run every probe in the hunt table** over the claims and the current state. Top to bottom, skip none.
 4. **Write each finding as a self-contained entry** per the contract: tier, track, category, context, evidence per the shared evidence rules (claim IDs plus evidence IDs resolving in the inventory's source map), the question itself, options with trade-offs, your own recommendation — and, where you can answer with high confidence yourself, a proposed answer for the human to merely confirm.
 5. **Record coverage.** Every category ends with findings or an explicit `none found` line. A category without a line means the hunt is unfinished, not that nothing was found.
-6. **Write both artifacts** and tick the manifest row.
+6. **Write both artifacts** and mark the artifact present in the manifest ledger.
 
 ### The hunt table
 
@@ -84,7 +84,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 
 ## Output contract
 
-`02-questions.inventory.md` and `02-questions.view.html` written per contract, manifest row ticked. Returns a digest: question counts by tier and track, the Critical titles, and the categories that came back clean. Detail stays in the artifacts.
+`02-questions.inventory.md` and `02-questions.view.html` written per contract, manifest ledger updated. Returns a digest: question counts by tier and track, the Critical titles, and the categories that came back clean. Detail stays in the artifacts.
 
 ---
 

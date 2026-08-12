@@ -56,10 +56,11 @@ Bootstraps or recognises the feature workspace: parses the input, ensures the br
 2. **Check idempotency.** Branch already matches the pattern and manifest exists → confirm and return unchanged. Branch exists, manifest missing → create only the manifest.
 3. **Resolve metadata.** Ticket mode: fetch title, description, labels from the ticket system; on failure abort with a clear error — no silent fallback to free text. Free-text mode: `ticket = none`, title from the first meaningful line.
 4. **Build the slug:** lowercase, transliterate umlauts, non-alphanumerics to `-`, truncate to 50 characters.
-5. **Create branch and folder.** Branch type `fix` for bug labels, else `feature`. The feature folder is `docs/sdlc/features/<YYYY-MM>/<story-slug>/` **inside the working repository** — never anywhere else, and never next to the input source. If the branch exists but is not checked out, stop — do not silently reuse. If the feature folder exists and is non-empty on a fresh run, stop — a previous run is in progress.
-6. **Verify the context declaration.** The working repo's root `CLAUDE.md`/`AGENTS.md` must carry a `## Context Registries` section (multi-repo runs: each repo's own). Section missing entirely → append a Blockers entry (`Missing: context declaration in <repo>` · `Needed from: repo owner`), set `status: blocked`, stop. Exactly `- none` is a valid, conscious declaration. Materializing and reading the registries is the ambient `## Context Registries` procedure's job, run by each step when it needs them — not this step's. This can only happen *after* the checkout exists — the declaration lives in it.
-7. **Write the manifest** per its contract, carrying the original input over unchanged. Record the folder path in `folder:` — every later step and the orchestrator treat it as authoritative and re-derive nothing. Record the delivery profile the orchestrator collected at kickoff; absent answers use the contract's defaults. This step asks nothing itself.
-8. **Report:** ticket, title, branch, folder, and whether the workspace was newly created or recognised.
+5. **Choose the placement and create the workspace.** One rule decides it: a story touching exactly one repository gets the feature folder `docs/sdlc/features/<YYYY-MM>/<story-slug>/` inside it; a story spanning several repositories gets a plain sibling folder `<story-slug>_workspace/` next to them. When the run starts inside a single repository but the input names components or repositories beyond it, say so before scaffolding anything and suggest the sibling placement; the human decides at kickoff, nothing moves silently. Never write next to the input source. In-repo placement: create the branch (type `fix` for bug labels, else `feature`); if the branch exists but is not checked out, stop — do not silently reuse. Sibling placement: create no branch here — branches belong to the work packages and are created at implementation time in their target repositories. If the workspace exists and is non-empty on a fresh run, stop — a previous run is in progress.
+6. **Declare the component repositories** in the manifest: the current repository as `.` for the in-repo placement, or each participating repository by portable relative path for the sibling placement.
+7. **Verify the context declaration.** The working repo's root `CLAUDE.md`/`AGENTS.md` must carry a `## Context Registries` section (multi-repo runs: each repo's own). Section missing entirely → append a Blockers entry (`Missing: context declaration in <repo>` · `Needed from: repo owner`), set `status: blocked`, stop. Exactly `- none` is a valid, conscious declaration. Materializing and reading the registries is the ambient `## Context Registries` procedure's job, run by each step when it needs them — not this step's. This can only happen *after* the checkout exists — the declaration lives in it.
+8. **Write the manifest** per its contract, carrying the original input over unchanged. Record the folder path in `folder:` — every later step and the orchestrator treat it as authoritative and re-derive nothing. Record the delivery profile the orchestrator collected at kickoff; absent answers use the contract's defaults. This step asks nothing itself.
+9. **Report:** ticket, title, branch, folder, and whether the workspace was newly created or recognised.
 
 ---
 
@@ -81,8 +82,8 @@ Branch checked out, feature folder created, manifest written per contract. Nothi
 
 ## Success criteria
 
-- [ ] Branch exists and is checked out
-- [ ] Feature folder and manifest exist, manifest valid against its contract
+- [ ] In-repo placement: branch exists and is checked out. Sibling placement: no branch created; the component repositories are declared by relative path
+- [ ] Workspace folder and manifest exist, manifest valid against its contract
 - [ ] The repo carries a `## Context Registries` declaration (registries or `- none`) — or the run is blocked with the declaration named as missing
 - [ ] No other files touched
 - [ ] Re-running the skill changes nothing
