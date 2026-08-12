@@ -22,6 +22,7 @@ The bridge from "what should happen functionally" to "what the code for it looks
 | `## Reference-pattern comparison` | yes | see below |
 | `## Technical constraints & assumptions` | yes | what we presuppose, what limits us |
 | `## Risks` | yes | risk, impact, handling |
+| `## Planning uncertainty` | yes | facts that must be re-verified immediately before execution, each with the reason it is perishable; `none` is a valid entry |
 
 ## The reference-pattern comparison
 
@@ -38,6 +39,7 @@ Every deviation needs a stated handling, e.g. *"existing code stays as is, new c
 ## Quality criteria
 
 - [ ] Every current-state claim is verified against the repository — **especially** migration numbers and schema state, which are the classic stale-document trap.
+- [ ] Every fact that can drift between planning and execution (a migration number, a schema state, an external party's status) is a planning-uncertainty entry. Step 05 turns each into a just-in-time advisor check, so the plan re-verifies it at the moment it matters instead of baking in a stale constant.
 - [ ] The reference comparison names a concrete reference service, not "our conventions".
 - [ ] Each deviation has an explicit handling decision.
 - [ ] Breaking changes are named as such, with the handling.
@@ -96,4 +98,10 @@ Every deviation needs a stated handling, e.g. *"existing code stays as is, new c
 ## Risks
 
 | Risk | Impact | Handling |
+
+## Planning uncertainty
+
+| Fact to re-verify at execution time | Why it is perishable |
+|---|---|
+| <e.g. the latest migration number> | <another change may land between planning and execution> |
 ```
