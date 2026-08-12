@@ -36,7 +36,7 @@ The suffix tells a session how to treat a file before reading a word of it:
 
 | Suffix | Means | Handling rule |
 |---|---|---|
-| `.spec.md` | what shall be true | frozen once approved at a gate — changing it reopens the gate |
+| `.spec.md` | what shall be true | frozen once approved at a gate; changed afterwards only through a dated correction or amendment entry (rule 8) |
 | `.plan.md` | what shall be done | executed and checked off |
 | `.research.md` | what is true today | findings, never decisions — do not treat as intent |
 | `.inventory.md` | tracked list with a fill-in lifecycle | items are appended and their answers or statuses filled in; existing item text is never rewritten |
@@ -69,6 +69,7 @@ These hold for every artifact and are not repeated in the individual contracts.
 5. **Unfinished is marked unfinished.** `TODO:` and "unresolved" sections are valid content. Plausible-sounding filler is not — it destroys trust in the whole chain.
 6. **One step edits only what it owns.** Ticking someone else's checklist row or rewriting an upstream artifact breaks the audit trail.
 7. **Registry context is consulted and logged.** Every step follows the repo's `## Context Registries` procedure (in its `AGENTS.md`), reads the registry articles relevant to it, and records a `Context loaded:` line near the top of its primary artifact (step 06 in the plan's progress log, step 07 in its review body). Nothing declared, or nothing relevant, is stated (`none applicable`), never silent.
+8. **Approved artifacts change by the amendment protocol, never by rewrite.** A post-approval change is recorded as a dated `Correction:` or `Amendment:` line in the artifact's header, naming what it supersedes, who approved it, and when; the superseded text stays in place, and an affected inventory answer gets a correction sub-entry under the original, never a rewrite. A **correction** changes how an agreed decision is realized; the human approves it in the moment, typically during a review. An **amendment** changes the agreement itself and reopens gate 04 for the delta.
 
 ---
 

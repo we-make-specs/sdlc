@@ -18,7 +18,7 @@ It carries the approval status in its header — approval lives in the artifact,
 
 | Section | Required | Content |
 |---|---|---|
-| header block | yes | ticket, created, **status** (`DRAFT` / `IN REVIEW` / `APPROVED`), approved-by, approved-on |
+| header block | yes | ticket, created, **status** (`DRAFT` / `IN REVIEW` / `APPROVED`), approved-by, approved-on; after approval, dated `Correction:` / `Amendment:` entries per the amendment protocol (catalog README, rule 8) when a change happens |
 | `## Overview` | yes | the end-state shape in a few sentences |
 | `## Behaviour` | yes | happy path plus edge cases, from the caller's point of view |
 | `## Architecture` | yes | affected components, new/modified files, data-model changes, port/adapter impact |
