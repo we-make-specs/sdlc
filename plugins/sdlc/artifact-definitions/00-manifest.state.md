@@ -92,17 +92,17 @@ profile:
 | Status | Artifact | Purpose |
 |---|---|---|
 | present | `00-manifest.state.md` | this file |
-| open | `01-current-solution.research.md` | current state (step 01) |
-| open | `02-questions.inventory.md` | question inventory (step 02, answered in step 03) |
-| open | `02-questions.view.html` | question pre-read (step 02, regenerated in step 03) |
-| open | `03-agreement.spec.md` | agreement (step 03) |
-| open | `03-target-solution.spec.md` | target design (step 03) |
-| open | `03-test-scenarios.spec.md` | test scenarios (step 03) |
-| open | `03-target-overview.view.html` | gate pre-read (step 03) |
-| open | `05-technical-analysis.research.md` | technical analysis (step 05, optional) |
-| open | `05-technical-questions.inventory.md` | technical questions (step 05, optional) |
-| open | `05-implementation.plan.md` | executable plan incl. progress log (step 05) |
-| open | `decisions.log.md` | decision log (cross-cutting) |
+| open | `1-research/01-current-solution.research.md` | current state (step 01) |
+| open | `2-specification/02-questions.inventory.md` | question inventory (step 02, answered in step 03) |
+| open | `2-specification/02-questions.view.html` | question pre-read (step 02, regenerated in step 03) |
+| open | `2-specification/03-agreement.spec.md` | agreement (step 03) |
+| open | `2-specification/03-target-solution.spec.md` | target design (step 03) |
+| open | `2-specification/03-test-scenarios.spec.md` | test scenarios (step 03) |
+| open | `2-specification/03-target-overview.view.html` | gate pre-read (step 03) |
+| open | `3-planning/05-technical-analysis.research.md` | technical analysis (step 05, optional) |
+| open | `3-planning/05-technical-questions.inventory.md` | technical questions (step 05, optional) |
+| open | `3-planning/05-implementation.plan.md` | executable plan incl. progress log (step 05) |
+| open | `3-planning/06-decisions.log.md` | decision log (cross-cutting) |
 
 ## Work-package ledger
 

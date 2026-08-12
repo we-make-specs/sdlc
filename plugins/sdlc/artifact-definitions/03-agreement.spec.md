@@ -40,7 +40,7 @@ It is the origin of the acceptance criteria, which every later stage quotes verb
 # Agreement: <title>
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
-- **Manifest:** [00-manifest.state.md](00-manifest.state.md)
+- **Manifest:** [00-manifest.state.md](../00-manifest.state.md)
 
 ## Intent
 

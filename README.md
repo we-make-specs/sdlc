@@ -85,10 +85,10 @@ Ten steps, from an incoming ticket to a merged pull request.
 | 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions` | `03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md` |
 | 04 | approve-target-solution | gate | `02-questions`, `03-agreement`, `03-target-solution`, `03-test-scenarios` | approval only |
 | 05 | plan | auto | the step-03 artifacts and the research | `05-implementation.plan.md` (optionally a technical analysis) |
-| 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code, a pull request, `decisions.log.md` |
+| 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code, a pull request, `06-decisions.log.md` |
 | 07 | review | auto | `03-agreement`, `03-target-solution`, `03-test-scenarios` (not the plan) | inline comments and one verdict |
 | 08 | review-pr | gate | the pull request, the agent review, `03-agreement` | approval only |
-| 09 | merge | collab | `00-manifest`, `decisions.log` | the merged pull request |
+| 09 | merge | collab | `00-manifest`, `06-decisions.log` | the merged pull request |
 
 A few things worth calling out. Step 03 is where a human and the agent settle the
 design together, and step 04 refuses to continue until that design is approved. Step 07
