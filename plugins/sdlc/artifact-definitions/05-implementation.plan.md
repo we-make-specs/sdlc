@@ -45,6 +45,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 - [ ] Parallelism is conservative — tasks are only in the same group when they obviously touch disjoint files. When in doubt, sequential.
 - [ ] Every task traces back to something `03-target-solution.spec.md` specifies. A task with no basis there is scope creep.
 - [ ] Genuine ambiguity is encoded as an advisor check, not silently decided.
+- [ ] A progress-log entry that claims verification names the exact command and its result. A failing check believed unrelated is attributed against the base branch before it is called pre-existing: the same failure there makes it a recorded baseline failure, never a reason to touch unrelated source. Superseded entries stay in the log under a preamble note; nothing is deleted.
 - [ ] A condition outside the repository (a deployment precondition, an external party's confirmation, post-release verification) is a release readiness gate with a named owner. It is never a task, and never silently assumed; a merged branch with an unmet gate is not done.
 - [ ] Progress log is empty at creation — step 05 never pre-fills it.
 
@@ -104,4 +105,5 @@ max_advisor_rounds: 3
 ## Progress Log
 <!-- appended during implementation, one line per task: -->
 <!-- - <ISO-8601> — T<id>: <one-line outcome>   (prefix WARN on failure) -->
+<!-- verification claims name the exact command and result; a suspected pre-existing failure names its base-branch evidence -->
 ```

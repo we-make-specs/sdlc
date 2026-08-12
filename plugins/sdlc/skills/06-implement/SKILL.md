@@ -56,12 +56,12 @@ Executes the plan's task list group by group, committing once per task, keeping 
 
 1. **Rehydrate.** Parse the plan fully; missing or task-less → abort.
 2. **Group.** Bucket by group, respect order and dependencies. Tasks already ticked from a previous partial run are skipped and treated as done.
-3. **Per task:** do the work per guidelines and surrounding code → run formatter, linter, tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line and tick the checkbox.
+3. **Per task:** do the work per guidelines and surrounding code → run formatter, linter, tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox.
 4. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there, push what is done, and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — open **no pull request**: commit only the progress log, append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it. A pull request whose diff contains no code is noise, not progress.
 5. **Fix documentation the diff made stale — in this same pull request.** Grep the documentation surface (README, docs, root instruction files, registry entries the diff touches) for the old names the diff removed or renamed; correct genuinely stale references in one documentation-only commit. Public surface (commands, environment variables, documented APIs, setup instructions) is where documentation drifts; internal refactorings rarely need it. Nothing stale is a valid outcome — never manufacture documentation churn.
 6. **Push and open the pull request.** Body: summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues.
 
-Fix only problems this work introduced. Pre-existing failures are not yours — the known-red-tests list lives in the testing guidelines.
+Fix only problems this work introduced. Pre-existing failures are not yours — the known-red-tests list lives in the testing guidelines. **A pre-existing failure is proven, not assumed:** reproduce the failure against the base branch; the same failure there makes it a documented baseline failure, recorded in the progress log with that evidence and left untouched. Never modify unrelated source to quiet it.
 
 ---
 
@@ -88,4 +88,5 @@ Commits on the feature branch (one per task), pushed; an open pull request; the 
 - [ ] A pull request exists only if the diff touches code — total blockage returned a named blocker instead
 - [ ] Pull request open with verbatim acceptance criteria in the body
 - [ ] Progress log has one line per task, including WARN lines for blocked ones
+- [ ] Every verification claim names its command and result; suspected pre-existing failures carry base-branch evidence
 - [ ] No documentation references the old behaviour — checked against the diff's removed names, fixed in this PR
