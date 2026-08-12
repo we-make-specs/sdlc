@@ -62,7 +62,7 @@ Turns the approved design into the single work list implementation executes: tas
 2. **Decide whether the optional pre-stage is warranted.** New data model, cross-service change, or unclear existing structure → write the technical analysis and questions first. A small, well-understood change → skip them.
 3. **Confirm code context.** Verify the paths and patterns the design references, read-only. **Verify states like migration numbers against the repository**, never carry them over from a document.
 4. **Draft the tasks.** Be conservative with parallelism — same group only when tasks obviously touch disjoint files; when in doubt, sequential.
-5. **Draft advisor checks.** What a clean-context verifier should confirm beyond the ACs. **Genuine ambiguity becomes a check** ("verify decision on X at implementation time") rather than a silent guess.
+5. **Draft advisor checks.** What a clean-context verifier should confirm beyond the ACs. **Genuine ambiguity becomes a check** ("verify decision on X at implementation time") rather than a silent guess. Conditions outside the repository (a deployment precondition, an external party's confirmation, post-release verification) become **release readiness gates**, each with a named owner and what it blocks.
 6. **Write the plan** per its contract, then tick the manifest row.
 
 ---
@@ -89,4 +89,5 @@ Turns the approved design into the single work list implementation executes: tas
 - [ ] Every task has exact paths and exactly one mechanically checkable done-when
 - [ ] Every task traces to something the target solution specifies
 - [ ] Parallelism is conservative
+- [ ] Every out-of-repository condition is a release readiness gate with an owner, or none exist
 - [ ] Progress log is empty
