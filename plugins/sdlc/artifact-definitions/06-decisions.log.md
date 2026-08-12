@@ -1,11 +1,11 @@
 ---
-artifact: decisions.log.md
+artifact: 06-decisions.log.md
 produced_by: [03-align, 05-plan, 06-implement, 09-merge]
 consumed_by: [all]
 required: false
 ---
 
-# Contract — `decisions.log.md` (decision log)
+# Contract — `06-decisions.log.md` (decision log)
 
 ## Purpose
 

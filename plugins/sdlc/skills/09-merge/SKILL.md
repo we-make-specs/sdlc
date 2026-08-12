@@ -45,7 +45,7 @@ Closes out the feature: presents the state compactly, pair-programs any last fix
 | Direction | Artifact | Contract |
 |---|---|---|
 | reads | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
-| writes *(when fixes are made)* | `decisions.log.md` | [`artifact-definitions/decisions.log.md`](../../artifact-definitions/decisions.log.md) |
+| writes *(when fixes are made)* | `06-decisions.log.md` | [`artifact-definitions/06-decisions.log.md`](../../artifact-definitions/06-decisions.log.md) |
 
 For follow-up questions consult the pull-request body; do not open the plan unless the human asks.
 

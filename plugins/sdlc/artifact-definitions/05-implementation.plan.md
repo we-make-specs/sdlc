@@ -62,8 +62,8 @@ max_advisor_rounds: 3
 # Plan: <title>
 
 **Story:** <one-sentence recap>
-**Manifest:** [00-manifest.state.md](00-manifest.state.md)
-**Target Solution:** [03-target-solution.spec.md](03-target-solution.spec.md)
+**Manifest:** [00-manifest.state.md](../00-manifest.state.md)
+**Target Solution:** [03-target-solution.spec.md](../2-specification/03-target-solution.spec.md)
 
 ## Acceptance Criteria
 *(copied verbatim from 03-agreement.spec.md)*

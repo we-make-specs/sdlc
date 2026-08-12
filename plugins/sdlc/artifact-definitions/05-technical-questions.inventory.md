@@ -34,7 +34,7 @@ Two layers in one file:
 - [ ] Every question carries a tier. An untiered list cannot gate anything.
 - [ ] No `Critical` question is unanswered when the plan is written.
 - [ ] Every answer has a rationale, even a one-liner.
-- [ ] Answers that create a durable commitment are also recorded in `decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
+- [ ] Answers that create a durable commitment are also recorded in `06-decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
 
 ## Skeleton
 

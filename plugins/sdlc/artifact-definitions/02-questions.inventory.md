@@ -80,7 +80,7 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 - [ ] The coverage record names every hunt category.
 - [ ] After step 03: no Critical or Important entry unanswered; deferrals carry an explicit rationale and reappear under Open Questions in the agreement.
 - [ ] An `assumed` answer names its verification owner and due point, reappears under Constraints in the agreement, and becomes an advisor check or release readiness gate in the plan. At delivery close every assumption is either verified (who, when) or explicitly accepted as a standing risk; none silently expires.
-- [ ] Answers that create durable commitments are also recorded in `decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
+- [ ] Answers that create durable commitments are also recorded in `06-decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
 
 ## Companion — `02-questions.view.html` (required)
 
@@ -94,7 +94,7 @@ Step 02 writes it; step 03 regenerates it after answers land, so it always shows
 # Question Inventory: <title>
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
-- **Manifest:** [00-manifest.state.md](00-manifest.state.md) · **Current state:** [01-current-solution.research.md](01-current-solution.research.md)
+- **Manifest:** [00-manifest.state.md](../00-manifest.state.md) · **Current state:** [01-current-solution.research.md](../1-research/01-current-solution.research.md)
 - **Open:** <n> Critical · <n> Important · <n> Clarification
 
 ## Atomic claims

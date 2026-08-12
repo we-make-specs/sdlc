@@ -48,7 +48,7 @@ Executes the plan's task list group by group, committing once per task, keeping 
 | reads | `03-target-solution.spec.md` — reference only, when the plan is underspecified | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
 | updates | `05-implementation.plan.md` — task checkboxes and progress log **only** | same contract |
-| writes | `decisions.log.md` — decisions made during implementation | [`artifact-definitions/decisions.log.md`](../../artifact-definitions/decisions.log.md) |
+| writes | `06-decisions.log.md` — decisions made during implementation | [`artifact-definitions/06-decisions.log.md`](../../artifact-definitions/06-decisions.log.md) |
 
 ---
 
@@ -67,7 +67,7 @@ Fix only problems this work introduced. Pre-existing failures are not yours — 
 
 ## Output contract
 
-Commits on the feature branch (one per task), pushed; an open pull request; the plan's checkboxes and progress log updated; `decisions.log.md` maintained. Returns the PR URL, one line per task, and any blockers.
+Commits on the feature branch (one per task), pushed; an open pull request; the plan's checkboxes and progress log updated; `06-decisions.log.md` maintained. Returns the PR URL, one line per task, and any blockers.
 
 ---
 
