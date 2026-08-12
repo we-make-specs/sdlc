@@ -14,6 +14,7 @@ Steps never restate this. A step says "writes `03-agreement.spec.md` per its con
 | Artifact | Produced by | Consumed by | In one line |
 |---|---|---|---|
 | [`00-manifest.state.md`](00-manifest.state.md) | step 00 | all | identity, component inventory, artifact ledger, work-package ledger |
+| [`AGENTS.md`](AGENTS.md) | step 00 | all | static workspace operating rules; runtimes auto-load it on entry |
 | [`01-current-solution.research.md`](01-current-solution.research.md) | step 01 | 02, 03, 05 | how it works today, readable and code-grounded through a source map |
 | [`02-questions.inventory.md`](02-questions.inventory.md) | step 02 | 03, 04, optionally 05 | **the question inventory**: tiered, tracked, self-contained questions; answered during alignment |
 | [`03-agreement.spec.md`](03-agreement.spec.md) | step 03 | 04, 05, 07, 08 | **the agreement**: intent, acceptance criteria, key decisions, out of scope |
@@ -100,5 +101,7 @@ These hold for every artifact and are not repeated in the individual contracts.
 mkdir -p docs/sdlc/features/<YYYY-MM>/<story-slug>
 # copy the skeleton section out of each contract you need
 ```
+
+Step 00 scaffolds exactly two files: the manifest and `AGENTS.md`. The numbered folders appear when the first artifact is written into them, and placeholder companions are never created — a workspace shows what has actually happened, not what might.
 
 Optional artifacts (`05-technical-analysis.research.md`, `05-technical-questions.inventory.md`) are only created when the change has real technical depth. A feature has the artifacts it has reached — not all of them, always.
