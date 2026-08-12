@@ -48,6 +48,16 @@ Definition and instance share the same name: a feature folder's `03-target-solut
 
 ---
 
+## Evidence and source maps
+
+Any artifact that states facts may use the evidence system the current-state research defines; the question inventory must. The mechanism, defined in full in [`01-current-solution.research.md`](01-current-solution.research.md):
+
+1. Facts in the body cite short evidence IDs such as `[F2]`; the exact locations live in one `## Source map` at the end, under prefixes declared in `## Source roots`. Every ID resolves exactly once; every map row is cited at least once.
+2. Valid sources are code, other artifacts of the same feature, and context-registry articles, each under its own root. Absolute paths are prohibited everywhere.
+3. A source-map location may additionally be written as a relative markdown link with line anchors (`path/to/File.java#L42-L60`), so evidence opens directly where the host renders links. The visible text keeps the exact `path:line`, so nothing is lost where links do not resolve.
+
+---
+
 ## Cross-cutting rules
 
 These hold for every artifact and are not repeated in the individual contracts.

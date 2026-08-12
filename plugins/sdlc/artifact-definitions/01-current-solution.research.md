@@ -26,6 +26,7 @@ The body stays readable because exact locations live in one place at the end.
 5. Absolute paths are prohibited, and long paths appear only in the source map.
 6. A source is listed because it establishes a fact, never because it is nearby or looks relevant.
 7. ID prefixes are a reader convention that groups related evidence, typically one letter per area plus `T` for tests. Only the source map carries locations. Gaps in the numbering are fine; IDs are never renumbered when a source drops out.
+8. A source-map location may additionally be written as a relative markdown link with line anchors (`path/to/File.java#L42-L60`), so it opens directly in hosts that render links. The visible text keeps the exact `path:line` location either way.
 
 ## Decomposition
 

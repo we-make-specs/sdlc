@@ -23,6 +23,8 @@ The inventory opens with the story's decomposition: every assertion the story ma
 
 Recording the claims makes coverage checkable in both directions: a claim no entry references was either genuinely unambiguous or missed, and the written table is what lets a reviewer tell which.
 
+Evidence follows the shared evidence rules (see the catalog README): short IDs in the body, source roots, one source map at the end. Other artifacts of the feature and registry articles are citable sources; this is what keeps a cross-repository inventory readable without long paths in every entry.
+
 ## Lifecycle
 
 | Phase | Who | What happens to this file |
@@ -55,7 +57,7 @@ A question that is genuinely both is `functional` — what-questions outrank how
 | title line | yes | `Q<n> — [tier] [track] <short name>` |
 | Category | yes | the hunt category that found it (see step 02's hunt table) |
 | Context | yes | 1–2 sentences of background a newcomer needs |
-| Evidence | yes | the claim IDs this entry probes, plus story quote and/or `path:line` — what makes this a real question |
+| Evidence | yes | the claim IDs this entry probes, plus story quote and/or evidence IDs per the shared evidence rules — what makes this a real question |
 | Question | yes | one sentence, answerable |
 | Options | yes | each with its trade-off |
 | Recommendation | yes | the agent's own pick, with the reason — never a menu without a pick |
@@ -71,6 +73,7 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 
 - [ ] Every entry passes the stranger test: someone who never saw the analysis session could ask it well from the file alone.
 - [ ] The atomic-claims table is present, and every entry's Evidence names the claims it probes.
+- [ ] Evidence resolves per the shared evidence rules: every body ID exactly once in the source map, no absolute paths.
 - [ ] A **missing-inputs** entry is answered only when the input itself is available and verified — the file in the repo, the schema resolvable, the access confirmed. A policy or a promise ("use the official one") keeps the entry open; implementation cannot execute a promise. Every missing-inputs entry carries `Needed from:`.
 - [ ] Every entry is tiered and tracked; both-track collisions resolve to `functional`.
 - [ ] Every option list ends with a recommendation.
@@ -98,8 +101,8 @@ Step 02 writes it; step 03 regenerates it after answers land, so it always shows
 
 | Claim | Story assertion | Evidence |
 |---|---|---|
-| C1 | <one assertion the story makes> | "<story quote>" · `path/to/file:42` |
-| C2 | <the next assertion> | "<story quote>" |
+| C1 | <one assertion the story makes> | [S1] |
+| C2 | <the next assertion> | [S1] |
 
 ## Critical
 
@@ -107,7 +110,7 @@ Step 02 writes it; step 03 regenerates it after answers land, so it always shows
 
 - **Category:** <hunt category>
 - **Context:** <1–2 sentences a newcomer needs>
-- **Evidence:** C1 · "<story quote>" · `path/to/file:42`
+- **Evidence:** C1 · "<story quote>" · [B1]
 - **Question:** <one sentence>
 - **Options:**
   - **A:** <option> — <trade-off>
@@ -135,6 +138,19 @@ Step 02 writes it; step 03 regenerates it after answers land, so it always shows
 | Gaps | 2 findings (Q1, Q4) |
 | Ambiguities | none found |
 | <every category from the hunt table> | <…> |
+
+## Source roots
+
+| Prefix | Root |
+|---|---|
+| `SHOP` | `<repository root>` |
+
+## Source map
+
+| ID | Exact source location | Supports |
+|---|---|---|
+| S1 | `SHOP/docs/story.md:12-18` | the story assertions the claims quote |
+| B1 | `SHOP/src/checkout/PriceService.java:42-60` | the current behaviour Q1 probes |
 
 *Step 03 fills in answers and appends new questions in the matching tier section — it never rewrites existing question text.*
 ```
