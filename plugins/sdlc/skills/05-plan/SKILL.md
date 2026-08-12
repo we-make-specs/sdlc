@@ -49,6 +49,7 @@ Turns the approved design into the single work list implementation executes: tas
 | reads | `03-agreement.spec.md` — source of the verbatim copy | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` — must be `APPROVED` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| reads | `02-work-breakdown.md` — the agreed cut | [`artifact-definitions/02-work-breakdown.md`](../../artifact-definitions/02-work-breakdown.md) |
 | reads *(optional)* | `02-questions.inventory.md` — the answered rationales, when the plan needs the why behind a decision | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
 | writes | `05-implementation.plan.md` | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
 | writes *(optional)* | `05-technical-analysis.research.md` | [`artifact-definitions/05-technical-analysis.research.md`](../../artifact-definitions/05-technical-analysis.research.md) |
@@ -61,7 +62,7 @@ Turns the approved design into the single work list implementation executes: tas
 1. **Rehydrate.** Read every input fully; anything missing → abort naming it. Target solution not approved → abort, gate 04 first.
 2. **Decide whether the optional pre-stage is warranted.** New data model, cross-service change, or unclear existing structure → write the technical analysis and questions first. A small, well-understood change → skip them.
 3. **Confirm code context.** Verify the paths and patterns the design references, read-only. **Verify states like migration numbers against the repository**, never carry them over from a document.
-4. **Draft the tasks.** Be conservative with parallelism — same group only when tasks obviously touch disjoint files; when in doubt, sequential.
+4. **Freeze the cut and draft the tasks.** Copy the agreed cut from the work breakdown into the plan's package sections the way ACs are copied: same packages, same dependencies, no reinterpretation (a technical-analysis finding that changes the cut goes back through the breakdown's open decisions, not silently into the plan). Then draft each package's tasks. Be conservative with parallelism — same group only when tasks obviously touch disjoint files; when in doubt, sequential.
 5. **Draft advisor checks.** What a clean-context verifier should confirm beyond the ACs. **Genuine ambiguity becomes a check** ("verify decision on X at implementation time") rather than a silent guess. Conditions outside the repository (a deployment precondition, an external party's confirmation, post-release verification) become **release readiness gates**, each with a named owner and what it blocks. Every planning-uncertainty entry from the technical analysis becomes a just-in-time check, phrased "immediately before T<n>, verify <fact>".
 6. **Write the plan** per its contract, then mark the artifact present in the manifest ledger.
 
