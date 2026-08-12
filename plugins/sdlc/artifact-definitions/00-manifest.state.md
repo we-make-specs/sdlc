@@ -20,6 +20,7 @@ It also preserves the **original input verbatim** — the source of truth agains
 | Section | Required | Content |
 |---|---|---|
 | frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`), **profile** (see below) |
+| `## Start here` | yes | three to five links: the current plan, the latest research, the pre-read page — navigation only, nothing that can drift |
 | `## Original input` | yes | ticket text or brain dump, **unmodified** |
 | `## Component repositories` | yes | one row per participating repository: component, relative location, delivery role; a single-repo story has exactly one row with location `.` |
 | `## Artifact ledger` | yes | one row per artifact: status, artifact, purpose; only `00-manifest.state.md` is `present` at creation |
@@ -76,6 +77,10 @@ profile:
 ---
 
 # Story: <title>
+
+## Start here
+
+- [Plan](3-planning/05-implementation.plan.md) · [Current state](1-research/01-current-solution.research.md) · [Gate pre-read](2-specification/03-target-overview.view.html)
 
 ## Original input
 
