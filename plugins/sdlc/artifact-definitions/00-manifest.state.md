@@ -1,6 +1,6 @@
 ---
 artifact: 00-manifest.state.md
-produced_by: 00-ensure-workspace
+produced_by: 00-create-workspace
 consumed_by: [all]
 required: true
 ---
@@ -17,12 +17,24 @@ It also preserves the **original input verbatim** — the source of truth agains
 
 | Section | Required | Content |
 |---|---|---|
-| frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`) |
+| frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`), **profile** (see below) |
 | `## Original input` | yes | ticket text or brain dump, **unmodified** |
 | `## Artifact checklist` | yes | one row per artifact; only `00-manifest.state.md` ticked at creation |
 | `## Blockers` | when blocked | append-only; one entry per blocker — see below |
 | `## People` | no | who clarifies, implements, reviews |
 | `## Affected components` | no | services/modules, checked against the component catalog |
+
+## The delivery profile
+
+Three choices shape how later steps talk and where two texts land. They are collected once, at kickoff, by the orchestrator (live with the human; step 00 itself asks nothing) and recorded in the frontmatter. The pipeline flow is identical in every profile; nothing is re-asked later.
+
+| Field | Values | Consumed by |
+|---|---|---|
+| `pr_audience` | `team` (humans review the PRs; the body is a short reviewer handoff) \| `solo` (the PR is the record; process-rich body) | steps 06, 08 |
+| `review_placement` | `workspace` (agent review findings stay local) \| `pr` (findings posted on the PR) | step 07 |
+| `questioning` | `chat` (one question per round) \| `annotation` (annotation rounds on the inventory) | step 03 |
+
+Defaults, used when the kickoff was headless or the human gave no preference: `solo` · `pr` · `chat` — exactly the previous behavior.
 
 ## Blockers — failure as a file, not a message
 
@@ -36,6 +48,7 @@ Entry fields: **Missing** (what, concretely) · **Needed from** (person / team /
 - [ ] Branch name and folder path match the frontmatter.
 - [ ] `folder:` names the directory this file actually lives in — repo-relative, under `docs/sdlc/features/`, **inside the working repository**. Every step and the orchestrator treat it as authoritative; nothing re-derives the location, and nothing is ever written next to the input source.
 - [ ] `status: blocked` if and only if at least one Blockers entry is unresolved.
+- [ ] The profile is recorded at creation and never re-asked; absent answers use the defaults.
 - [ ] Only `00-manifest.state.md` is ticked at creation.
 - [ ] Free-text stories (no ticket) use `ticket: none` and derive the title from the first meaningful line.
 
@@ -51,6 +64,10 @@ folder: docs/sdlc/features/<YYYY-MM>/<story-slug>
 created: <YYYY-MM-DD>
 url: <ticket link, empty for free text>
 status: in-progress
+profile:
+  pr_audience: solo
+  review_placement: pr
+  questioning: chat
 ---
 
 # Story: <title>

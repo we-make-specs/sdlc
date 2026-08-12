@@ -79,7 +79,7 @@ Ten steps, from an incoming ticket to a merged pull request.
 
 | # | Step | Type | Reads | Writes |
 |---|------|------|-------|--------|
-| 00 | ensure-workspace | auto | the ticket or free-text brief | `00-manifest.state.md` |
+| 00 | create-workspace | auto | the ticket or free-text brief | `00-manifest.state.md` |
 | 01 | research-current-solution | auto | `00-manifest` | `01-current-solution.research.md` |
 | 02 | analyze | auto | `00-manifest`, `01-current-solution` | `02-questions.inventory.md` |
 | 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions` | `03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md` |
@@ -150,7 +150,7 @@ Run the whole pipeline on a ticket or a free-text description:
 
 The orchestrator resumes from the feature folder, runs each step in order, validates its
 output, and stops wherever a human is required. You can also invoke a single step
-directly, from `/sdlc:00-ensure-workspace` through `/sdlc:09-merge`, when you want to
+directly, from `/sdlc:00-create-workspace` through `/sdlc:09-merge`, when you want to
 redo one stage.
 
 The `sdlc-context` plugin manages the knowledge side:
