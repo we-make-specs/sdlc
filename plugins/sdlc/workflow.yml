@@ -34,7 +34,7 @@ model_tiers:
 
 steps:
   - id: "00"
-    skill: 00-ensure-workspace
+    skill: 00-create-workspace
     type: auto
     isolation: subagent
     model: fast
