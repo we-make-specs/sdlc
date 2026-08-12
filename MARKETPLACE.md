@@ -99,7 +99,7 @@ The plugin name is the command prefix and the skill's frontmatter `name` is the 
 /sdlc:run <ticket-id | ticket-url | free-text description>
 ```
 
-The ten steps are `/sdlc:00-create-workspace` … `/sdlc:09-merge` — reach for one only to redo a single stage; normally `run` sequences them for you. Neither the skill names nor the numbers are repeated inside the skills: `workflow.yml` is the single source for step order, so renaming a step means editing it there and in that skill's frontmatter, nowhere else.
+The eleven steps are `/sdlc:00-create-workspace` … `/sdlc:10-post-mortem` — reach for one only to redo a single stage; normally `run` sequences them for you. Neither the skill names nor the numbers are repeated inside the skills: `workflow.yml` is the single source for step order, so renaming a step means editing it there and in that skill's frontmatter, nowhere else.
 
 ---
 

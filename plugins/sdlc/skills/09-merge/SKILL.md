@@ -72,7 +72,7 @@ Exactly one merged pull request, or a deliberate "deferred" with nothing touched
 - **Never merge autonomously**, and never treat an earlier gate as standing permission.
 - **Never bypass branch protection or required checks.** Never force-push.
 - **Claim no unverified success** when reporting a fix.
-- **Do not start follow-up work.** The pipeline ends here.
+- **Do not start follow-up work.** The package tail ends here; the delivery closes at step 10, the post-mortem.
 
 ---
 
