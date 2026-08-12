@@ -63,7 +63,7 @@ steps:
     isolation: main
     model: strong
     skippable: false
-    outputs: [03-alignment.spec.md, 03-target-solution.spec.md, 03-test-scenarios.spec.md, 03-target-overview.view.html]
+    outputs: [03-agreement.spec.md, 03-target-solution.spec.md, 03-test-scenarios.spec.md, 03-target-overview.view.html]
 
   - id: "04"
     skill: 04-approve-target-solution

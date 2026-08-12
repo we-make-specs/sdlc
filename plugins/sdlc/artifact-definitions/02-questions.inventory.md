@@ -11,7 +11,7 @@ required: true
 
 Every point the story leaves open, written as questions a human can decide — found by step 02, asked and answered in step 03, checked at gate 04. The functional sibling of [`05-technical-questions.inventory.md`](05-technical-questions.inventory.md): same tiers, same fill-in lifecycle, one stage earlier.
 
-The file does two jobs at once: it is the **agenda** of the alignment conversation, and the **trace** of how each point was settled. The alignment record distills what was agreed; this file keeps the full path — question, options, answer, rationale.
+The file does two jobs at once: it is the **agenda** of the alignment conversation, and the **trace** of how each point was settled. The agreement distills what was agreed; this file keeps the full path — question, options, answer, rationale.
 
 ## The rule that defines this artifact
 
@@ -78,8 +78,8 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 - [ ] Every entry is tiered and tracked; both-track collisions resolve to `functional`.
 - [ ] Every option list ends with a recommendation.
 - [ ] The coverage record names every hunt category.
-- [ ] After step 03: no Critical or Important entry unanswered; deferrals carry an explicit rationale and reappear under Open Questions in the alignment record.
-- [ ] An `assumed` answer names its verification owner and due point, reappears under Constraints in the alignment record, and becomes an advisor check or release readiness gate in the plan. At delivery close every assumption is either verified (who, when) or explicitly accepted as a standing risk; none silently expires.
+- [ ] After step 03: no Critical or Important entry unanswered; deferrals carry an explicit rationale and reappear under Open Questions in the agreement.
+- [ ] An `assumed` answer names its verification owner and due point, reappears under Constraints in the agreement, and becomes an advisor check or release readiness gate in the plan. At delivery close every assumption is either verified (who, when) or explicitly accepted as a standing risk; none silently expires.
 - [ ] Answers that create durable commitments are also recorded in `decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
 
 ## Companion — `02-questions.view.html` (required)

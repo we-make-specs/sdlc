@@ -82,12 +82,12 @@ Ten steps, from an incoming ticket to a merged pull request.
 | 00 | ensure-workspace | auto | the ticket or free-text brief | `00-manifest.state.md` |
 | 01 | research-current-solution | auto | `00-manifest` | `01-current-solution.research.md` |
 | 02 | analyze | auto | `00-manifest`, `01-current-solution` | `02-questions.inventory.md` |
-| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions` | `03-alignment.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md` |
-| 04 | approve-target-solution | gate | `02-questions`, `03-alignment`, `03-target-solution`, `03-test-scenarios` | approval only |
+| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions` | `03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md` |
+| 04 | approve-target-solution | gate | `02-questions`, `03-agreement`, `03-target-solution`, `03-test-scenarios` | approval only |
 | 05 | plan | auto | the step-03 artifacts and the research | `05-implementation.plan.md` (optionally a technical analysis) |
 | 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code, a pull request, `decisions.log.md` |
-| 07 | review | auto | `03-alignment`, `03-target-solution`, `03-test-scenarios` (not the plan) | inline comments and one verdict |
-| 08 | review-pr | gate | the pull request, the agent review, `03-alignment` | approval only |
+| 07 | review | auto | `03-agreement`, `03-target-solution`, `03-test-scenarios` (not the plan) | inline comments and one verdict |
+| 08 | review-pr | gate | the pull request, the agent review, `03-agreement` | approval only |
 | 09 | merge | collab | `00-manifest`, `decisions.log` | the merged pull request |
 
 A few things worth calling out. Step 03 is where a human and the agent settle the

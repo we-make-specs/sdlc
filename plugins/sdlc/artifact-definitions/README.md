@@ -5,7 +5,7 @@
 
 A contract answers four questions: what is this artifact *for*, who *produces* it, who *consumes* it, and what must be *in* it before it counts as done. Each contract ends with the skeleton to copy.
 
-Steps never restate this. A step says "writes `03-alignment.spec.md` per its contract" — that is all. If an artifact's structure changes, it changes here, once.
+Steps never restate this. A step says "writes `03-agreement.spec.md` per its contract" — that is all. If an artifact's structure changes, it changes here, once.
 
 ---
 
@@ -16,7 +16,7 @@ Steps never restate this. A step says "writes `03-alignment.spec.md` per its con
 | [`00-manifest.state.md`](00-manifest.state.md) | step 00 | all | ticket meta + artifact checklist; the story's identity |
 | [`01-current-solution.research.md`](01-current-solution.research.md) | step 01 | 02, 03, 05 | how it works today, readable and code-grounded through a source map |
 | [`02-questions.inventory.md`](02-questions.inventory.md) | step 02 | 03, 04, optionally 05 | **the question inventory**: tiered, tracked, self-contained questions; answered during alignment |
-| [`03-alignment.spec.md`](03-alignment.spec.md) | step 03 | 04, 05, 07, 08 | **the agreement**: intent, acceptance criteria, key decisions, out of scope |
+| [`03-agreement.spec.md`](03-agreement.spec.md) | step 03 | 04, 05, 07, 08 | **the agreement**: intent, acceptance criteria, key decisions, out of scope |
 | [`03-target-solution.spec.md`](03-target-solution.spec.md) | step 03 | 04, 05, 06, 07 | **the design**; carries the approval status |
 | [`03-test-scenarios.spec.md`](03-test-scenarios.spec.md) | step 03 | 04, 05, 06, 07 | **what will be tested**: functional scenarios + rough data; carries its own approval |
 | [`05-technical-analysis.research.md`](05-technical-analysis.research.md) | step 05 *(optional)* | 05 | technical current state + reference comparison |
@@ -63,7 +63,7 @@ Any artifact that states facts may use the evidence system the current-state res
 These hold for every artifact and are not repeated in the individual contracts.
 
 1. **The feature folder is the state.** No separate status file. Where a feature stands is visible from which artifacts exist. This is what makes the pipeline resumable and handover-capable.
-2. **Acceptance criteria travel verbatim.** From `03-alignment.spec.md` into `05-implementation.plan.md`, into the PR body, into the review checklist. Never rephrased, reordered, or trimmed — otherwise they drift and nobody can verify the feature at the end.
+2. **Acceptance criteria travel verbatim.** From `03-agreement.spec.md` into `05-implementation.plan.md`, into the PR body, into the review checklist. Never rephrased, reordered, or trimmed — otherwise they drift and nobody can verify the feature at the end.
 3. **Approval lives in the artifact.** Not only in the ticket system. The gate writes status, who, and when into the artifact it approves.
 4. **Verify facts against the code, never against older documents.** A stale migration number, endpoint, or field name copied forward from a document is a recurring, expensive failure.
 5. **Unfinished is marked unfinished.** `TODO:` and "unresolved" sections are valid content. Plausible-sounding filler is not — it destroys trust in the whole chain.

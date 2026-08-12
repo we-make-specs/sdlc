@@ -1,6 +1,6 @@
 ---
 name: 03-align
-description: Pipeline step 03 (COLLAB) — work through the question inventory with the human, one well-presented question at a time, keep hunting as answers land, then write the alignment record, the target design and the test scenarios. Use when a story has been analyzed and needs human decisions.
+description: Pipeline step 03 (COLLAB) — work through the question inventory with the human, one well-presented question at a time, keep hunting as answers land, then write the agreement, the target design and the test scenarios. Use when a story has been analyzed and needs human decisions.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
@@ -41,7 +41,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 
 ## Required context
 
-- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the domain-language and component articles this step touches. Record a `Context loaded:` line near the top of the alignment record; state `none applicable` when nothing is declared.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the domain-language and component articles this step touches. Record a `Context loaded:` line near the top of the agreement; state `none applicable` when nothing is declared.
 
 ## Artifacts
 
@@ -51,7 +51,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 | reads | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
 | updates | `02-questions.inventory.md` — answers filled, live findings appended | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
 | updates | `02-questions.view.html` — regenerated as answers land | companion section of the same contract |
-| writes | `03-alignment.spec.md` | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| writes | `03-agreement.spec.md` | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | writes | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | writes | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
 | writes | `03-target-overview.view.html` — the gate's pre-read | companion section of [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
@@ -63,7 +63,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 1. **Rehydrate.** Inventory missing → abort and point at step 02. Read manifest, current state, and every inventory entry.
 2. **Open with the digest:** question counts by tier and track, and the pointer to `02-questions.view.html` as the pre-read. Offer the async option explicitly — the human may answer any entry directly in the file instead of live.
 3. **Work the agenda, Critical first, one question per round** (two only when tightly coupled). Render every question with the template below — as a normal chat message, whatever the runtime. Entries with a proposed answer are presented for confirmation, not re-derived.
-4. **Record before moving on.** Each answer goes into the inventory immediately — answer, rationale, who/when — and directional answers are mirrored back and confirmed before the next round. A question the human cannot settle authoritatively may be answered as an explicit assumption: record it as `assumed` with a named verification owner and due point, and mirror it into the alignment record's Constraints.
+4. **Record before moving on.** Each answer goes into the inventory immediately — answer, rationale, who/when — and directional answers are mirrored back and confirmed before the next round. A question the human cannot settle authoritatively may be answered as an explicit assumption: record it as `assumed` with a named verification owner and due point, and mirror it into the agreement's Constraints.
 5. **Keep hunting.** Answers create new gaps: when one appears, append it to the inventory in the same format and tier, and say so. The inventory seeds the conversation; it does not bound it.
 6. **Iterate until the human signals alignment.** When unsure, ask with concrete options: "A: I write the artifacts now. B: We clarify <point> first."
 7. **Draft the test scenarios and ask the scenario question.** Functional scenarios + rough test data + the exceptional cases — then ask, verbatim: **"Which of these are wrong, and what is missing?"** A nod is not an answer; iterate until the human names changes or explicitly confirms they checked.
@@ -95,7 +95,7 @@ The counter gives the human progress; the recommendation gives them a default; t
 
 ## Output contract
 
-`03-alignment.spec.md`, `03-target-solution.spec.md` and `03-test-scenarios.spec.md` written per contract, mutually consistent; `02-questions.inventory.md` fully answered or explicitly deferred, `02-questions.view.html` regenerated; `03-target-overview.view.html` written — the gate does not open without its pre-read. Manifest rows ticked. No commits, no code, nothing outside the feature folder.
+`03-agreement.spec.md`, `03-target-solution.spec.md` and `03-test-scenarios.spec.md` written per contract, mutually consistent; `02-questions.inventory.md` fully answered or explicitly deferred, `02-questions.view.html` regenerated; `03-target-overview.view.html` written — the gate does not open without its pre-read. Manifest rows ticked. No commits, no code, nothing outside the feature folder.
 
 ---
 

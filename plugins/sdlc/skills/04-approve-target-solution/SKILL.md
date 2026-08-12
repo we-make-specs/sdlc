@@ -45,7 +45,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 | Direction | Artifact | Contract |
 |---|---|---|
 | reads | `02-questions.inventory.md` — no Critical entry may be open | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
-| reads | `03-alignment.spec.md` | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-agreement.spec.md` | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
 | updates | `03-target-solution.spec.md` — status, approver, date | same contract |
@@ -57,7 +57,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 
 1. **Pre-check** that all three artifacts and the overview page exist and that no Critical entry in `02-questions.inventory.md` is unanswered — where missing-input entries count as answered **only when the input is actually present and verifiable**, not merely promised. Anything missing or open → report that step 03 is incomplete and stop. Do not ask for approval on an incomplete set.
 2. **Present the briefing** with precise, clickable pointers:
-   - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the alignment record (acceptance criteria, key decisions) and the target solution (the design)
+   - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the agreement (acceptance criteria, key decisions) and the target solution (the design)
    - **inline**, so the human knows what to scrutinise: the acceptance criteria and open questions verbatim, plus the key-decision titles
    - the open assumptions: every `assumed` answer verbatim, with its verification owner and due point. Approving over one is a conscious act, not an oversight
    - any corrections or amendments recorded since a prior approval, so a re-approval sees what changed
@@ -78,7 +78,7 @@ No new files. Either the approval recorded in `03-target-solution.spec.md` and `
 ## Constraints and guardrails
 
 - **Never self-approve**, and never infer approval from enthusiasm.
-- **Do not approve over a critical open question** — neither in the question inventory nor in the alignment record.
+- **Do not approve over a critical open question** — neither in the question inventory nor in the agreement.
 - **Do not edit the design** to make it approvable — that is step 03's job.
 
 ---

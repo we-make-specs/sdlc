@@ -31,9 +31,9 @@ It carries the approval status in its header — approval lives in the artifact,
 - [ ] Someone who did not attend the discussion could implement from this without further questions. That is the bar.
 - [ ] Architecture claims name **concrete paths**, not areas.
 - [ ] Data-model claims (migration numbers, schema state) are verified against the repository, not carried over from another document.
-- [ ] When persisted data changes, the data-model part is a per-layer table: layer, current shape, agreed change, migration and compatibility, covering omitted, null, and legacy-data semantics. A rollback line appears only when the story has a real rollback question. The underlying semantics decisions live in the alignment record; this table is their design.
+- [ ] When persisted data changes, the data-model part is a per-layer table: layer, current shape, agreed change, migration and compatibility, covering omitted, null, and legacy-data semantics. A rollback line appears only when the story has a real rollback question. The underlying semantics decisions live in the agreement; this table is their design.
 - [ ] Edge cases are present: empty inputs, concurrency, failure paths, partial state, backward compatibility.
-- [ ] Consistent with `03-alignment.spec.md` — the design satisfies every AC there, and adds no scope beyond it.
+- [ ] Consistent with `03-agreement.spec.md` — the design satisfies every AC there, and adds no scope beyond it.
 - [ ] Status is `APPROVED` with a name and a date before step 05 starts.
 
 ## Companion — `03-target-overview.view.html` (required)
@@ -47,7 +47,7 @@ A single self-contained page (inline CSS, diagrams as inline SVG, no external re
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
 - **Status:** DRAFT | IN REVIEW | APPROVED · **Approved by:** <who> · **on:** <YYYY-MM-DD>
-- **Discussion:** [03-alignment.spec.md](03-alignment.spec.md)
+- **Discussion:** [03-agreement.spec.md](03-agreement.spec.md)
 
 ## Overview
 

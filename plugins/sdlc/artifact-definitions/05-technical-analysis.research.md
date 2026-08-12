@@ -50,7 +50,7 @@ Every deviation needs a stated handling, e.g. *"existing code stays as is, new c
 # Technical Analysis: <title>
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
-- **Based on:** 03-alignment.spec.md, 03-target-solution.spec.md
+- **Based on:** 03-agreement.spec.md, 03-target-solution.spec.md
 
 ## Technical summary
 

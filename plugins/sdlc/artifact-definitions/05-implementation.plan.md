@@ -21,8 +21,8 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 | Section | Required | Content |
 |---|---|---|
 | frontmatter | yes | ticket, based_on, created, `max_advisor_rounds` |
-| `## Acceptance Criteria` | yes | **verbatim** from `03-alignment.spec.md` |
-| `## Out of Scope` | yes | **verbatim** from `03-alignment.spec.md` |
+| `## Acceptance Criteria` | yes | **verbatim** from `03-agreement.spec.md` |
+| `## Out of Scope` | yes | **verbatim** from `03-agreement.spec.md` |
 | `## Tasks` | yes | each with Group, Files, Done-when; optional Depends-on |
 | `## Advisor Checks` | yes | verification beyond the ACs |
 | `## Release Readiness Gates` | if applicable | delivery gates that are not pull requests: each names its condition, its owner, and what it blocks |
@@ -40,7 +40,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 
 ## Quality criteria
 
-- [ ] ACs and out-of-scope are **character-identical** to `03-alignment.spec.md`. Not reordered, not "improved", nothing dropped.
+- [ ] ACs and out-of-scope are **character-identical** to `03-agreement.spec.md`. Not reordered, not "improved", nothing dropped.
 - [ ] Every task has exact file paths and exactly one done-when that can be checked mechanically (file exists, test passes).
 - [ ] Parallelism is conservative — tasks are only in the same group when they obviously touch disjoint files. When in doubt, sequential.
 - [ ] Every task traces back to something `03-target-solution.spec.md` specifies. A task with no basis there is scope creep.
@@ -54,7 +54,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 ```markdown
 ---
 ticket: <ID>
-based_on: 03-alignment.spec.md, 03-target-solution.spec.md
+based_on: 03-agreement.spec.md, 03-target-solution.spec.md
 created: <YYYY-MM-DD HH:MM>
 max_advisor_rounds: 3
 ---
@@ -66,12 +66,12 @@ max_advisor_rounds: 3
 **Target Solution:** [03-target-solution.spec.md](03-target-solution.spec.md)
 
 ## Acceptance Criteria
-*(copied verbatim from 03-alignment.spec.md)*
+*(copied verbatim from 03-agreement.spec.md)*
 
 - [ ] <verbatim>
 
 ## Out of Scope
-*(copied verbatim from 03-alignment.spec.md)*
+*(copied verbatim from 03-agreement.spec.md)*
 
 - <verbatim>
 

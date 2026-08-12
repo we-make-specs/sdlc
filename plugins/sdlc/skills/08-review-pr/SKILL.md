@@ -45,7 +45,7 @@ Gives the human everything needed to judge the implemented pull request in one p
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `03-alignment.spec.md` — the acceptance criteria shown inline | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-agreement.spec.md` — the acceptance criteria shown inline | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `05-implementation.plan.md` — progress log only, for WARN/blocker lines | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
 | writes | none | — |
 
