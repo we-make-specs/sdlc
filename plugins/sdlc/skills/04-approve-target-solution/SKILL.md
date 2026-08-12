@@ -60,7 +60,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
    - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the alignment record (acceptance criteria, key decisions) and the target solution (the design)
    - **inline**, so the human knows what to scrutinise: the acceptance criteria and open questions verbatim, plus the key-decision titles
    - the open assumptions: every `assumed` answer verbatim, with its verification owner and due point. Approving over one is a conscious act, not an oversight
-   - what to verify: do intent and ACs match what was discussed? Are architecture and data flow accurate? Is anything important missing or misrepresented?
+   - what to verify: do intent and ACs match what was discussed? Are architecture and data flow accurate? When persisted data changes: are the data semantics decided and the per-layer migration and compatibility table present? Is anything important missing or misrepresented?
    - the test scenarios, shown as a **question, not a list**: "Which of these are wrong, and what is missing?" — a scenario pass needs an answer, not a nod
 3. **Ask decision-friendly:** "A: approve and continue to planning. B: name the changes; I return to step 03 and revise."
 4. **Wait for an explicit decision.** Non-committal praise is not approval — ask again with the two options.
