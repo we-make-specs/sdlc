@@ -61,7 +61,7 @@ A question that is genuinely both is `functional` — what-questions outrank how
 | Recommendation | yes | the agent's own pick, with the reason — never a menu without a pick |
 | Needed from | missing-inputs entries | who or what can deliver the input — person, team, system; becomes the routing target if a later step blocks on it |
 | Proposed answer | when agent-answerable | filled by step 02, for the human to merely confirm |
-| Answer | after step 03 | what was decided, with `Rationale:` and answered-by/on |
+| Answer | after step 03 | what was decided, with `Rationale:` and answered-by/on; or `assumed`, an explicit assumption with a named verification owner and a due point (after implementation, before deployment) |
 
 ## Coverage record
 
@@ -76,6 +76,7 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 - [ ] Every option list ends with a recommendation.
 - [ ] The coverage record names every hunt category.
 - [ ] After step 03: no Critical or Important entry unanswered; deferrals carry an explicit rationale and reappear under Open Questions in the alignment record.
+- [ ] An `assumed` answer names its verification owner and due point, reappears under Constraints in the alignment record, and becomes an advisor check or release readiness gate in the plan. At delivery close every assumption is either verified (who, when) or explicitly accepted as a standing risk; none silently expires.
 - [ ] Answers that create durable commitments are also recorded in `decisions.log.md` — and, if they hold beyond this feature, as an ADR in the context registry.
 
 ## Companion — `02-questions.view.html` (required)
