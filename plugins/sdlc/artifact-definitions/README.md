@@ -16,6 +16,7 @@ Steps never restate this. A step says "writes `03-agreement.spec.md` per its con
 | [`00-manifest.state.md`](00-manifest.state.md) | step 00 | all | identity, component inventory, artifact ledger, work-package ledger |
 | [`AGENTS.md`](AGENTS.md) | step 00 | all | static workspace operating rules; runtimes auto-load it on entry |
 | [`01-current-solution.research.md`](01-current-solution.research.md) | step 01 | 02, 03, 05 | how it works today, readable and code-grounded through a source map |
+| [`research-note.research.md`](research-note.research.md) | any step | all | further investigations, `1-research/<step>-<topic>.research.md`; includes business-evidence notes |
 | [`02-questions.inventory.md`](02-questions.inventory.md) | step 02 | 03, 04, optionally 05 | **the question inventory**: tiered, tracked, self-contained questions; answered during alignment |
 | [`02-work-breakdown.md`](02-work-breakdown.md) | step 02 | 03, 05 | **slices and the PR cut**: drafted early, decided in alignment, frozen into the plan |
 | [`03-agreement.spec.md`](03-agreement.spec.md) | step 03 | 04, 05, 07, 08 | **the agreement**: intent, acceptance criteria, key decisions, out of scope |
@@ -36,7 +37,8 @@ Inside the workspace, three numbered folders group the artifacts by phase; the m
 <workspace>/
 ├── 00-manifest.state.md
 ├── 1-research/
-│   └── 01-current-solution.research.md
+│   ├── 01-current-solution.research.md
+│   └── 06-<topic>.research.md            (example: spawned during step 06)
 ├── 2-specification/
 │   ├── 02-questions.inventory.md
 │   ├── 02-questions.view.html

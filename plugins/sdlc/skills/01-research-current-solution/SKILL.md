@@ -49,6 +49,8 @@ Produces a factual, code-grounded baseline of how the affected functionality wor
 | reads | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
 | writes | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
 
+This artifact opens the research series. Any later step that has to investigate something writes a further note per the [research-note contract](../../artifact-definitions/research-note.research.md), prefixed with its own step number; business and scope questions that code cannot answer become business-evidence notes under the same contract.
+
 ---
 
 ## Workflow
