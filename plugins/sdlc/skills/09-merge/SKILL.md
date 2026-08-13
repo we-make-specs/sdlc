@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Closes out the feature: presents the state compactly, pair-programs any last fixes, and merges on an explicit command. This is the last station before code lands on the main branch — earlier approvals do **not** carry over, the human confirms again here.
+Closes out one work package: presents the state compactly, pair-programs any last fixes, and merges its pull request on an explicit command. This is the last station before that package's code lands on the main branch — earlier approvals do **not** carry over, the human confirms again here. After the merge, the package's plan section and the manifest's work-package ledger row record the merge commit; packages that depended on this one become eligible. A package merge never marks the whole delivery done.
 
 ## When to use this skill
 

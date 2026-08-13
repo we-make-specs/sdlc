@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Executes the plan's task list group by group, committing once per task, keeping the progress log current, and finishing with a pushed branch and an open pull request.
+Executes **one work package** of the plan, task by task and group by group, committing once per task, keeping the progress log current, and finishing with a pushed branch and an open pull request for that package. The package ID is passed in; with a single-package plan it is implicit.
 
 ## When to use this skill
 
@@ -54,12 +54,13 @@ Executes the plan's task list group by group, committing once per task, keeping 
 
 ## Workflow
 
-1. **Rehydrate.** Parse the plan fully; missing or task-less → abort.
-2. **Group.** Bucket by group, respect order and dependencies. Tasks already ticked from a previous partial run are skipped and treated as done.
-3. **Per task:** do the work per guidelines and surrounding code → run formatter, linter, tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox.
-4. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there, push what is done, and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — open **no pull request**: commit only the progress log, append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it. A pull request whose diff contains no code is noise, not progress.
-5. **Fix documentation the diff made stale — in this same pull request.** Grep the documentation surface (README, docs, root instruction files, registry entries the diff touches) for the old names the diff removed or renamed; correct genuinely stale references in one documentation-only commit. Public surface (commands, environment variables, documented APIs, setup instructions) is where documentation drifts; internal refactorings rarely need it. Nothing stale is a valid outcome — never manufacture documentation churn.
-6. **Push and open the pull request.** Body: summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues.
+1. **Rehydrate and select the package.** Parse the plan fully; missing or task-less → abort. Locate the named package section (the only one, when the plan has one); a plan with several packages and no package ID → abort, the orchestrator selects. Verify the package is ready: every prerequisite package merged, every readiness gate resolved — otherwise abort naming what is unmet.
+2. **Enter the package's repository and branch.** Open the target component repository the package declares, read and follow its own instructions, and create the package branch from its declared base. A stacked base (another package's branch) is valid only when the plan explicitly declares it, and carries the duty to rebase onto the main branch after the prerequisite merges.
+3. **Group.** Bucket the package's tasks by group, respect order and dependencies. Tasks already ticked from a previous partial run are skipped and treated as done.
+4. **Per task:** do the work per guidelines and surrounding code → run formatter, linter, tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox.
+5. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there, push what is done, and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — open **no pull request**: commit only the progress log, append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it. A pull request whose diff contains no code is noise, not progress.
+6. **Fix documentation the diff made stale — in this same pull request.** Grep the documentation surface (README, docs, root instruction files, registry entries the diff touches) for the old names the diff removed or renamed; correct genuinely stale references in one documentation-only commit. Public surface (commands, environment variables, documented APIs, setup instructions) is where documentation drifts; internal refactorings rarely need it. Nothing stale is a valid outcome — never manufacture documentation churn.
+7. **Push and open the pull request.** Body: summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues. Update the package's Status and the manifest's work-package ledger row with the PR link.
 
 Fix only problems this work introduced. Pre-existing failures are not yours — the known-red-tests list lives in the testing guidelines. **A pre-existing failure is proven, not assumed:** reproduce the failure against the base branch; the same failure there makes it a documented baseline failure, recorded in the progress log with that evidence and left untouched. Never modify unrelated source to quiet it.
 
@@ -73,7 +74,8 @@ Commits on the feature branch (one per task), pushed; an open pull request; the 
 
 ## Constraints and guardrails
 
-- **Edit the plan in exactly two places:** task checkboxes and progress log. Acceptance criteria, task descriptions, and advisor checks are read-only here.
+- **One package only.** Change only the selected package's tasks, its Status, and its manifest ledger row; every other package's section is read-only here.
+- **Edit the plan in exactly three places:** the package's task checkboxes, its Status line, and the progress log. Acceptance criteria, task descriptions, and advisor checks are read-only here.
 - **Never force-push, never skip hooks, never amend a completed task's commit.**
 - **Stage explicit paths.** Never stage everything blindly.
 - **The out-of-scope list is binding** — even when adjacent work looks trivial.

@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Gives the human everything needed to judge the implemented pull request in one place, then waits for a decision: approve, or name concrete fixes.
+Gives the human everything needed to judge one work package's implemented pull request in one place, then waits for a decision: approve, or name concrete fixes. The acceptance-criteria checklist shows the package's Primary ACs with their verbatim text; a multi-package delivery passes this gate once per package.
 
 ## When to use this skill
 

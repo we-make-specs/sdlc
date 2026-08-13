@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Reviews the pull request against the agreement and the design — not against the implementer's account of what they did. Produces inline comments plus one summary carrying an explicit verdict.
+Reviews one work package's pull request against the agreement and the design — not against the implementer's account of what they did. Produces inline comments plus one summary carrying an explicit verdict. The acceptance-criteria lens covers the package's Primary ACs; a multi-package delivery reviews each package separately.
 
 ## When to use this skill
 
