@@ -59,7 +59,7 @@ Gives the human everything needed to judge one work package's implemented pull r
    - the pull request as a clickable link, with state and any failing checks
    - the agent verdict in one line plus its summary as a quote, linked
    - the changed files
-   - **inline:** the acceptance-criteria checklist — each item is the **AC text verbatim**, its status, and a one-line reason with the reviewer's citation. Bare numbers ("AC3: not met") are worthless to a human who has not memorised the list; never present them.
+   - **inline:** the acceptance-criteria checklist, scoped to the package's Primary ACs — each item is the **AC text verbatim** from the agreement, its status, and a one-line reason with the reviewer's citation. Bare numbers ("AC3: not met") are worthless to a human who has not memorised the list; never present them. In the `team` profile the PR body deliberately carries none of this — this gate is where the process detail surfaces, from the workspace.
 3. **Ask decision-friendly:** "A: approve, continue to the merge. B: name concrete fixes; I implement them and come back." When the agent verdict is not APPROVE, present B first with a recommendation and say why — and when the blocker is a missing input rather than a code defect, say that the fix is *delivering the input*, not more implementation.
 4. **Wait.** Vague answers → ask again with the two options.
 

@@ -1,6 +1,6 @@
 ---
 name: 06-implement
-description: Pipeline step 06 (AUTO) — execute the plan end to end, one commit per task, keeping the plan's progress log current, then push the branch and open a pull request. Use once a plan has been written and approved.
+description: Pipeline step 06 (AUTO) — execute one work package of the plan, one commit per task, keeping the plan's progress log current. The branch stays local; it is pushed and opened as a pull request after the package review closes. Use once a plan has been written and approved.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
@@ -17,7 +17,7 @@ metadata:
 
 ## What this skill does
 
-Executes **one work package** of the plan, task by task and group by group, committing once per task, keeping the progress log current, and finishing with a pushed branch and an open pull request for that package. The package ID is passed in; with a single-package plan it is implicit.
+Executes **one work package** of the plan, task by task and group by group, committing once per task and keeping the progress log current. The package ID is passed in; with a single-package plan it is implicit. The branch stays **local**: pushing and opening the pull request happen after the package review closes (step 07), so the PR is born clean.
 
 ## When to use this skill
 
@@ -58,9 +58,9 @@ Executes **one work package** of the plan, task by task and group by group, comm
 2. **Enter the package's repository and branch.** Open the target component repository the package declares, read and follow its own instructions, and create the package branch from its declared base. A stacked base (another package's branch) is valid only when the plan explicitly declares it, and carries the duty to rebase onto the main branch after the prerequisite merges.
 3. **Group.** Bucket the package's tasks by group, respect order and dependencies. Tasks already ticked from a previous partial run are skipped and treated as done.
 4. **Per task:** do the work per guidelines and surrounding code → run formatter, linter, tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox.
-5. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there, push what is done, and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — open **no pull request**: commit only the progress log, append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it. A pull request whose diff contains no code is noise, not progress.
-6. **Fix documentation the diff made stale — in this same pull request.** Grep the documentation surface (README, docs, root instruction files, registry entries the diff touches) for the old names the diff removed or renamed; correct genuinely stale references in one documentation-only commit. Public surface (commands, environment variables, documented APIs, setup instructions) is where documentation drifts; internal refactorings rarely need it. Nothing stale is a valid outcome — never manufacture documentation churn.
-7. **Push and open the pull request.** Body: summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues. Update the package's Status and the manifest's work-package ledger row with the PR link.
+5. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it.
+6. **Fix documentation the diff made stale — in this same package.** Grep the documentation surface (README, docs, root instruction files, registry entries the diff touches) for the old names the diff removed or renamed; correct genuinely stale references in one documentation-only commit. Public surface (commands, environment variables, documented APIs, setup instructions) is where documentation drifts; internal refactorings rarely need it. Nothing stale is a valid outcome — never manufacture documentation churn.
+7. **Conclude locally and prepare the PR body.** Update the package's Status; do not push and do not open a pull request — that happens when the package review closes. Prepare the body for that moment per the manifest profile's `pr_audience`: `team` gets a short reviewer handoff — the delivered behavior, useful review focus, the ticket link, and deliberately no AC copies, no plan deviations, no validation logs, no process notes; `solo` gets the process-rich body — summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues.
 
 Fix only problems this work introduced. Pre-existing failures are not yours — the known-red-tests list lives in the testing guidelines. **A pre-existing failure is proven, not assumed:** reproduce the failure against the base branch; the same failure there makes it a documented baseline failure, recorded in the progress log with that evidence and left untouched. Never modify unrelated source to quiet it.
 
@@ -68,7 +68,7 @@ Fix only problems this work introduced. Pre-existing failures are not yours — 
 
 ## Output contract
 
-Commits on the feature branch (one per task), pushed; an open pull request; the plan's checkboxes and progress log updated; `06-decisions.log.md` maintained. Returns the PR URL, one line per task, and any blockers.
+Commits on the package branch (one per task), local; the prepared PR body; the plan's checkboxes and progress log updated; `06-decisions.log.md` maintained. Returns one line per task and any blockers. No push, no pull request — the package review comes first.
 
 ---
 
@@ -79,7 +79,7 @@ Commits on the feature branch (one per task), pushed; an open pull request; the 
 - **Never force-push, never skip hooks, never amend a completed task's commit.**
 - **Stage explicit paths.** Never stage everything blindly.
 - **The out-of-scope list is binding** — even when adjacent work looks trivial.
-- **Claim no unverified success.** Unresolved issues go into the PR body under known issues.
+- **Claim no unverified success.** Unresolved issues go into the prepared PR body's known issues (`solo`) or the package's Status (`team`).
 
 ---
 
@@ -87,8 +87,8 @@ Commits on the feature branch (one per task), pushed; an open pull request; the 
 
 - [ ] Every feasible task committed with its done-when verified
 - [ ] One commit per task, explicit paths staged
-- [ ] A pull request exists only if the diff touches code — total blockage returned a named blocker instead
-- [ ] Pull request open with verbatim acceptance criteria in the body
+- [ ] Nothing pushed and no pull request opened — total blockage returned a named blocker instead
+- [ ] The PR body is prepared per the profile's audience
 - [ ] Progress log has one line per task, including WARN lines for blocked ones
 - [ ] Every verification claim names its command and result; suspected pre-existing failures carry base-branch evidence
 - [ ] No documentation references the old behaviour — checked against the diff's removed names, fixed in this PR

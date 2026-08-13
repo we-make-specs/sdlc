@@ -87,9 +87,9 @@ steps:
     isolation: subagent
     model: standard
     skippable: false
-    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/ —
-    # a mechanical guard against artifact-only pull requests.
-    checks: [pr_exists, pr_touches_code]
+    # package_commits_exist: the package branch carries at least one commit beyond its base.
+    # No push and no PR here; publish happens when the step-07 exchange closes.
+    checks: [package_commits_exist]
 
   - id: "07"
     skill: 07-review
@@ -97,7 +97,9 @@ steps:
     isolation: subagent
     model: strong
     skippable: true
-    checks: [pr_has_review]
+    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/ —
+    # a mechanical guard against artifact-only pull requests.
+    checks: [review_closed, pr_exists, pr_touches_code]
 
   - id: "08"
     skill: 08-review-pr
