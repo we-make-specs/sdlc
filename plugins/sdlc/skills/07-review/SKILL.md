@@ -59,7 +59,7 @@ Reviews one work package's pull request against the agreement and the design —
 Work all four lenses; skip none.
 
 1. **Acceptance-criteria coverage.** Every AC against the diff: met / not met / partial / not verifiable, each with a diff citation. An AC with no corresponding change is a red flag — unless it is a "do not change X" criterion.
-2. **Design alignment.** Diff against the architecture and data flow of the target solution: missing components, unmentioned extras, logic in the wrong layer, violated boundaries.
+2. **Design alignment.** Diff against the target solution: its components, flows, and data structures — missing components, unmentioned extras, logic in the wrong layer, violated boundaries.
 3. **Code quality**, changed code only: correctness (off-by-one, null, inverted conditions) · edge cases (empty inputs, concurrency, failure paths, idempotency) · error handling (right layer, not silently swallowed) · naming against domain language · security (validation at boundaries, no secrets in logs) · tests (does the diff test what it adds?).
 4. **Missing scenarios.** What the agreement and design imply but the diff does not handle. Often more valuable than style findings — hunt for them deliberately.
 
