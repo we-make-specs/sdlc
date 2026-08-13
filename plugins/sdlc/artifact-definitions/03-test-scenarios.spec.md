@@ -29,7 +29,7 @@ This artifact exists because of a specific failure: tests get written, but *what
 
 ## Quality criteria
 
-- [ ] Every acceptance criterion from `03-alignment.spec.md` maps to at least one scenario.
+- [ ] Every acceptance criterion from `03-agreement.spec.md` maps to at least one scenario.
 - [ ] Scenarios are phrased in **domain language**, not in terms of methods or classes. A product person must be able to read them.
 - [ ] Exceptional scenarios exist and are specific. "Handles errors" is not a scenario.
 - [ ] Permission and role cases are covered where the feature is role-dependent — see `05-domain/roles-and-permissions.md`.
@@ -60,7 +60,7 @@ The gate is not passed by the human saying "looks good" — it is passed by the 
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
 - **Status:** DRAFT | IN REVIEW | APPROVED · **Approved by:** <who> · **on:** <YYYY-MM-DD>
-- **Discussion:** [03-alignment.spec.md](03-alignment.spec.md) · **Design:** [03-target-solution.spec.md](03-target-solution.spec.md)
+- **Discussion:** [03-agreement.spec.md](03-agreement.spec.md) · **Design:** [03-target-solution.spec.md](03-target-solution.spec.md)
 
 ## Happy Path Scenarios
 

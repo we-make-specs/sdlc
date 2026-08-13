@@ -1,11 +1,11 @@
 ---
-artifact: 03-alignment.spec.md
+artifact: 03-agreement.spec.md
 produced_by: 03-align
 consumed_by: [04-approve-target-solution, 05-plan, 07-review, 08-review-pr]
 required: true
 ---
 
-# Contract — `03-alignment.spec.md` (alignment record)
+# Contract — `03-agreement.spec.md` (the agreement)
 
 ## Purpose
 
@@ -37,7 +37,7 @@ It is the origin of the acceptance criteria, which every later stage quotes verb
 ## Skeleton
 
 ```markdown
-# Alignment: <title>
+# Agreement: <title>
 
 - **Ticket:** <ID> · **Created:** <YYYY-MM-DD>
 - **Manifest:** [00-manifest.state.md](00-manifest.state.md)

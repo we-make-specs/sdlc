@@ -46,7 +46,7 @@ Turns the approved design into the single work list implementation executes: tas
 |---|---|---|
 | reads | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
 | reads | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
-| reads | `03-alignment.spec.md` — source of the verbatim copy | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-agreement.spec.md` — source of the verbatim copy | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` — must be `APPROVED` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
 | reads *(optional)* | `02-questions.inventory.md` — the answered rationales, when the plan needs the why behind a decision | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
@@ -85,7 +85,7 @@ Turns the approved design into the single work list implementation executes: tas
 
 ## Success criteria
 
-- [ ] ACs and out-of-scope are character-identical to the alignment record
+- [ ] ACs and out-of-scope are character-identical to the agreement
 - [ ] Every task has exact paths and exactly one mechanically checkable done-when
 - [ ] Every task traces to something the target solution specifies
 - [ ] Parallelism is conservative

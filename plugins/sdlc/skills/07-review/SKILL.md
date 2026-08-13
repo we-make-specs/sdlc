@@ -44,7 +44,7 @@ Reviews the pull request against the agreement and the design — not against th
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `03-alignment.spec.md` — the acceptance criteria are the pass/fail gates | [`artifact-definitions/03-alignment.spec.md`](../../artifact-definitions/03-alignment.spec.md) |
+| reads | `03-agreement.spec.md` — the acceptance criteria are the pass/fail gates | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` — the design reviewed against | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
 | **must not read** | `05-implementation.plan.md` | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
