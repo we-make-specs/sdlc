@@ -100,6 +100,7 @@ profile:
 | open | `1-research/01-current-solution.research.md` | current state (step 01) |
 | open | `2-specification/02-questions.inventory.md` | question inventory (step 02, answered in step 03) |
 | open | `2-specification/02-questions.view.html` | question pre-read (step 02, regenerated in step 03) |
+| open | `2-specification/02-work-breakdown.md` | slices and the PR cut (step 02, frozen into the plan at step 05) |
 | open | `2-specification/03-agreement.spec.md` | agreement (step 03) |
 | open | `2-specification/03-target-solution.spec.md` | target design (step 03) |
 | open | `2-specification/03-test-scenarios.spec.md` | test scenarios (step 03) |

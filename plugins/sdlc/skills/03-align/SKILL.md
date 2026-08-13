@@ -51,6 +51,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 | reads | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
 | updates | `02-questions.inventory.md` — answers filled, live findings appended | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
 | updates | `02-questions.view.html` — regenerated as answers land | companion section of the same contract |
+| updates | `02-work-breakdown.md` — the agreed slices recorded as cut decisions land | [`artifact-definitions/02-work-breakdown.md`](../../artifact-definitions/02-work-breakdown.md) |
 | writes | `03-agreement.spec.md` | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | writes | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | writes | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |

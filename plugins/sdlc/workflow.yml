@@ -55,7 +55,7 @@ steps:
     isolation: subagent
     model: strong
     skippable: false
-    outputs: [2-specification/02-questions.inventory.md, 2-specification/02-questions.view.html]
+    outputs: [2-specification/02-questions.inventory.md, 2-specification/02-questions.view.html, 2-specification/02-work-breakdown.md]
 
   - id: "03"
     skill: 03-align

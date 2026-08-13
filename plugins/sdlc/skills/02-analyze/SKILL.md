@@ -51,6 +51,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 | reads *(when present)* | `01-current-solution.research.md` | [`artifact-definitions/01-current-solution.research.md`](../../artifact-definitions/01-current-solution.research.md) |
 | writes | `02-questions.inventory.md` | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
 | writes | `02-questions.view.html` — the human's pre-read | companion section of the same contract |
+| writes | `02-work-breakdown.md` — slices and the candidate cut | [`artifact-definitions/02-work-breakdown.md`](../../artifact-definitions/02-work-breakdown.md) |
 
 ---
 
@@ -61,7 +62,8 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 3. **Run every probe in the hunt table** over the claims and the current state. Top to bottom, skip none.
 4. **Write each finding as a self-contained entry** per the contract: tier, track, category, context, evidence per the shared evidence rules (claim IDs plus evidence IDs resolving in the inventory's source map), the question itself, options with trade-offs, your own recommendation — and, where you can answer with high confidence yourself, a proposed answer for the human to merely confirm.
 5. **Record coverage.** Every category ends with findings or an explicit `none found` line. A category without a line means the hunt is unfinished, not that nothing was found.
-6. **Write both artifacts** and mark the artifact present in the manifest ledger.
+6. **Draft the work breakdown** per its contract: vertical slices with completion boundaries, the candidate package cut, conditional slices. Every decision that would change the cut becomes an inventory entry, referenced from the breakdown. A story with nothing to cut gets the single-package one-liner — never invent slices to look thorough.
+7. **Write the artifacts** and mark them present in the manifest ledger.
 
 ### The hunt table
 
