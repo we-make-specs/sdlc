@@ -63,7 +63,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 
 1. **Rehydrate.** Inventory missing → abort and point at step 02. Read manifest, current state, and every inventory entry.
 2. **Open with the digest:** question counts by tier and track, and the pointer to `02-questions.view.html` as the pre-read. Offer the async option explicitly — the human may answer any entry directly in the file instead of live.
-3. **Work the agenda, Critical first, one question per round** (two only when tightly coupled). Render every question with the template below — as a normal chat message, whatever the runtime. Entries with a proposed answer are presented for confirmation, not re-derived.
+3. **Work the agenda in the selected questioning mode.** The manifest profile's `questioning` field decides how the conversation travels: `chat` follows [cli-questioning.md](cli-questioning.md) (one templated question per round), `annotation` follows [plannotator-questioning.md](plannotator-questioning.md) (the human annotates the inventory in passes). The recording rules below hold in both modes.
 4. **Record before moving on.** Each answer goes into the inventory immediately — answer, rationale, who/when — and directional answers are mirrored back and confirmed before the next round. A question the human cannot settle authoritatively may be answered as an explicit assumption: record it as `assumed` with a named verification owner and due point, and mirror it into the agreement's Constraints.
 5. **Keep hunting.** Answers create new gaps: when one appears, append it to the inventory in the same format and tier, and say so. The inventory seeds the conversation; it does not bound it.
 6. **Iterate until the human signals alignment.** When unsure, ask with concrete options: "A: I write the artifacts now. B: We clarify <point> first."
@@ -72,25 +72,9 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 
 Scale depth to complexity: a small tweak is a short agenda, a cross-cutting change is a long one.
 
-### The question template
+### The questioning modes
 
-Every question appears in chat exactly in this shape — the runtime's interactive ask-tools may be used *in addition*, but never replace or compress it:
-
-```markdown
-### Question <n> of <total> — [<tier>] [<track>] <short name>
-
-**Context:** <1–2 sentences, with the story quote or path:line from the entry>
-
-**Question:** <the one sentence, bold>
-
-**Options:**
-- **A (recommended):** <option> — <why / trade-off>
-- **B:** <option> — <trade-off>
-
-Answer A/B or in your own words.
-```
-
-The counter gives the human progress; the recommendation gives them a default; the context spares them reconstructing why this matters. All three come from the inventory entry — presentation quality must not depend on live improvisation.
+Two mode files next to this skill carry the procedures: [cli-questioning.md](cli-questioning.md) (the chat template and round discipline) and [plannotator-questioning.md](plannotator-questioning.md) (annotation rounds on the inventory, tool-neutral with Plannotator as the example). Both draw everything from the inventory entries — presentation quality must not depend on live improvisation — and both feed every answer back into the inventory before the artifacts are written.
 
 ---
 
@@ -115,7 +99,7 @@ The counter gives the human progress; the recommendation gives them a default; t
 - [ ] Every Critical and Important entry answered, or explicitly deferred with a rationale
 - [ ] Every answer recorded in the inventory with rationale and who/when; live findings appended, not lost
 - [ ] Every assumed answer carries a verification owner and due point and reappears under Constraints
-- [ ] Every question rendered with the template — none improvised
+- [ ] Every question asked per the selected mode's procedure — chat questions templated, annotation rounds fully ingested; none improvised
 - [ ] Every acceptance criterion is concrete and testable
 - [ ] Every key decision carries a rationale
 - [ ] Out of scope is explicitly populated
