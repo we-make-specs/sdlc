@@ -50,16 +50,29 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 
 ## Workflow
 
-1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. Otherwise, the first step whose declared `outputs` are missing is the next step. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
+1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
 2. **Collect the delivery profile at kickoff.** For a new run in an interactive session, ask the three profile questions the manifest contract defines (PR audience, review placement, questioning mode) before invoking step 00, and pass the answers along for it to record. Headless, or when the human gives no preference: the defaults apply silently. Never re-ask on a resume — the manifest already carries the profile.
 3. **Announce the step** (number, name, type) so the run stays legible.
-4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`.
+4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
    - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its four slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
    - An `sdlc-step` agent profile is an **optional container** for tool scoping and per-step model routing — when the runtime knows one (user-level `~/.claude/agents/` / `~/.copilot/agents/`, or repo-level), delegate into it, still sending the full step-runner prompt. No profile is required: the rules travel in the prompt, not the profile.
    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
 5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. This is a file check, not a content judgment. Missing → stop and report; never silently continue. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
 6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
 7. **Report** after each step: step, outcome, artifacts written, what comes next.
+
+### Selecting the next action
+
+Three questions, in order, every time the orchestrator decides what happens next:
+
+1. **Is a shared artifact missing or unapproved?** Research, questions, breakdown, agreement, target solution, scenarios, plan: the first step whose declared outputs are missing, or whose gate has not passed, runs next — exactly the old linear walk. Steps 00 to 05 run once for the whole delivery.
+2. **Otherwise, is a package ready?** Ready means: every prerequisite package merged, no unresolved readiness gate, no `needs-revalidation` mark. Run the tail (06 implement, 07 review, 08 gate, 09 merge) for that one package, then update its ledger row and re-evaluate. Packages execute sequentially, in plan order; with one package this is byte-for-byte the old behavior, which is why there is no second mode.
+3. **Otherwise, stop and name what everything is waiting on:** a human decision, an unmerged prerequisite, an unmet release gate — with the exact ledger rows and escalation lines.
+
+Two safety rules on top:
+
+- **Revalidation.** When a shared decision changes after packages were planned (an amendment, a corrected agreement), mark every unmerged package that relied on it `needs-revalidation` in the work-package ledger, and question 1 applies again — the affected shared step reopens. The mark clears when the package's plan section is re-checked against the amended decision and its Status records that.
+- **Completion.** A package merge never marks the delivery done. `status: done` requires every non-conditional package merged and the delivery-level scenarios satisfied.
 
 ### The step-runner prompt
 
@@ -146,6 +159,8 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 - [ ] Each `.md`-producing step's `Context loaded:` line verified — by grep, never by resolving anything
 - [ ] Both gates stopped for an explicit human decision
 - [ ] A resumed run continued at the correct step without redoing finished work
+- [ ] Package-tail steps carried the selected package ID and updated only that package's rows
+- [ ] `status: done` was set only per the completion rule, never by a package merge
 - [ ] Every `isolation: subagent` step ran in a fresh context, not inline, carrying the step-runner prompt
 - [ ] Unattended: the preflight ran before step 00, and every denial stopped the run naming the exact missing approval
 - [ ] Failures surfaced with their cause, not worked around
