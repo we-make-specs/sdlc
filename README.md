@@ -89,6 +89,7 @@ Ten steps, from an incoming ticket to a merged pull request.
 | 07 | review | auto | `03-agreement`, `03-target-solution`, `03-test-scenarios` (not the plan) | inline comments and one verdict |
 | 08 | review-pr | gate | the pull request, the agent review, `03-agreement` | approval only |
 | 09 | merge | collab | `00-manifest`, `06-decisions.log` | the merged pull request |
+| 10 | post-mortem | collab | the ledgers, `02-questions`, `06-decisions.log` | reconciliation, settled assumptions, `10-post-mortem.md`, `status: done` |
 
 A few things worth calling out. Step 03 is where a human and the agent settle the
 design together, and step 04 refuses to continue until that design is approved. Step 07
@@ -150,7 +151,7 @@ Run the whole pipeline on a ticket or a free-text description:
 
 The orchestrator resumes from the feature folder, runs each step in order, validates its
 output, and stops wherever a human is required. You can also invoke a single step
-directly, from `/sdlc:00-create-workspace` through `/sdlc:09-merge`, when you want to
+directly, from `/sdlc:00-create-workspace` through `/sdlc:10-post-mortem`, when you want to
 redo one stage.
 
 The `sdlc-context` plugin manages the knowledge side:

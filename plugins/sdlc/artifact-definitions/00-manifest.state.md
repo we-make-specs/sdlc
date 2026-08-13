@@ -42,7 +42,7 @@ Defaults, used when the kickoff was headless or the human gave no preference: `s
 
 ## Blockers — failure as a file, not a message
 
-`status:` is the one-grep run signal: any orchestrator — the run skill, a shell script, a CI pipeline — reads the same field to decide whether the run may advance. A step that cannot proceed **appends a blocker entry and sets `status: blocked` before returning**; a blocker that exists only in a step's report does not exist. Whoever resolves it marks the entry resolved and sets `status: in-progress`; step 09 sets `done` after the merge.
+`status:` is the one-grep run signal: any orchestrator — the run skill, a shell script, a CI pipeline — reads the same field to decide whether the run may advance. A step that cannot proceed **appends a blocker entry and sets `status: blocked` before returning**; a blocker that exists only in a step's report does not exist. Whoever resolves it marks the entry resolved and sets `status: in-progress`; step 10 sets `done` at the close.
 
 Entry fields: **Missing** (what, concretely) · **Needed from** (person / team / system — carried over from the inventory entry's `Needed from:` where one exists) · **Blocking** (step) · **Since** (date) · **Escalation** (one ready-to-forward sentence) · **Resolved** (date + how, once it is).
 
@@ -109,6 +109,7 @@ profile:
 | open | `3-planning/05-technical-questions.inventory.md` | technical questions (step 05, optional) |
 | open | `3-planning/05-implementation.plan.md` | executable plan incl. progress log (step 05) |
 | open | `3-planning/06-decisions.log.md` | decision log (cross-cutting) |
+| open | `3-planning/10-post-mortem.md` | close-out record (step 10) |
 
 ## Work-package ledger
 
