@@ -4,7 +4,7 @@ description: Pipeline step 09 (COLLAB) — present the ready pull request, pair-
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.6.0'
   tags: sdlc, step, merge, collaborative, final-gate
 ---
 

@@ -4,7 +4,7 @@ description: Pipeline step 05 (AUTO) — turn the approved alignment artifacts i
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.6.0'
   tags: sdlc, step, planning, tasks
 ---
 

@@ -4,7 +4,7 @@ description: Pipeline step 07 (AUTO) — independent blinded review of the packa
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.6.0'
   tags: sdlc, step, review, quality-gate, adversarial
 ---
 

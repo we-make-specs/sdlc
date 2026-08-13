@@ -5,7 +5,7 @@ argument-hint: <ticket-id | ticket-url | free-text description>
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.6.0'
   tags: sdlc, step, workspace, bootstrap
 ---
 

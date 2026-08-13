@@ -4,7 +4,7 @@ description: Pipeline step 10 (COLLAB) — close the delivery by reconciling the
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.1.0'
+  version: '0.6.0'
   tags: sdlc, step, post-mortem, close, lessons
 ---
 

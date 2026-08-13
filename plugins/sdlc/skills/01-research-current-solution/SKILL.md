@@ -4,7 +4,7 @@ description: Pipeline step 01 (AUTO) — investigate how the functionality affec
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.5.0'
+  version: '0.6.0'
   tags: sdlc, step, research, current-state
 ---
 

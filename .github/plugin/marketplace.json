@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Generic agentic software-delivery pipeline: orchestrator, delivery steps, and artifact contracts. Project-independent.",
-    "version": "0.7.0"
+    "version": "0.8.0"
   },
   "plugins": [
     {
       "name": "sdlc",
-      "description": "Controlled multi-stage delivery pipeline. Ten steps (autonomous, collaborative, and human-gate) that hand defined artifacts to each other via files on disk. Includes the orchestrator and the artifact contracts.",
-      "version": "0.5.0",
+      "description": "Controlled multi-stage delivery pipeline. Eleven steps (autonomous, collaborative, and human-gate) that hand defined artifacts to each other via files on disk. Includes the orchestrator and the artifact contracts.",
+      "version": "0.6.0",
       "source": "./plugins/sdlc"
     },
     {

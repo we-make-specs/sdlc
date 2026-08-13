@@ -4,7 +4,7 @@ description: Pipeline step 06 (AUTO) — execute one work package of the plan, o
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.6.0'
   tags: sdlc, step, implementation, commits, pull-request
 ---
 

@@ -4,7 +4,7 @@ description: Pipeline step 08 (GATE) — present the pull request, the agent rev
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.4.0'
+  version: '0.6.0'
   tags: sdlc, step, gate, approval, pull-request
 ---
 
