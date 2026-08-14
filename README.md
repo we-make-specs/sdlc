@@ -75,7 +75,7 @@ planning starts.
 
 ## The pipeline
 
-Ten steps, from an incoming ticket to a merged pull request.
+Eleven steps, from an incoming ticket to a closed delivery.
 
 | # | Step | Type | Reads | Writes |
 |---|------|------|-------|--------|
@@ -85,8 +85,8 @@ Ten steps, from an incoming ticket to a merged pull request.
 | 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions` | `03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md` |
 | 04 | approve-target-solution | gate | `02-questions`, `03-agreement`, `03-target-solution`, `03-test-scenarios` | approval only |
 | 05 | plan | auto | the step-03 artifacts and the research | `05-implementation.plan.md` (optionally a technical analysis) |
-| 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code, a pull request, `06-decisions.log.md` |
-| 07 | review | auto | `03-agreement`, `03-target-solution`, `03-test-scenarios` (not the plan) | inline comments and one verdict |
+| 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code on a local package branch, `06-decisions.log.md` |
+| 07 | review | auto | `03-agreement`, `03-target-solution`, `03-test-scenarios` (not the plan) | resolved findings, one verdict, the pushed branch and the opened pull request |
 | 08 | review-pr | gate | the pull request, the agent review, `03-agreement` | approval only |
 | 09 | merge | collab | `00-manifest`, `06-decisions.log` | the merged pull request |
 | 10 | post-mortem | collab | the ledgers, `02-questions`, `06-decisions.log` | reconciliation, settled assumptions, `10-post-mortem.md`, `status: done` |
@@ -165,7 +165,7 @@ The `sdlc-context` plugin manages the knowledge side:
 ## What is in this repository
 
 ```
-plugins/sdlc/            the pipeline: orchestrator, ten steps, artifact contracts, workflow.yml
+plugins/sdlc/            the pipeline: orchestrator, eleven steps, artifact contracts, workflow.yml
 plugins/sdlc-context/    the context-registry lifecycle plugin
 .claude-plugin/          marketplace manifest read by Claude Code
 .github/plugin/          marketplace manifest read by GitHub Copilot and VS Code
