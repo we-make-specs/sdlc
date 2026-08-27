@@ -87,7 +87,8 @@ Review the baseline through all four lenses:
 3. correctness, edge cases, failure handling, security and tests in changed code;
 4. missing scenarios implied by the agreement and design.
 
-For every suspected defect, add one claim to the review state. It must state the observable problem,
+Assess every package Primary AC first, preserving its verbatim text and recording `MET`, `NOT_MET`,
+`PARTIAL`, or `NOT_VERIFIABLE` with evidence. For every suspected defect, add one claim to the review state. It must state the observable problem,
 diff evidence, the objective being protected and its source kind, supporting and conflicting sources,
 severity, confidence, blast radius, a concrete failure scenario, and a verification method. A suggested
 fix is optional and has no authority. Do not modify code.

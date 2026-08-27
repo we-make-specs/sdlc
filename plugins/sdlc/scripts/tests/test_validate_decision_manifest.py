@@ -19,6 +19,15 @@ def valid_manifest():
         "acceptanceCriteria": [
             {"id": "AC-1", "text": "The export is authorized.", "decisionIds": ["D-1"], "status": "MAPPED"}
         ],
+        "testScenarios": [
+            {
+                "id": "TS-1",
+                "title": "Authorized export",
+                "behavior": "Given an authorized caller, when export runs, then the allocation is returned.",
+                "decisionIds": ["D-1"],
+                "status": "HUMAN_CONFIRMED",
+            }
+        ],
         "decisions": [
             {
                 "id": "D-1",
@@ -84,6 +93,7 @@ def valid_manifest():
         ],
         "coverage": {
             "acceptanceCriteria": {"total": 1, "classified": 1},
+            "testScenarios": {"total": 1, "classified": 1},
             "applicableRules": {"total": 1, "classified": 1},
             "semanticChanges": {"total": 0, "classified": 0},
         },
@@ -159,6 +169,35 @@ class DecisionManifestValidationTest(unittest.TestCase):
         data["coverage"]["applicableRules"]["classified"] = 0
         errors = MODULE.validate_decision_manifest(data, "alignment")
         self.assertTrue(any("coverage.applicableRules.classified" in error for error in errors))
+
+    def test_incomplete_feedback_batch_blocks_approval(self):
+        data = valid_manifest()
+        data["feedbackBatches"][0]["status"] = "OPEN"
+        data["feedbackBatches"][0]["processedItems"] = 1
+        data["feedbackBatches"][0]["unresolvedItems"] = ["annotation 2"]
+        errors = MODULE.validate_decision_manifest(data, "approved")
+        self.assertTrue(any("feedback batch FB-1 is open" in error for error in errors))
+
+    def test_complete_feedback_batch_must_reconcile_exactly(self):
+        data = valid_manifest()
+        data["feedbackBatches"][0]["processedItems"] = 1
+        errors = MODULE.validate_decision_manifest(data, "alignment")
+        self.assertTrue(any("complete batch count does not reconcile" in error for error in errors))
+
+    def test_unconfirmed_scenario_blocks_approval(self):
+        data = valid_manifest()
+        data["testScenarios"][0]["status"] = "PROPOSED"
+        data["coverage"]["testScenarios"]["classified"] = 0
+        errors = MODULE.validate_decision_manifest(data, "approved")
+        self.assertTrue(any("not human-confirmed" in error for error in errors))
+
+    def test_unknown_and_malformed_fields_fail_closed(self):
+        data = valid_manifest()
+        data["inventedSummary"] = "looks plausible"
+        data["decisions"][0]["sources"][0]["authority"] = "TRUST_ME"
+        errors = MODULE.validate_decision_manifest(data, "alignment")
+        self.assertTrue(any("inventedSummary: unknown field" in error for error in errors))
+        self.assertTrue(any("authority: value is not in the allowed enum" in error for error in errors))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Agentic SDLC Marketplace (generic)
 
-An agent plugin marketplace holding the **form** of our delivery pipeline: the orchestrator, the delivery steps, and the artifact contracts. It installs in **Claude Code** and in **Copilot CLI / VS Code** — the plugin format is shared between the three. Everything here is **project-independent** and reusable in a second project.
+An agent plugin marketplace holding the **form** of our delivery pipeline: the orchestrator, the delivery steps, and the artifact contracts. It installs in **Codex**, **Claude Code**, and **Copilot CLI / VS Code**. The skills and contracts are shared; each runtime uses its own small manifest surface. Everything here is **project-independent** and reusable in a second project.
 
 **What does NOT belong here:** filled-in guidelines, real specs, concrete decisions, domain knowledge. That is content and belongs to the project (context registry / spec registry).
 
@@ -9,6 +9,15 @@ An agent plugin marketplace holding the **form** of our delivery pipeline: the o
 ---
 
 ## Install
+
+**Codex:**
+
+```bash
+codex plugin marketplace add we-make-specs/sdlc
+codex plugin add sdlc@we-make-specs
+```
+
+After an update, reinstall the plugin and start a new task so the new catalog is loaded.
 
 **Claude Code** — inside a session:
 
@@ -50,24 +59,27 @@ The catalog also carries `sdlc-context`, the registry lifecycle plugin (`/sdlc-c
 ```
 .claude-plugin/marketplace.json          # marketplace manifest — read by Claude Code
 .github/plugin/marketplace.json          # same file — read by Copilot CLI / VS Code
+.agents/plugins/marketplace.json         # marketplace manifest — read by Codex
 plugins/sdlc/
   .claude-plugin/plugin.json             # plugin manifest — read by Claude Code
   .github/plugin/plugin.json             # same file — read by Copilot CLI / VS Code
+  .codex-plugin/plugin.json              # native Codex plugin manifest
   workflow.yml                           # pipeline manifest: order, type, model tier, outputs
   artifact-definitions/                  # ARTIFACT CONTRACTS — one file per artifact
   skills/                                # the orchestrator + the ten steps
 ```
 
-Each manifest exists twice because the two runtimes look in different places and Claude Code reads only `.claude-plugin/`. Everything else — the skills, the contracts, `workflow.yml` — is shared verbatim.
+Claude and Copilot manifests are mirrored because those runtimes look in different places. Codex has a native manifest with its required interface metadata. Everything else — the skills, contracts, scripts, and `workflow.yml` — is shared verbatim.
 
 ---
 
-## Staying dual-target
+## Staying three-target
 
-- **Both copies of a manifest must stay byte-identical.** Each runtime takes the first one it finds in its own lookup order; a copy left behind hands the two different catalogs without any error.
+- **Claude/Copilot copies of a manifest must stay byte-identical.** Each runtime takes the first one it finds in its own lookup order; a copy left behind hands the two different catalogs without any error.
+- **Codex keeps its native manifest valid.** Run `python3 <plugin-creator-skill>/scripts/validate_plugin.py plugins/sdlc`; `.codex-plugin/plugin.json` explicitly declares the shared `skills/` path and UI metadata.
 - **Plugin skills stay format-neutral:** frontmatter is `name`, `description`, `argument-hint` only · siblings referenced relatively (`../../workflow.yml`), never via `${CLAUDE_PLUGIN_ROOT}` · no `hooks/` · no `.mcp.json`. Those are the only places the layouts genuinely differ — needing one means writing it once per format.
 - Claude-only frontmatter (`context: fork`, `agent:`, `model:`, `allowed-tools:`, `effort:`) never belongs in `plugins/`.
-- **No component paths in `plugin.json`** — both runtimes discover `skills/` by convention, and the explicit syntaxes are not interchangeable (Claude Code rejects `"skills": "skills/"` and wants an array of `./`-prefixed paths). After touching a manifest, run `claude plugin validate ./plugins/sdlc`; the `category` warning is known and harmless — Copilot uses the field, Claude ignores it.
+- **No component paths in the Claude/Copilot `plugin.json` copies** — both runtimes discover `skills/` by convention, and the explicit syntaxes are not interchangeable. Codex's native manifest uses `"skills": "./skills/"`. After touching a manifest, run both the Claude validator and the Codex validator.
 
 ---
 
@@ -111,5 +123,5 @@ Early. The skills carry the full step logic; what is not yet proven is how much 
 
 1. Copy the closest existing skill in `plugins/sdlc/skills/` and rework it — the filled-in examples are the template.
 2. Fill it in. Add `examples/good-input.md`, `examples/good-output.md`, and ideally `examples/anti-patterns.md` — the output example steers behaviour more than any prose.
-3. Register the plugin in **both** marketplace manifests if it is new — `.claude-plugin/marketplace.json` and `.github/plugin/marketplace.json`, kept identical.
+3. Register the plugin in the Claude/Copilot mirrored marketplaces and the Codex marketplace if it is new.
 4. Re-install locally and try it before opening a PR.

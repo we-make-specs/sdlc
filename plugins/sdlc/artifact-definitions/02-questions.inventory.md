@@ -86,7 +86,7 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 
 A single self-contained page: inline CSS, diagrams as inline SVG, no external requests, renders offline from `file://`. It shows the inventory as a tiered, tracked agenda — counts up front, one card per question, coverage record at the end. Where a question sits in a flow, a small SVG sketch with the affected node marked beats a paragraph.
 
-Step 02 writes it; step 03 regenerates it after answers land, so it always shows the current state. Its purpose matches the target-overview page one gate later: the human opens one page and sees the whole conversation ahead instead of scrolling the raw inventory.
+Step 02 writes it; step 03 regenerates it after answers land, so it always shows the current state. Its purpose matches the human-decision gate one step later: the human opens one page and sees the whole conversation ahead instead of scrolling the raw inventory.
 
 ## Skeleton
 

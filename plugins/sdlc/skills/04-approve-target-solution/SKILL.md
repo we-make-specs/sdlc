@@ -1,11 +1,11 @@
 ---
 name: 04-approve-target-solution
-description: Pipeline step 04 (GATE) — present the alignment artifacts to the human with exactly what to open, and wait for explicit approval before planning begins. No model judgment; never self-approves.
+description: Pipeline step 04 (GATE) — present one deterministic, risk-ranked human decision gate; resolve focused choices and conflicts; and wait for explicit approval before planning. No model judgment and no approval by information flood.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
   version: '0.7.0'
-  tags: sdlc, step, gate, approval, human
+  tags: sdlc, step, gate, approval, human, decision-manifest
 ---
 
 # Step 04 · Gate: Approve Target Solution  (GATE)
@@ -17,82 +17,104 @@ metadata:
 
 ## What this skill does
 
-Stops the pipeline and asks a human to approve the design before automated planning and implementation build on it. A gate is not a silent file check — it is a decision point with a named decider.
+Gives the human one concise, deterministic pre-read instead of asking them to discover crucial
+choices across many artifacts. The gate surfaces every human-required decision, source conflict,
+binding-rule deviation, semantic change, acceptance criterion, test scenario and incomplete feedback
+batch. Lower-risk agent-owned detail remains available but collapsed.
 
-## When to use this skill
-
-- The alignment step has produced its artifacts and the pipeline is about to plan
-
-## When NOT to use this skill
-
-- The artifacts are incomplete — report that instead of asking for approval on something unfinished
-
----
+The gate does not ask for one vague approval while important choices are unresolved. It closes each
+focused decision first, regenerates the view, and only then asks whether the resulting design may
+advance to planning.
 
 ## Required inputs
 
 | Input | Description | Required |
 |---|---|---|
-| Feature folder | located via the manifest for the current branch | yes |
-| Human | the decision is theirs | yes |
+| Feature folder | located via the manifest | yes |
+| Human | named decision owner and approver | yes |
 
 ## Required context
 
-- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure and pull any approval-checklist or definition-of-done article the registries hold into the briefing, noting a `Context loaded:` line in it. The decision itself stays human; nothing declared, or nothing relevant, is the normal case (`none applicable`).
+- The repository's `## Context Registries` declaration and any approval-checklist or
+  definition-of-done article it points to. Applicable rules must already be present with exact text
+  and classification in the decision manifest; newly discovered ones follow the focused-reopen rule.
 
 ## Artifacts
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `02-questions.inventory.md` — no Critical entry may be open | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
+| reads | `02-questions.inventory.md` | [`artifact-definitions/02-questions.inventory.md`](../../artifact-definitions/02-questions.inventory.md) |
 | reads | `03-agreement.spec.md` | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
-| reads/updates | `03-decision-manifest.state.json` — unresolved decisions, source conflicts, rules, approval | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
-| updates | `03-target-solution.spec.md` — status, approver, date | same contract |
-| updates | `03-test-scenarios.spec.md` — status, approver, date | same contract |
-
----
+| reads/updates | `03-decision-manifest.state.json` | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
+| regenerates | `03-human-decision-gate.view.md` and `.view.html` | companion section of [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
+| updates | target-solution and test-scenario approval headers | their contracts |
 
 ## Workflow
 
-1. **Pre-check** that all three artifacts, the decision manifest, and the overview page exist; validate the manifest with `--phase alignment`; and confirm no Critical entry in `02-questions.inventory.md` is unanswered — where missing-input entries count as answered **only when the input is actually present and verifiable**, not merely promised. Anything missing or structurally invalid → report that step 03 is incomplete and stop. Do not ask for approval on an incomplete set.
-2. **Present the briefing** with precise, clickable pointers:
-   - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the agreement (acceptance criteria, key decisions) and the target solution (the design)
-   - **inline**, so the human knows what to scrutinise: the acceptance criteria and open questions verbatim, plus the key-decision titles
-   - the open assumptions: every `assumed` answer verbatim, with its verification owner and due point. Approving over one is a conscious act, not an oversight
-   - any corrections or amendments recorded since a prior approval, so a re-approval sees what changed
-   - what to verify: do intent and ACs match what was discussed? Are components, flows, and data structures accurate? When persisted data changes: are the data semantics decided and the per-layer migration and compatibility table present? Is anything important missing or misrepresented?
-   - the test scenarios, shown as a **question, not a list**: "Which of these are wrong, and what is missing?" — a scenario pass needs an answer, not a nod
-3. **Ask decision-friendly:** "A: approve and continue to planning. B: name the changes; I return to step 03 and revise."
-4. **Wait for an explicit decision.** Non-committal praise is not approval — ask again with the two options.
-5. **On approval**, resolve each `HUMAN_REQUIRED` decision with the human's chosen option, rationale, name/handle, and date; resolve or explicitly reject every source conflict; then write approval into the decision manifest and the headers of the target solution **and** test scenarios. Run `validate_decision_manifest.py --phase approved`. The gate passes only when it succeeds. The approver is the human's actual name or handle — ask rather than writing a placeholder like "Human".
+1. **Fail-closed pre-check.** Require all canonical artifacts and both generated views. Run
+   `validate_decision_manifest.py --phase alignment`; verify every Critical inventory entry has a real
+   answer or an explicit deferral. Missing promised inputs, malformed state, count mismatches, or an
+   `OPEN` feedback batch return to step 03. Do not compensate with a prose summary.
+2. **Present only the orientation in chat:**
 
----
+   ```text
+   Current phase: 04 / approve target solution
+   What I need from you: resolve <n> highlighted choices, then approve or request changes
+   Why it matters: planning and implementation will treat the approved decisions as invariants
+   Open: <human decisions> · conflicts: <n> · unconfirmed scenarios: <n> · incomplete feedback batches: <n>
+   Open first: 03-human-decision-gate.view.html (Markdown fallback beside it)
+   ```
+
+   Do not repeat all ACs and design text in chat. The deterministic page is the one human pre-read;
+   it links the detailed agreement, target solution, scenarios and canonical state for drill-down.
+3. **Close focused decisions one at a time.** For each unresolved `HUMAN_REQUIRED` item, show its
+   question, options, consequences, recommendation, strongest counterargument, source conflict and
+   risk dimensions. Record the chosen option, rationale, human name/handle and date immediately. A
+   human correction updates the canonical artifact and decision state; never patch only the view.
+4. **Run the scenario challenge.** Ask exactly: **"Which of these are wrong, and what is missing?"**
+   Record corrections or mark each presented scenario `HUMAN_CONFIRMED`. A generic "looks good" is
+   not scenario confirmation unless the human explicitly says they checked and found none wrong or
+   missing.
+5. **Ingest gate feedback transactionally.** Treat a pasted list, annotation pass, or review file as
+   one feedback batch: record the expected item count before processing, ingest each item once into
+   canonical artifacts and decisions, reconcile the count, then mark `COMPLETE` or explicitly
+   `DEFERRED`. Any semantic change may create a new focused decision. Never ask for approval with an
+   incomplete batch.
+6. **Regenerate, never hand-edit, both views** after every decision or feedback batch using
+   `render_decision_gate.py --phase alignment`. Re-run alignment validation. This ensures the human
+   sees the state they are actually about to approve.
+7. **Ask the final decision:** "A: approve these recorded decisions and continue to planning. B: name
+   the decision or artifact that must change." Non-committal praise is not approval.
+8. **On approval**, set the manifest approval to `APPROVED`, with the human's actual name/handle, date,
+   and all resolved human decision IDs. Write matching approval headers into target solution and test
+   scenarios. Run `validate_decision_manifest.py --phase approved`; only success passes the gate.
 
 ## Output contract
 
-No new files. Either decision-level resolutions and approval are recorded in `03-decision-manifest.state.json`, `03-target-solution.spec.md`, and `03-test-scenarios.spec.md` and the approved manifest validates, or the requested changes are handed back to step 03.
-
----
+Either a named, dated, validation-clean approval across the decision manifest, target solution, and
+test scenarios, with regenerated Markdown and HTML views; or focused requested changes returned to
+step 03. No planning or code changes.
 
 ## Constraints and guardrails
 
-- **Never self-approve**, and never infer approval from enthusiasm.
-- **Do not approve over a critical open question** — neither in the question inventory nor in the agreement.
-- **Do not edit the design** to make it approvable — that is step 03's job.
-- **Do not approve an unresolved authority conflict or binding-rule deviation.** A broad approval cannot hide one.
-
----
+- Never self-approve or infer approval from enthusiasm.
+- Never ask the human to approve unresolved high-risk choices, source conflicts, missing rules,
+  unconfirmed scenarios, or incomplete feedback batches.
+- Never hide a critical item inside a collapsed section.
+- Never make the human read raw machine state unless they choose to drill down.
+- Never edit the design just to make the validator pass; return to step 03.
+- A new conflict reopens only affected decisions and dependent packages, not the entire design by
+  reflex.
 
 ## Success criteria
 
-- [ ] The human was given exact things to open, not a summary to trust
-- [ ] Acceptance criteria were shown inline, verbatim
-- [ ] Open assumptions were shown verbatim with owner and due point
-- [ ] An explicit decision was recorded
-- [ ] Every human-required choice and source conflict was resolved individually
-- [ ] Every binding rule conforms or has a named human-approved deviation
-- [ ] The decision manifest passes `--phase approved`
-- [ ] The scenario question got an explicit answer
-- [ ] On approval: status, a real name or handle (no placeholders), and date written into the artifact
+- [ ] The human received one risk-ranked pre-read and a short orientation
+- [ ] Every human-required decision was separately resolved with rationale and provenance
+- [ ] Every source conflict and binding-rule deviation was visible and resolved
+- [ ] Every scenario was challenged and human-confirmed
+- [ ] Every feedback batch reconciled exactly or was explicitly deferred
+- [ ] Views were regenerated from canonical state after the final change
+- [ ] Explicit approval names the approver, date and covered decision IDs
+- [ ] Decision manifest passes `--phase approved`

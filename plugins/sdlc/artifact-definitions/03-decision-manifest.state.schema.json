@@ -9,6 +9,7 @@
     "ticket",
     "contextLoaded",
     "acceptanceCriteria",
+    "testScenarios",
     "decisions",
     "applicableRules",
     "semanticChanges",
@@ -34,6 +35,21 @@
         }
       }
     },
+    "testScenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "behavior", "decisionIds", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^TS-[0-9]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "behavior": { "type": "string", "minLength": 1 },
+          "decisionIds": { "type": "array", "items": { "type": "string" } },
+          "status": { "enum": ["PROPOSED", "HUMAN_CONFIRMED", "REJECTED"] }
+        }
+      }
+    },
     "decisions": { "type": "array", "items": { "$ref": "#/$defs/decision" } },
     "applicableRules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
     "semanticChanges": { "type": "array", "items": { "$ref": "#/$defs/semanticChange" } },
@@ -41,9 +57,10 @@
     "coverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["acceptanceCriteria", "applicableRules", "semanticChanges"],
+      "required": ["acceptanceCriteria", "testScenarios", "applicableRules", "semanticChanges"],
       "properties": {
         "acceptanceCriteria": { "$ref": "#/$defs/counts" },
+        "testScenarios": { "$ref": "#/$defs/counts" },
         "applicableRules": { "$ref": "#/$defs/counts" },
         "semanticChanges": { "$ref": "#/$defs/counts" }
       }

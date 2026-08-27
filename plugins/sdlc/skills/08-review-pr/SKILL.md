@@ -1,11 +1,11 @@
 ---
 name: 08-review-pr
-description: Pipeline step 08 (GATE) — present the pull request, the agent review verdict, changed files and the acceptance-criteria checklist to the human, and wait for their approval before the merge. No merging here.
+description: Pipeline step 08 (GATE) — render one deterministic PR decision page from the canonical decision and review states, then wait for explicit human approval. No merging and no review-detail flood in chat.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.6.0'
-  tags: sdlc, step, gate, approval, pull-request
+  version: '0.7.0'
+  tags: sdlc, step, gate, approval, pull-request, human-view
 ---
 
 # Step 08 · Gate: Review PR  (GATE)
@@ -17,72 +17,98 @@ metadata:
 
 ## What this skill does
 
-Gives the human everything needed to judge one work package's implemented pull request in one place, then waits for a decision: approve, or name concrete fixes. The acceptance-criteria checklist shows the package's Primary ACs with their verbatim text; a multi-package delivery passes this gate once per package.
-
-## When to use this skill
-
-- A pull request exists and carries the agent review
-
-## When NOT to use this skill
-
-- No pull request, or no agent review — report what is missing instead
-
----
+Lets the human judge one implemented package without hunting through the plan, review exchange, PR,
+and specifications. A deterministic Markdown/HTML projection puts the actual PR state, verbatim AC
+assessments, review claim dispositions, semantic deltas, high-risk decisions, conflicts, checks and
+changed files in one place. Detailed canonical artifacts remain linked for drill-down.
 
 ## Required inputs
 
 | Input | Description | Required |
 |---|---|---|
-| Pull request | status, mergeability, checks | yes |
-| Agent review | verdict and summary from step 07 | yes |
-| Human | the decision is theirs | yes |
+| Pull request | URL, state, mergeability, checks and changed files | yes |
+| Review state | closed `07-review-<package-id>.state.json` | yes |
+| Decision manifest | approved authority and semantic-change record | yes |
+| Human | approves or requests focused changes | yes |
 
 ## Required context
 
-- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure and pull any merge-checklist or release-rule article the registries hold into the briefing, noting a `Context loaded:` line in it. The decision itself stays human; nothing declared, or nothing relevant, is the normal case (`none applicable`).
+- The repository's `## Context Registries` declaration and any merge-checklist or release-rule
+  article it indexes. A newly discovered semantic conflict follows the focused-reopen protocol; it is
+  not explained away in the briefing.
 
 ## Artifacts
 
 | Direction | Artifact | Contract |
 |---|---|---|
-| reads | `03-agreement.spec.md` — the acceptance criteria shown inline | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
-| reads | `05-implementation.plan.md` — progress log only, for WARN/blocker lines | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
-| writes | none | — |
-
----
+| reads | `03-decision-manifest.state.json` | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
+| reads | `07-review-<package-id>.state.json` | [`artifact-definitions/07-review.state.schema.json`](../../artifact-definitions/07-review.state.schema.json) |
+| reads | pull-request metadata | live source of URL, checks and changed files |
+| writes | `08-human-review-gate.view.md` and `.view.html` | deterministic projections, never canonical truth |
 
 ## Workflow
 
-1. **Pre-check.** No PR → step 06 produced none, report and stop. No agent review → step 07 was skipped, say so explicitly rather than proceeding quietly.
-2. **Present the briefing** in one consolidated message:
-   - **the diagnosis first, in plain language:** one short paragraph on what state the PR is actually in — what was built, what was not, and why. If the diff touches no code, say exactly that. If the plan's progress log or the PR body carries `WARN`/blocker lines, **quote them** — they are usually the real answer to "why".
-   - the pull request as a clickable link, with state and any failing checks
-   - the agent verdict in one line plus its summary as a quote, linked
-   - the changed files
-   - **inline:** the acceptance-criteria checklist, scoped to the package's Primary ACs — each item is the **AC text verbatim** from the agreement, its status, and a one-line reason with the reviewer's citation. Bare numbers ("AC3: not met") are worthless to a human who has not memorised the list; never present them. In the `team` profile the PR body deliberately carries none of this — this gate is where the process detail surfaces, from the workspace.
-3. **Ask decision-friendly:** "A: approve, continue to the merge. B: name concrete fixes; I implement them and come back." When the agent verdict is not APPROVE, present B first with a recommendation and say why — and when the blocker is a missing input rather than a code defect, say that the fix is *delivering the input*, not more implementation.
-4. **Wait.** Vague answers → ask again with the two options.
+1. **Fail-closed pre-check.** Require a PR and a closed review state. Run
+   `validate_review_state.py --phase closed` and `validate_decision_manifest.py --phase downstream`.
+   An escalated review returns to focused gate 04 and must have no PR. A missing review because step 07
+   was explicitly skipped is stated and requires the human to affirm that exception before this gate
+   can continue.
+2. **Fetch current PR facts**: URL, state, mergeability, changed files and check results. Do not trust a
+   stale PR body for these.
+3. **Render both views**, supplying every changed file and check to the renderer:
 
----
+   ```bash
+   python3 <plugin>/scripts/render_decision_gate.py \
+     2-specification/03-decision-manifest.state.json --phase review \
+     --review-state 3-planning/07-review-<package-id>.state.json \
+     --pr-url <url> --changed-file <path> --check <result> \
+     --markdown 3-planning/08-human-review-gate.view.md \
+     --html 3-planning/08-human-review-gate.view.html
+   ```
+
+   Repeat `--changed-file` and `--check` for every item. The renderer is deterministic and escapes
+   content; no agent-authored second summary is allowed to drift from canonical state.
+4. **Present a short orientation only:**
+
+   ```text
+   Current phase: 08 / review PR
+   What I need from you: approve this package or name a focused correction
+   Why it matters: approval advances it to the explicit merge step
+   PR: <state> · agent verdict: <verdict> · checks: <passing/failing counts> · ACs: <status counts>
+   Open first: 08-human-review-gate.view.html (Markdown fallback beside it)
+   ```
+
+   If checks fail, an AC is `NOT_MET`/`PARTIAL`, a blocker remains, or the candidate was not proven
+   better, state that before asking. Do not bury it below process detail.
+5. **Ask decision-friendly.** With a clean state: "A: approve and continue to merge. B: name the
+   concrete change." With a non-approve verdict or failed check, present B first with the evidence and
+   recommend pausing. A missing external input is fixed by supplying that input, not by more coding.
+6. **Classify requested changes before implementation.** A local defect returns to the isolated
+   correction/review loop. A request that changes business behavior, security, a public contract,
+   architecture, data, operations, an approved decision, or a binding rule becomes a semantic change
+   and focused gate-04 decision. Never forward prose directly as an unconditional mutation command.
+7. **Wait for explicit approval.** Vague praise is not approval. Do not merge here.
 
 ## Output contract
 
-No files. Either approval and control returned to advance to the merge, or the requested fixes handed back to implementation with the human's notes.
-
----
+Deterministic `08-human-review-gate.view.md` and `.view.html`, plus either explicit human approval to
+advance to step 09 or a focused correction routed to review/implementation or gate 04 according to its
+semantic risk. No merge.
 
 ## Constraints and guardrails
 
-- **Do not merge.** That is step 09.
-- **Never self-approve.**
-- **A red check is a reason to pause**, not something to explain away.
-
----
+- Do not merge and never self-approve.
+- Do not proceed on invalid review/decision state or red checks.
+- Do not restate a long artifact inventory in chat; point to the one generated human view.
+- Do not hide NOT_MET/PARTIAL ACs, rejected/escalated claims, or preserved-baseline outcomes.
+- Do not turn a human or reviewer comment into code before classifying its semantic blast radius.
 
 ## Success criteria
 
-- [ ] The human saw the diagnosis, the PR, the verdict, the changed files, and the AC status without hunting for them
-- [ ] Every AC shown with its verbatim text and a reason — no bare numbers
-- [ ] WARN/blocker lines from the progress log or PR body quoted, not summarised away
-- [ ] An explicit decision was recorded
+- [ ] Human page contains current PR facts, every changed file and every check
+- [ ] Every package AC appears verbatim with review status and evidence
+- [ ] Every review claim shows its independent disposition and candidate comparison
+- [ ] High-risk decisions, conflicts and semantic changes remain prominent
+- [ ] The human got one short orientation and one primary page
+- [ ] An explicit approval or focused correction was recorded
 - [ ] Nothing was merged

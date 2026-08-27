@@ -9,6 +9,12 @@ import re
 import sys
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from schema_validation import validate_schema_instance
+
 
 HIGH_RISK = {"BUSINESS_BEHAVIOR", "SECURITY", "PUBLIC_CONTRACT", "ARCHITECTURE", "DATA", "OPERATIONS"}
 
@@ -41,6 +47,12 @@ def unique_ids(items: object, label: str, errors: list[str]) -> set[str]:
 
 def validate_decision_manifest(data: object, phase: str) -> list[str]:
     errors: list[str] = []
+    schema_path = SCRIPT_DIR.parent / "artifact-definitions" / "03-decision-manifest.state.schema.json"
+    try:
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"decision manifest schema unreadable: {exc}"]
+    errors.extend(validate_schema_instance(data, schema))
     require(isinstance(data, dict), "root must be an object", errors)
     if not isinstance(data, dict):
         return errors
@@ -48,11 +60,13 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
     require(text(data.get("ticket")), "ticket is required", errors)
 
     criteria = data.get("acceptanceCriteria")
+    scenarios = data.get("testScenarios")
     decisions = data.get("decisions")
     rules = data.get("applicableRules")
     changes = data.get("semanticChanges")
     batches = data.get("feedbackBatches")
     ac_ids = unique_ids(criteria, "acceptanceCriteria", errors)
+    scenario_ids = unique_ids(scenarios, "testScenarios", errors)
     decision_ids = unique_ids(decisions, "decisions", errors)
     rule_ids = unique_ids(rules, "applicableRules", errors)
     change_ids = unique_ids(changes, "semanticChanges", errors)
@@ -69,6 +83,16 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
             if isinstance(refs, list):
                 for ref in refs:
                     require(ref in decision_ids, f"{prefix} references unknown decision {ref}", errors)
+
+    if isinstance(scenarios, list):
+        for index, scenario in enumerate(scenarios):
+            if not isinstance(scenario, dict):
+                continue
+            prefix = f"testScenarios[{index}]"
+            require(text(scenario.get("title")), f"{prefix}.title is required", errors)
+            require(text(scenario.get("behavior")), f"{prefix}.behavior is required", errors)
+            for ref in scenario.get("decisionIds") or []:
+                require(ref in decision_ids, f"{prefix} references unknown decision {ref}", errors)
 
     resolved_human: set[str] = set()
     if isinstance(decisions, list):
@@ -161,6 +185,7 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
     if isinstance(coverage, dict):
         expected_counts = {
             "acceptanceCriteria": (len(ac_ids), sum(1 for item in criteria or [] if isinstance(item, dict) and item.get("status") == "MAPPED")),
+            "testScenarios": (len(scenario_ids), sum(1 for item in scenarios or [] if isinstance(item, dict) and item.get("status") == "HUMAN_CONFIRMED")),
             "applicableRules": (len(rule_ids), sum(1 for item in rules or [] if isinstance(item, dict) and item.get("classification") not in {"MISSING", "CONFLICTING"})),
             "semanticChanges": (len(change_ids), sum(1 for item in changes or [] if isinstance(item, dict) and item.get("status") != "NEEDS_HUMAN_DECISION")),
         }
@@ -184,6 +209,9 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
         for criterion in criteria or []:
             if isinstance(criterion, dict):
                 require(criterion.get("status") == "MAPPED", f"acceptance criterion {criterion.get('id')} is unresolved", errors)
+        for scenario in scenarios or []:
+            if isinstance(scenario, dict):
+                require(scenario.get("status") == "HUMAN_CONFIRMED", f"test scenario {scenario.get('id')} is not human-confirmed", errors)
         for batch in batches or []:
             if isinstance(batch, dict):
                 require(batch.get("status") in {"COMPLETE", "DEFERRED"}, f"feedback batch {batch.get('id')} is open", errors)

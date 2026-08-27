@@ -56,7 +56,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 | writes | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | writes | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
 | writes | `03-decision-manifest.state.json` — source authority, risks, conflicts and decision state | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
-| writes | `03-target-overview.view.html` — the gate's pre-read | companion section of [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
+| writes | `03-human-decision-gate.view.md` and `.view.html` — deterministic gate projections | companion section of [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 
 ---
 
@@ -70,7 +70,16 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 6. **Iterate until the human signals alignment.** When unsure, ask with concrete options: "A: I write the artifacts now. B: We clarify <point> first."
 7. **Draft the test scenarios and ask the scenario question.** Functional scenarios + rough test data + the exceptional cases — then ask, verbatim: **"Which of these are wrong, and what is missing?"** A nod is not an answer; iterate until the human names changes or explicitly confirms they checked.
 8. **Reconcile authority conflicts.** For each decision, compare ticket, acceptance criteria, human statements, registry rules, reference implementations, approved-design drafts and runtime evidence. Record both sides and the consequence; never silently pick one because its source sounds more formal. Security, public-contract, business-behavior, architecture, data, and operational choices are `HUMAN_REQUIRED`. Local implementation choices may be `AGENT_OWNED` or `SAMPLED` when no higher-risk behavior changes.
-9. **Write the three artifacts and decision manifest** per their contracts, mutually consistent with the answered inventory. Reconcile the coverage counts and validate the manifest with `validate_decision_manifest.py --phase alignment`; a failure means alignment is incomplete. Then regenerate `02-questions.view.html` and write `03-target-overview.view.html`, the gate's pre-read. This write-up may be delegated to a fresh strong-tier subagent: the answered inventory, manifest and current state carry everything it needs. Review the drafts with the human before finishing either way.
+9. **Write the three artifacts and decision manifest** per their contracts, mutually consistent with the answered inventory. Copy a compact statement of every proposed test scenario into the manifest and keep it `PROPOSED` until the human answers the scenario challenge. Reconcile the coverage counts and validate the manifest with `validate_decision_manifest.py --phase alignment`; a failure means alignment is incomplete. Then regenerate `02-questions.view.html` and render the decision gate deterministically:
+
+   ```bash
+   python3 <plugin>/scripts/render_decision_gate.py \
+     2-specification/03-decision-manifest.state.json --phase alignment \
+     --markdown 2-specification/03-human-decision-gate.view.md \
+     --html 2-specification/03-human-decision-gate.view.html
+   ```
+
+   This write-up may be delegated to a fresh strong-tier subagent: the answered inventory, manifest and current state carry everything it needs. The subagent writes canonical artifacts, never the generated gate views. Review the drafts with the human before finishing either way.
 
 Scale depth to complexity: a small tweak is a short agenda, a cross-cutting change is a long one.
 
@@ -82,7 +91,7 @@ Two mode files next to this skill carry the procedures: [cli-questioning.md](cli
 
 ## Output contract
 
-`03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md`, and a validation-clean `03-decision-manifest.state.json` written per contract, mutually consistent; `02-questions.inventory.md` fully answered or explicitly deferred, `02-questions.view.html` regenerated; `03-target-overview.view.html` written. Manifest ledger updated. No commits, no code, nothing outside the feature folder.
+`03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md`, and a validation-clean `03-decision-manifest.state.json` written per contract, mutually consistent; `02-questions.inventory.md` fully answered or explicitly deferred, `02-questions.view.html` regenerated; deterministic `03-human-decision-gate.view.md` and `.view.html` written. Manifest ledger updated. No commits, no code, nothing outside the feature folder.
 
 ---
 
@@ -113,5 +122,5 @@ Two mode files next to this skill carry the procedures: [cli-questioning.md](cli
 - [ ] Out of scope is explicitly populated
 - [ ] The scenario question was asked and answered — changes named, or nothing-missing confirmed
 - [ ] The target solution is complete enough for a separate session to implement from
-- [ ] `03-target-overview.view.html` written — design and scenarios on one page, the scenario question included
+- [ ] Deterministic human-decision Markdown and HTML views rendered from the validated manifest
 - [ ] The human explicitly signalled alignment

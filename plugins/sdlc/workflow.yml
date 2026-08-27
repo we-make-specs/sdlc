@@ -63,7 +63,7 @@ steps:
     isolation: main
     model: strong
     skippable: false
-    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-test-scenarios.spec.md, 2-specification/03-decision-manifest.state.json, 2-specification/03-target-overview.view.html]
+    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-test-scenarios.spec.md, 2-specification/03-decision-manifest.state.json, 2-specification/03-human-decision-gate.view.md, 2-specification/03-human-decision-gate.view.html]
 
   - id: "04"
     skill: 04-approve-target-solution
@@ -71,7 +71,7 @@ steps:
     isolation: main
     model: none
     skippable: false
-    checks: [decision_manifest_approved, target_solution_approved, test_scenarios_approved, no_critical_question_open]
+    checks: [decision_manifest_approved, target_solution_approved, test_scenarios_approved, all_scenarios_human_confirmed, no_critical_question_open]
 
   - id: "05"
     skill: 05-plan
@@ -112,6 +112,7 @@ steps:
     isolation: main
     model: none
     skippable: false
+    outputs: [3-planning/08-human-review-gate.view.md, 3-planning/08-human-review-gate.view.html]
     checks: [pr_approved]
 
   - id: "09"

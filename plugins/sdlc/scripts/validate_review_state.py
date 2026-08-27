@@ -8,6 +8,12 @@ import json
 import sys
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from schema_validation import validate_schema_instance
+
 
 RISKY_BLAST_RADIUS = {"SECURITY", "PUBLIC_CONTRACT", "ARCHITECTURE", "DATA", "OPERATIONS"}
 DISPOSITIONS = {"ACCEPT", "REJECT", "REFRAME", "ESCALATE"}
@@ -25,6 +31,12 @@ def non_empty_text(value: object) -> bool:
 
 def validate_review_state(data: object, phase: str) -> list[str]:
     errors: list[str] = []
+    schema_path = SCRIPT_DIR.parent / "artifact-definitions" / "07-review.state.schema.json"
+    try:
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"review state schema unreadable: {exc}"]
+    errors.extend(validate_schema_instance(data, schema))
     require(isinstance(data, dict), "root must be an object", errors)
     if not isinstance(data, dict):
         return errors
@@ -42,6 +54,23 @@ def validate_review_state(data: object, phase: str) -> list[str]:
         )
 
     claims = data.get("claims")
+    criteria = data.get("acceptanceCriteria")
+    require(isinstance(criteria, list) and bool(criteria), "acceptanceCriteria must be a non-empty array", errors)
+    criterion_ids: set[str] = set()
+    if isinstance(criteria, list):
+        for index, criterion in enumerate(criteria):
+            prefix = f"acceptanceCriteria[{index}]"
+            require(isinstance(criterion, dict), f"{prefix} must be an object", errors)
+            if not isinstance(criterion, dict):
+                continue
+            criterion_id = criterion.get("id")
+            require(non_empty_text(criterion_id), f"{prefix}.id is required", errors)
+            if isinstance(criterion_id, str):
+                require(criterion_id not in criterion_ids, f"duplicate acceptance criterion {criterion_id}", errors)
+                criterion_ids.add(criterion_id)
+            require(non_empty_text(criterion.get("text")), f"{prefix}.text is required", errors)
+            require(criterion.get("status") in {"MET", "NOT_MET", "PARTIAL", "NOT_VERIFIABLE"}, f"{prefix}.status is invalid", errors)
+            require(bool(criterion.get("evidence")), f"{prefix}.evidence must not be empty", errors)
     require(isinstance(claims, list), "claims must be an array", errors)
     if not isinstance(claims, list):
         return errors
@@ -133,6 +162,12 @@ def validate_review_state(data: object, phase: str) -> list[str]:
         else:
             require(data.get("verdict") in {"APPROVE", "REQUEST_CHANGES", "COMMENT"}, "closed verdict is invalid", errors)
             require(non_empty_text(data.get("finalCommit")), "closed review needs finalCommit", errors)
+            unmet = [
+                item for item in criteria or []
+                if isinstance(item, dict) and item.get("status") in {"NOT_MET", "PARTIAL"}
+            ]
+            if unmet:
+                require(data.get("verdict") != "APPROVE", "APPROVE is invalid while an acceptance criterion is not met or partial", errors)
     return errors
 
 

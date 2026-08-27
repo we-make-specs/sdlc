@@ -80,7 +80,7 @@ profile:
 
 ## Start here
 
-- [Plan](3-planning/05-implementation.plan.md) · [Current state](1-research/01-current-solution.research.md) · [Gate pre-read](2-specification/03-target-overview.view.html)
+- [Plan](3-planning/05-implementation.plan.md) · [Current state](1-research/01-current-solution.research.md) · [Human decision gate](2-specification/03-human-decision-gate.view.html)
 
 ## Original input
 
@@ -104,11 +104,16 @@ profile:
 | open | `2-specification/03-agreement.spec.md` | agreement (step 03) |
 | open | `2-specification/03-target-solution.spec.md` | target design (step 03) |
 | open | `2-specification/03-test-scenarios.spec.md` | test scenarios (step 03) |
-| open | `2-specification/03-target-overview.view.html` | gate pre-read (step 03) |
+| open | `2-specification/03-decision-manifest.state.json` | decisions, source authority and applicable rules (step 03; cross-cutting) |
+| open | `2-specification/03-human-decision-gate.view.md` | portable generated gate pre-read (step 03) |
+| open | `2-specification/03-human-decision-gate.view.html` | primary generated gate pre-read (step 03) |
 | open | `3-planning/05-technical-analysis.research.md` | technical analysis (step 05, optional) |
 | open | `3-planning/05-technical-questions.inventory.md` | technical questions (step 05, optional) |
 | open | `3-planning/05-implementation.plan.md` | executable plan incl. progress log (step 05) |
 | open | `3-planning/06-decisions.log.md` | decision log (cross-cutting) |
+| open | `3-planning/07-review-<package-id>.state.json` | review claims, adjudication and baseline comparison (step 07) |
+| open | `3-planning/08-human-review-gate.view.md` | portable generated PR gate (step 08) |
+| open | `3-planning/08-human-review-gate.view.html` | primary generated PR gate (step 08) |
 | open | `3-planning/10-post-mortem.md` | close-out record (step 10) |
 
 ## Work-package ledger

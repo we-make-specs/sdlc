@@ -21,6 +21,14 @@ def base_state():
         "packageId": "WP-01",
         "baseline": {"baseCommit": "1111111", "implementationCommit": "2222222"},
         "contextLoaded": ["registry/article.md"],
+        "acceptanceCriteria": [
+            {
+                "id": "AC-1",
+                "text": "Wrong-role behavior follows the agreed contract.",
+                "status": "MET",
+                "evidence": ["ControllerSecurityTest.java:20"],
+            }
+        ],
         "claims": [
             {
                 "id": "RF-1",
@@ -102,6 +110,33 @@ class ReviewStateValidationTest(unittest.TestCase):
         self.assertTrue(any("semantic invariant" in error for error in errors))
         claim["candidate"]["invariantChecks"].append("Security semantic behavior matches approved design")
         self.assertEqual([], MODULE.validate_review_state(state, "closed"))
+
+    def test_unmet_acceptance_criterion_cannot_be_approved(self):
+        state = base_state()
+        claim = state["claims"][0]
+        claim["status"] = "CLOSED"
+        claim["adjudication"] = {
+            "disposition": "REJECT",
+            "rationale": "No safe correction has been established",
+            "alternatives": [
+                {"kind": "PRESERVE_BASELINE", "description": "Keep baseline", "tradeoffs": "AC remains unmet"},
+                {"kind": "REVIEWER_SUGGESTION", "description": "Manual check", "tradeoffs": "Pattern drift"},
+                {"kind": "ALTERNATIVE", "description": "Clarify contract", "tradeoffs": "Needs follow-up"},
+            ],
+            "conflictResolution": "The suggestion is worse than the baseline",
+            "decisionId": None,
+        }
+        state["acceptanceCriteria"][0]["status"] = "NOT_MET"
+        state["verdict"] = "APPROVE"
+        state["finalCommit"] = "2222222"
+        errors = MODULE.validate_review_state(state, "closed")
+        self.assertTrue(any("APPROVE is invalid" in error for error in errors))
+
+    def test_unknown_review_fields_fail_closed(self):
+        state = base_state()
+        state["reviewerSays"] = "change it"
+        errors = MODULE.validate_review_state(state, "claims")
+        self.assertTrue(any("reviewerSays: unknown field" in error for error in errors))
 
 
 if __name__ == "__main__":
