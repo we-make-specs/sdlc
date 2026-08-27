@@ -22,6 +22,7 @@ Steps never restate this. A step says "writes `03-agreement.spec.md` per its con
 | [`03-agreement.spec.md`](03-agreement.spec.md) | step 03 | 04, 05, 07, 08 | **the agreement**: intent, acceptance criteria, key decisions, out of scope |
 | [`03-target-solution.spec.md`](03-target-solution.spec.md) | step 03 | 04, 05, 06, 07 | **the design**; carries the approval status |
 | [`03-test-scenarios.spec.md`](03-test-scenarios.spec.md) | step 03 | 04, 05, 06, 07 | **what will be tested**: functional scenarios + rough data; carries its own approval |
+| [`03-decision-manifest.state.schema.json`](03-decision-manifest.state.schema.json) | step 03, then cross-cutting | 04–08 | schema-backed decisions, source authority, applicable rules, conflicts, semantic changes and approval |
 | [`05-technical-analysis.research.md`](05-technical-analysis.research.md) | step 05 *(optional)* | 05 | technical current state + reference comparison |
 | [`05-technical-questions.inventory.md`](05-technical-questions.inventory.md) | step 05 *(optional)* | 05 | tiered technical questions, answers, rationale |
 | [`05-implementation.plan.md`](05-implementation.plan.md) | step 05 | 06, 08 | verbatim ACs, tasks, advisor checks, progress log |
@@ -48,6 +49,7 @@ Inside the workspace, three numbered folders group the artifacts by phase; the m
 │   ├── 03-agreement.spec.md
 │   ├── 03-target-solution.spec.md
 │   ├── 03-test-scenarios.spec.md
+│   ├── 03-decision-manifest.state.json
 │   └── 03-target-overview.view.html
 └── 3-planning/
     ├── 05-technical-analysis.research.md
@@ -102,6 +104,7 @@ These hold for every artifact and are not repeated in the individual contracts.
 7. **Registry context is consulted and logged.** Every step follows the repo's `## Context Registries` procedure (in its `AGENTS.md`), reads the registry articles relevant to it, and records a `Context loaded:` line near the top of its primary artifact (step 06 in the plan's progress log, step 07 in its review body). Nothing declared, or nothing relevant, is stated (`none applicable`), never silent.
 8. **Approved artifacts change by the amendment protocol, never by rewrite.** A post-approval change is recorded as a dated `Correction:` or `Amendment:` line in the artifact's header, naming what it supersedes, who approved it, and when; the superseded text stays in place, and an affected inventory answer gets a correction sub-entry under the original, never a rewrite. A **correction** changes how an agreed decision is realized; the human approves it in the moment, typically during a review. An **amendment** changes the agreement itself and reopens gate 04 for the delta.
 9. **Reviewer findings are claims, not commands.** Step 07 records evidence and source authority before any correction. An independent adjudicator resolves or escalates the claim; an isolated candidate replaces the implementation baseline only after an independent verifier proves it better.
+10. **Source authority and applicability are explicit.** Ticket text, acceptance criteria, registry rules, reference implementations, approved design, runtime evidence, user decisions, and agent inferences are typed in the decision manifest. No source wins mechanically: conflicts record both claims and consequences, then resolve at the smallest appropriate decision gate. An `_todo_` registry article is missing context, never policy.
 
 ---
 

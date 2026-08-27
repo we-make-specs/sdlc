@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://we-make-specs.dev/sdlc/03-decision-manifest.state.schema.json",
+  "title": "SDLC decision and authority manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ticket",
+    "contextLoaded",
+    "acceptanceCriteria",
+    "decisions",
+    "applicableRules",
+    "semanticChanges",
+    "feedbackBatches",
+    "coverage",
+    "approval"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "ticket": { "type": "string", "minLength": 1 },
+    "contextLoaded": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "acceptanceCriteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "decisionIds", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^AC-[0-9]+$" },
+          "text": { "type": "string", "minLength": 1 },
+          "decisionIds": { "type": "array", "items": { "type": "string" } },
+          "status": { "enum": ["MAPPED", "UNRESOLVED"] }
+        }
+      }
+    },
+    "decisions": { "type": "array", "items": { "$ref": "#/$defs/decision" } },
+    "applicableRules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
+    "semanticChanges": { "type": "array", "items": { "$ref": "#/$defs/semanticChange" } },
+    "feedbackBatches": { "type": "array", "items": { "$ref": "#/$defs/feedbackBatch" } },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptanceCriteria", "applicableRules", "semanticChanges"],
+      "properties": {
+        "acceptanceCriteria": { "$ref": "#/$defs/counts" },
+        "applicableRules": { "$ref": "#/$defs/counts" },
+        "semanticChanges": { "$ref": "#/$defs/counts" }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "approvedBy", "approvedAt", "approvedDecisionIds"],
+      "properties": {
+        "status": { "enum": ["DRAFT", "APPROVED", "REOPENED"] },
+        "approvedBy": { "type": ["string", "null"] },
+        "approvedAt": { "type": ["string", "null"] },
+        "approvedDecisionIds": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "classified"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "classified": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reference", "claim", "authority"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "USER",
+            "TICKET",
+            "ACCEPTANCE_CRITERION",
+            "REGISTRY",
+            "REFERENCE_IMPLEMENTATION",
+            "APPROVED_DESIGN",
+            "AGENT_INFERENCE",
+            "TEST_OR_RUNTIME_EVIDENCE"
+          ]
+        },
+        "reference": { "type": "string", "minLength": 1 },
+        "claim": { "type": "string", "minLength": 1 },
+        "authority": { "enum": ["BINDING", "CONSTRAINING", "INFORMATIVE", "INFERENCE", "EVIDENCE"] }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "consequence"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "consequence": { "type": "string", "minLength": 1 }
+      }
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["betweenReferences", "issue", "consequence", "status", "resolution"],
+      "properties": {
+        "betweenReferences": { "type": "array", "minItems": 2, "items": { "type": "string", "minLength": 1 } },
+        "issue": { "type": "string", "minLength": 1 },
+        "consequence": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["OPEN", "RESOLVED"] },
+        "resolution": { "type": ["string", "null"] }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "question",
+        "riskClass",
+        "riskDimensions",
+        "options",
+        "recommendation",
+        "sources",
+        "applicableRuleIds",
+        "conflicts",
+        "status",
+        "resolution"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^D-[0-9]+$" },
+        "title": { "type": "string", "minLength": 1 },
+        "question": { "type": "string", "minLength": 1 },
+        "riskClass": { "enum": ["HUMAN_REQUIRED", "AGENT_OWNED", "SAMPLED"] },
+        "riskDimensions": {
+          "type": "array",
+          "items": {
+            "enum": ["BUSINESS_BEHAVIOR", "SECURITY", "PUBLIC_CONTRACT", "ARCHITECTURE", "DATA", "OPERATIONS", "LOCAL_IMPLEMENTATION"]
+          }
+        },
+        "options": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/option" } },
+        "recommendation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["optionId", "rationale", "confidence", "counterargument"],
+          "properties": {
+            "optionId": { "type": "string", "minLength": 1 },
+            "rationale": { "type": "string", "minLength": 1 },
+            "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+            "counterargument": { "type": "string", "minLength": 1 }
+          }
+        },
+        "sources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/source" } },
+        "applicableRuleIds": { "type": "array", "items": { "type": "string" } },
+        "conflicts": { "type": "array", "items": { "$ref": "#/$defs/conflict" } },
+        "status": { "enum": ["OPEN", "RESOLVED", "DEFERRED"] },
+        "resolution": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["optionId", "decidedBy", "decidedAt", "rationale"],
+              "properties": {
+                "optionId": { "type": "string", "minLength": 1 },
+                "decidedBy": { "type": "string", "minLength": 1 },
+                "decidedAt": { "type": "string", "minLength": 1 },
+                "rationale": { "type": "string", "minLength": 1 }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "registry",
+        "article",
+        "exactRule",
+        "classification",
+        "appliesTo",
+        "affectedDecisionIds",
+        "affectedPaths",
+        "evidence",
+        "status",
+        "rationale",
+        "deviationDecisionId"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^R-[0-9]+$" },
+        "registry": { "type": "string", "minLength": 1 },
+        "article": { "type": "string", "minLength": 1 },
+        "exactRule": { "type": "string", "minLength": 1 },
+        "classification": { "enum": ["BINDING", "ADVISORY", "MISSING", "CONFLICTING"] },
+        "appliesTo": { "type": "string", "minLength": 1 },
+        "affectedDecisionIds": { "type": "array", "items": { "type": "string" } },
+        "affectedPaths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidence": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["CONFORMING", "DEVIATION_APPROVED", "UNRESOLVED", "NOT_APPLICABLE"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "deviationDecisionId": { "type": ["string", "null"] }
+      }
+    },
+    "semanticChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "discoveredAt", "summary", "affectedDecisionIds", "affectedRuleIds", "riskClass", "status", "decisionId"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^SC-[0-9]+$" },
+        "discoveredAt": { "enum": ["ALIGNMENT", "PLANNING", "IMPLEMENTATION", "REVIEW"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "affectedDecisionIds": { "type": "array", "items": { "type": "string" } },
+        "affectedRuleIds": { "type": "array", "items": { "type": "string" } },
+        "riskClass": { "enum": ["HUMAN_REQUIRED", "AGENT_OWNED", "SAMPLED"] },
+        "status": { "enum": ["CLASSIFIED", "NEEDS_HUMAN_DECISION", "ACCEPTED", "REJECTED"] },
+        "decisionId": { "type": ["string", "null"] }
+      }
+    },
+    "feedbackBatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "expectedItems", "processedItems", "status", "unresolvedItems"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^FB-[0-9]+$" },
+        "source": { "type": "string", "minLength": 1 },
+        "expectedItems": { "type": "integer", "minimum": 0 },
+        "processedItems": { "type": "integer", "minimum": 0 },
+        "status": { "enum": ["OPEN", "COMPLETE", "DEFERRED"] },
+        "unresolvedItems": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

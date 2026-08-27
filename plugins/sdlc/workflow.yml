@@ -63,7 +63,7 @@ steps:
     isolation: main
     model: strong
     skippable: false
-    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-test-scenarios.spec.md, 2-specification/03-target-overview.view.html]
+    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-test-scenarios.spec.md, 2-specification/03-decision-manifest.state.json, 2-specification/03-target-overview.view.html]
 
   - id: "04"
     skill: 04-approve-target-solution
@@ -71,7 +71,7 @@ steps:
     isolation: main
     model: none
     skippable: false
-    checks: [target_solution_approved, test_scenarios_approved, no_critical_question_open]
+    checks: [decision_manifest_approved, target_solution_approved, test_scenarios_approved, no_critical_question_open]
 
   - id: "05"
     skill: 05-plan
@@ -80,6 +80,7 @@ steps:
     model: strong
     skippable: false
     outputs: [3-planning/05-implementation.plan.md]
+    checks: [decision_manifest_valid]
 
   - id: "06"
     skill: 06-implement
@@ -89,7 +90,7 @@ steps:
     skippable: false
     # package_commits_exist: the package branch carries at least one commit beyond its base.
     # No push and no PR here; publish happens when the step-07 exchange closes.
-    checks: [package_commits_exist]
+    checks: [decision_manifest_valid, package_commits_exist]
 
   - id: "07"
     skill: 07-review

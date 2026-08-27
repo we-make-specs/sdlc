@@ -4,7 +4,7 @@ description: Pipeline step 04 (GATE) — present the alignment artifacts to the 
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.6.0'
+  version: '0.7.0'
   tags: sdlc, step, gate, approval, human
 ---
 
@@ -48,6 +48,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 | reads | `03-agreement.spec.md` | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| reads/updates | `03-decision-manifest.state.json` — unresolved decisions, source conflicts, rules, approval | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
 | updates | `03-target-solution.spec.md` — status, approver, date | same contract |
 | updates | `03-test-scenarios.spec.md` — status, approver, date | same contract |
 
@@ -55,7 +56,7 @@ Stops the pipeline and asks a human to approve the design before automated plann
 
 ## Workflow
 
-1. **Pre-check** that all three artifacts and the overview page exist and that no Critical entry in `02-questions.inventory.md` is unanswered — where missing-input entries count as answered **only when the input is actually present and verifiable**, not merely promised. Anything missing or open → report that step 03 is incomplete and stop. Do not ask for approval on an incomplete set.
+1. **Pre-check** that all three artifacts, the decision manifest, and the overview page exist; validate the manifest with `--phase alignment`; and confirm no Critical entry in `02-questions.inventory.md` is unanswered — where missing-input entries count as answered **only when the input is actually present and verifiable**, not merely promised. Anything missing or structurally invalid → report that step 03 is incomplete and stop. Do not ask for approval on an incomplete set.
 2. **Present the briefing** with precise, clickable pointers:
    - what to open: `03-target-overview.view.html` first — it is the pre-read this gate runs on — then the agreement (acceptance criteria, key decisions) and the target solution (the design)
    - **inline**, so the human knows what to scrutinise: the acceptance criteria and open questions verbatim, plus the key-decision titles
@@ -65,13 +66,13 @@ Stops the pipeline and asks a human to approve the design before automated plann
    - the test scenarios, shown as a **question, not a list**: "Which of these are wrong, and what is missing?" — a scenario pass needs an answer, not a nod
 3. **Ask decision-friendly:** "A: approve and continue to planning. B: name the changes; I return to step 03 and revise."
 4. **Wait for an explicit decision.** Non-committal praise is not approval — ask again with the two options.
-5. **On approval**, write status, approver, and date into the headers of the target solution **and** the test scenarios. The approver is the human's actual name or handle — ask for it rather than writing a placeholder like "Human"; a gate without a named decider is not a gate.
+5. **On approval**, resolve each `HUMAN_REQUIRED` decision with the human's chosen option, rationale, name/handle, and date; resolve or explicitly reject every source conflict; then write approval into the decision manifest and the headers of the target solution **and** test scenarios. Run `validate_decision_manifest.py --phase approved`. The gate passes only when it succeeds. The approver is the human's actual name or handle — ask rather than writing a placeholder like "Human".
 
 ---
 
 ## Output contract
 
-No new files. Either the approval recorded in `03-target-solution.spec.md` and `03-test-scenarios.spec.md` and control returned to advance, or the requested changes handed back to step 03.
+No new files. Either decision-level resolutions and approval are recorded in `03-decision-manifest.state.json`, `03-target-solution.spec.md`, and `03-test-scenarios.spec.md` and the approved manifest validates, or the requested changes are handed back to step 03.
 
 ---
 
@@ -80,6 +81,7 @@ No new files. Either the approval recorded in `03-target-solution.spec.md` and `
 - **Never self-approve**, and never infer approval from enthusiasm.
 - **Do not approve over a critical open question** — neither in the question inventory nor in the agreement.
 - **Do not edit the design** to make it approvable — that is step 03's job.
+- **Do not approve an unresolved authority conflict or binding-rule deviation.** A broad approval cannot hide one.
 
 ---
 
@@ -89,5 +91,8 @@ No new files. Either the approval recorded in `03-target-solution.spec.md` and `
 - [ ] Acceptance criteria were shown inline, verbatim
 - [ ] Open assumptions were shown verbatim with owner and due point
 - [ ] An explicit decision was recorded
+- [ ] Every human-required choice and source conflict was resolved individually
+- [ ] Every binding rule conforms or has a named human-approved deviation
+- [ ] The decision manifest passes `--phase approved`
 - [ ] The scenario question got an explicit answer
 - [ ] On approval: status, a real name or handle (no placeholders), and date written into the artifact
