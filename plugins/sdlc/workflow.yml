@@ -97,9 +97,13 @@ steps:
     isolation: subagent
     model: strong
     skippable: true
-    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/ —
-    # a mechanical guard against artifact-only pull requests.
-    checks: [review_closed, pr_exists, pr_touches_code]
+    # The orchestrator expands this step into four isolated roles: critic,
+    # adjudicator, candidate implementer, verifier. The immutable implementation
+    # baseline is preserved unless the verifier proves an isolated candidate better.
+    outputs: [3-planning/07-review-<package-id>.state.json]
+    # review_state_valid: the fail-closed validator passed for phase `closed`.
+    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/.
+    checks: [review_state_valid, review_closed, pr_exists, pr_touches_code]
 
   - id: "08"
     skill: 08-review-pr

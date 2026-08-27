@@ -5,7 +5,7 @@ argument-hint: <ticket-id | ticket-url | free-text description>
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.6.0'
+  version: '0.7.0'
   tags: orchestration, pipeline, sdlc, workflow
 ---
 <!-- prework:orchestration-design -->
@@ -57,9 +57,28 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
    - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its four slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
    - An `sdlc-step` agent profile is an **optional container** for tool scoping and per-step model routing — when the runtime knows one (user-level `~/.claude/agents/` / `~/.copilot/agents/`, or repo-level), delegate into it, still sending the full step-runner prompt. No profile is required: the rules travel in the prompt, not the profile.
    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
-5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. This is a file check, not a content judgment. Missing → stop and report; never silently continue. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
+5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. Expand `<package-id>` with the selected package ID. Missing → stop and report; never silently continue. For JSON state, run the validator named by the producing skill; existence alone is insufficient. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
 6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
 7. **Report** after each step: step, outcome, artifacts written, what comes next.
+
+### Step 07: evidence-gated role sequence
+
+Step 07 is one pipeline step but not one agent turn. Before review, record the package's base and
+implementation commits; these are the immutable baseline. Then delegate four fresh roles in order,
+using the normal step-runner prompt plus the named subsection of `skills/07-review/SKILL.md`:
+
+1. **critic** — writes defect claims only; validate the state with `--phase claims`;
+2. **adjudicator** — independently verifies sources and dispositions; validate with
+   `--phase adjudication`;
+3. **candidate implementer** — challenges accepted/reframed claims, then makes any surviving
+   correction only on a temporary branch/worktree from the recorded implementation commit;
+4. **verifier** — independently compares candidate and baseline; validate with `--phase closed`.
+
+Never send critic prose directly to the package implementer as a mutation request. Never let one role
+perform two adjacent roles. An `ESCALATED` verdict reopens the decision ID recorded in the decision
+manifest, marks dependent unmerged packages `needs-revalidation`, and stops before publication. A
+closed non-escalated state may integrate only candidates marked `BETTER`; otherwise publish the
+untouched baseline. The orchestrator validates and sequences these states but does not adjudicate.
 
 ### Selecting the next action
 
