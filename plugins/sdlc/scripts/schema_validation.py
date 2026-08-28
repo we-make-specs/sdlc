@@ -77,6 +77,10 @@ def validate_schema_instance(instance: object, schema: dict[str, Any]) -> list[s
         if isinstance(value, list):
             if "minItems" in rule and len(value) < rule["minItems"]:
                 errors.append(f"{path}: needs at least {rule['minItems']} item(s)")
+            if rule.get("uniqueItems") is True:
+                for index, item in enumerate(value):
+                    if any(item == earlier for earlier in value[:index]):
+                        errors.append(f"{path}[{index}]: duplicate array item")
             item_rule = rule.get("items")
             if isinstance(item_rule, dict):
                 for index, item in enumerate(value):

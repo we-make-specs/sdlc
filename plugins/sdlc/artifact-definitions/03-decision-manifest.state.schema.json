@@ -10,6 +10,7 @@
     "contextLoaded",
     "acceptanceCriteria",
     "testScenarios",
+    "packageAcceptanceCriteria",
     "decisions",
     "applicableRules",
     "semanticChanges",
@@ -18,18 +19,22 @@
     "approval"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "ticket": { "type": "string", "minLength": 1 },
     "contextLoaded": { "type": "array", "items": { "type": "string", "minLength": 1 } },
     "acceptanceCriteria": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "text", "decisionIds", "status"],
+        "required": ["id", "text", "shortMeaning", "whyItMatters", "priority", "decisionIds", "status"],
         "properties": {
           "id": { "type": "string", "pattern": "^AC-[0-9]+$" },
           "text": { "type": "string", "minLength": 1 },
+          "shortMeaning": { "type": "string", "minLength": 1 },
+          "whyItMatters": { "type": "string", "minLength": 1 },
+          "priority": { "enum": ["CRITICAL", "IMPORTANT", "SUPPORTING"] },
           "decisionIds": { "type": "array", "items": { "type": "string" } },
           "status": { "enum": ["MAPPED", "UNRESOLVED"] }
         }
@@ -37,6 +42,7 @@
     },
     "testScenarios": {
       "type": "array",
+      "minItems": 1,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -47,6 +53,24 @@
           "behavior": { "type": "string", "minLength": 1 },
           "decisionIds": { "type": "array", "items": { "type": "string" } },
           "status": { "enum": ["PROPOSED", "HUMAN_CONFIRMED", "REJECTED"] }
+        }
+      }
+    },
+    "packageAcceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["packageId", "acceptanceCriterionIds"],
+        "properties": {
+          "packageId": { "type": "string", "minLength": 1 },
+          "acceptanceCriterionIds": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^AC-[0-9]+$" }
+          }
         }
       }
     },
@@ -68,12 +92,24 @@
     "approval": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "approvedBy", "approvedAt", "approvedDecisionIds"],
+      "required": ["status", "approvedBy", "approvedAt", "approvedDecisionIds", "artifactHashes"],
       "properties": {
         "status": { "enum": ["DRAFT", "APPROVED", "REOPENED"] },
         "approvedBy": { "type": ["string", "null"] },
         "approvedAt": { "type": ["string", "null"] },
-        "approvedDecisionIds": { "type": "array", "items": { "type": "string" } }
+        "approvedDecisionIds": { "type": "array", "items": { "type": "string" } },
+        "artifactHashes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agreement", "targetSolution", "targetSolutionView", "testScenarios", "decisionContent"],
+          "properties": {
+            "agreement": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+            "targetSolution": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+            "targetSolutionView": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+            "testScenarios": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+            "decisionContent": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
       }
     }
   },

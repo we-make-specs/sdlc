@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render deterministic human decision gates from canonical SDLC state."""
+"""Render deterministic, simple-English human gates from canonical SDLC state."""
 
 from __future__ import annotations
 
@@ -13,6 +13,48 @@ from typing import Any
 
 RISK_ORDER = {"HUMAN_REQUIRED": 0, "SAMPLED": 1, "AGENT_OWNED": 2}
 STATUS_ORDER = {"OPEN": 0, "DEFERRED": 1, "RESOLVED": 2}
+PRIORITY_ORDER = {"CRITICAL": 0, "IMPORTANT": 1, "SUPPORTING": 2}
+PLAIN = {
+    "HUMAN_REQUIRED": "Human choice",
+    "AGENT_OWNED": "Agent detail",
+    "SAMPLED": "Spot-check",
+    "BINDING": "Must follow",
+    "CONSTRAINING": "Limits the choice",
+    "INFORMATIVE": "Background",
+    "INFERENCE": "Agent assumption",
+    "EVIDENCE": "Observed evidence",
+    "VALID": "Valid",
+    "NOT_A_PROBLEM": "Not a problem",
+    "PARTLY_RIGHT": "Partly right",
+    "ASK_HUMAN": "Ask human",
+    "NO_CHANGE": "Keep original",
+    "LIGHT": "Light check",
+    "FULL": "Full check",
+    "HUMAN": "Human decision",
+    "SAFE_IMPROVEMENT": "Safe improvement",
+    "KEEP_ORIGINAL": "Keep original",
+    "APPROVE": "Ready",
+    "REQUEST_CHANGES": "Needs changes",
+    "COMMENT": "Ready with notes",
+    "IN_REVIEW": "Review in progress",
+    "MAPPED": "Linked to the design",
+    "UNRESOLVED": "Not resolved",
+    "PROPOSED": "Needs confirmation",
+    "HUMAN_CONFIRMED": "Confirmed by human",
+    "MET": "Met",
+    "NOT_MET": "Not met",
+    "PARTIAL": "Partly met",
+    "NOT_VERIFIABLE": "Cannot verify",
+    "NEEDS_HUMAN_DECISION": "Needs human choice",
+    "CLASSIFIED": "Checked",
+    "ACCEPTED": "Accepted",
+    "REJECTED": "Not accepted",
+}
+
+
+def plain(value: object) -> str:
+    raw = str(value or "not recorded")
+    return PLAIN.get(raw, raw.replace("_", " ").lower())
 
 
 def md(value: object) -> str:
@@ -30,12 +72,47 @@ def safe_href(value: str | None) -> str | None:
     return None
 
 
+def successful_check(value: object) -> bool:
+    normalized = str(value).strip().upper()
+    result = normalized.rsplit(":", 1)[-1].strip()
+    return ":" in normalized and result in {"PASSED", "PASS", "SUCCESS", "SUCCEEDED"}
+
+
+def failed_check(value: object) -> bool:
+    """Fail closed: pending, unknown, and malformed results are blockers too."""
+    return not successful_check(value)
+
+
+def review_has_blocker(
+    review: dict[str, Any] | None,
+    checks: list[str] | None,
+    pr_state: str | None,
+    mergeability: str | None,
+) -> bool:
+    return bool(
+        not checks
+        or any(failed_check(item) for item in checks)
+        or str(pr_state or "").upper() != "OPEN"
+        or str(mergeability or "").upper() not in {"MERGEABLE", "CLEAN"}
+        or not isinstance(review, dict)
+        or review.get("verdict") != "APPROVE"
+        or any(
+            isinstance(item, dict) and item.get("status") != "MET"
+            for item in (review or {}).get("acceptanceCriteria", [])
+        )
+    )
+
+
 def decision_key(decision: dict[str, Any]) -> tuple[int, int, tuple[str, int]]:
     return (
         RISK_ORDER.get(str(decision.get("riskClass")), 9),
         STATUS_ORDER.get(str(decision.get("status")), 9),
         natural_id(decision.get("id")),
     )
+
+
+def criterion_key(criterion: dict[str, Any]) -> tuple[int, tuple[str, int]]:
+    return (PRIORITY_ORDER.get(str(criterion.get("priority")), 9), natural_id(criterion.get("id")))
 
 
 def chosen_label(decision: dict[str, Any], option_id: object) -> str:
@@ -45,29 +122,60 @@ def chosen_label(decision: dict[str, Any], option_id: object) -> str:
     return str(option_id or "not decided")
 
 
-def gate_action(manifest: dict[str, Any], phase: str, review: dict[str, Any] | None) -> str:
-    human_open = [
-        item for item in manifest.get("decisions", [])
-        if item.get("riskClass") == "HUMAN_REQUIRED" and item.get("status") != "RESOLVED"
+def attention_decisions(manifest: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    decisions = sorted(manifest.get("decisions", []), key=decision_key)
+    changed_ids = {
+        decision_id
+        for change in manifest.get("semanticChanges", [])
+        if change.get("status") != "REJECTED"
+        for decision_id in change.get("affectedDecisionIds", [])
+    }
+    attention = [
+        item for item in decisions
+        if item.get("riskClass") == "HUMAN_REQUIRED"
+        and (item.get("status") != "RESOLVED" or item.get("id") in changed_ids)
     ]
-    open_conflicts = [
+    quiet = [item for item in decisions if item not in attention]
+    return attention, quiet
+
+
+def gate_action(
+    manifest: dict[str, Any],
+    phase: str,
+    review: dict[str, Any] | None,
+    checks: list[str] | None = None,
+    pr_state: str | None = None,
+    mergeability: str | None = None,
+) -> str:
+    if phase == "review":
+        if not checks:
+            return "Stop: no live pull-request checks were supplied."
+        failures = [item for item in checks or [] if failed_check(item)]
+        if failures:
+            return f"Stop: {len(failures)} pull-request check(s) are not explicitly successful. Read the evidence and request a correction."
+        if str(pr_state or "").upper() != "OPEN":
+            return f"Stop: the pull request state is {pr_state or 'not supplied'}, not open."
+        if str(mergeability or "").upper() not in {"MERGEABLE", "CLEAN"}:
+            return f"Stop: the pull request is {mergeability or 'not supplied'}, not confirmed mergeable."
+    attention, _ = attention_decisions(manifest)
+    conflicts = [
         conflict
         for decision in manifest.get("decisions", [])
         for conflict in decision.get("conflicts", [])
         if conflict.get("status") == "OPEN"
     ]
-    open_batches = [item for item in manifest.get("feedbackBatches", []) if item.get("status") == "OPEN"]
-    open_scenarios = [item for item in manifest.get("testScenarios", []) if item.get("status") != "HUMAN_CONFIRMED"]
-    if human_open or open_conflicts or open_batches or open_scenarios:
-        return f"Resolve {len(human_open)} human decision(s), {len(open_conflicts)} source conflict(s), {len(open_scenarios)} unconfirmed test scenario(s), and {len(open_batches)} incomplete feedback batch(es)."
+    batches = [item for item in manifest.get("feedbackBatches", []) if item.get("status") == "OPEN"]
+    scenarios = [item for item in manifest.get("testScenarios", []) if item.get("status") != "HUMAN_CONFIRMED"]
+    if attention or conflicts or batches or scenarios:
+        return (
+            f"Check {len(attention)} open or changed choice(s), {len(conflicts)} source conflict(s), "
+            f"{len(scenarios)} unconfirmed test scenario(s), and {len(batches)} incomplete feedback batch(es)."
+        )
     if phase == "review" and review:
-        verdict = review.get("verdict", "unknown")
-        if verdict == "ESCALATED":
-            return "Resolve the focused escalated decision; the implementation baseline has been preserved."
-        return f"Review the proven implementation state and explicitly approve or request changes. Agent verdict: {verdict}."
-    if manifest.get("approval", {}).get("status") == "REOPENED":
-        return "Review the highlighted semantic delta and re-approve the affected decisions."
-    return "Confirm the human-required choices, conflicts, rule handling, and scenario coverage; then explicitly approve or request changes."
+        if review.get("verdict") == "ASK_HUMAN":
+            return "Resolve the focused human question. The original implementation has been preserved."
+        return f"Check the proven implementation and approve or request changes. Agent result: {plain(review.get('verdict'))}."
+    return "Read the full design and its promises, challenge the scenarios, then approve or request changes."
 
 
 def render_markdown(
@@ -75,150 +183,226 @@ def render_markdown(
     phase: str,
     review: dict[str, Any] | None = None,
     pr_url: str | None = None,
+    pr_state: str | None = None,
+    mergeability: str | None = None,
     changed_files: list[str] | None = None,
     checks: list[str] | None = None,
 ) -> str:
-    decisions = sorted(manifest.get("decisions", []), key=decision_key)
-    human = [item for item in decisions if item.get("riskClass") == "HUMAN_REQUIRED"]
-    agent = [item for item in decisions if item.get("riskClass") != "HUMAN_REQUIRED"]
+    attention, quiet = attention_decisions(manifest)
+    criteria = sorted(manifest.get("acceptanceCriteria", []), key=criterion_key)
+    scenarios = sorted(manifest.get("testScenarios", []), key=lambda item: natural_id(item.get("id")))
     rules = sorted(manifest.get("applicableRules", []), key=lambda item: natural_id(item.get("id")))
     changes = sorted(manifest.get("semanticChanges", []), key=lambda item: natural_id(item.get("id")))
-    criteria = sorted(manifest.get("acceptanceCriteria", []), key=lambda item: natural_id(item.get("id")))
-    scenarios = sorted(manifest.get("testScenarios", []), key=lambda item: natural_id(item.get("id")))
     batches = sorted(manifest.get("feedbackBatches", []), key=lambda item: natural_id(item.get("id")))
-    approval = manifest.get("approval", {})
     detail_prefix = "" if phase == "alignment" else "../2-specification/"
-
+    title = "PR approval pack" if phase == "review" else "Design approval pack"
+    review_ac = {
+        item.get("id"): item
+        for item in (review or {}).get("acceptanceCriteria", [])
+        if isinstance(item, dict)
+    }
     lines = [
-        f"# Human {'PR review' if phase == 'review' else 'design decision'} gate — {md(manifest.get('ticket'))}",
+        f"# {title} — {md(manifest.get('ticket'))}",
         "",
-        f"> **Action required:** {md(gate_action(manifest, phase, review))}",
+        f"> **What to do:** {md(gate_action(manifest, phase, review, checks, pr_state, mergeability))}",
         "",
-        "## At a glance",
+        "## Reading route",
         "",
-        "| State | Value |",
-        "|---|---|",
-        f"| Approval | {md(approval.get('status'))} |",
-        f"| Human-required decisions | {sum(item.get('status') != 'RESOLVED' for item in human)} open / {len(human)} total |",
-        f"| Agent-owned or sampled decisions | {len(agent)} |",
-        f"| Applicable rules | {len(rules)} |",
-        f"| Test scenarios | {sum(item.get('status') != 'HUMAN_CONFIRMED' for item in scenarios)} unconfirmed / {len(scenarios)} total |",
-        f"| Semantic changes | {len(changes)} |",
-        f"| Feedback batches | {sum(item.get('status') == 'OPEN' for item in batches)} open / {len(batches)} total |",
+        f"1. Read the [full target solution]({detail_prefix}03-target-solution.view.html).",
+        "2. Check every acceptance criterion below, starting with Critical.",
+        "3. Resolve only the open or changed choices.",
+        "4. Challenge the test scenarios.",
+        "5. Give the explicit final decision.",
         "",
     ]
+    if phase == "review":
+        lines.extend([
+            "## Live pull-request facts",
+            "",
+            f"- **URL:** {md(pr_url or 'not supplied')}",
+            f"- **State:** {md(pr_state or 'not supplied')}",
+            f"- **Can merge:** {md(mergeability or 'not supplied')}",
+            "",
+            "### Checks",
+            "",
+        ])
+        for check in sorted(checks or []):
+            marker = "BLOCKER" if failed_check(check) else "Result"
+            lines.append(f"- **{marker}:** {md(check)}")
+        if not checks:
+            lines.append("- **BLOCKER:** No live checks were supplied.")
+        lines.extend(["", "### Changed files", ""])
+        for path in sorted(changed_files or []):
+            lines.append(f"- `{md(path)}`")
+        if not changed_files:
+            lines.append("- **BLOCKER:** No changed files were supplied.")
+        lines.append("")
+    lines.extend(["## Acceptance criteria — what the delivery promises", ""])
+    for criterion in criteria:
+        assessment = review_ac.get(criterion.get("id"), {})
+        lines.extend([
+            f"### {md(criterion.get('id'))} · {md(str(criterion.get('priority')).title())} · {md(criterion.get('shortMeaning'))}",
+            "",
+            f"- **Why it matters:** {md(criterion.get('whyItMatters'))}",
+            f"- **Exact ticket wording:** {md(criterion.get('text'))}",
+            f"- **State:** {md(plain(criterion.get('status')))}",
+        ])
+        if assessment:
+            lines.extend([
+                f"- **Implementation result:** {md(plain(assessment.get('status')))}",
+                f"- **Evidence:** {'; '.join(md(item) for item in assessment.get('evidence', []))}",
+            ])
+        lines.append("")
+    if not criteria:
+        lines.extend(["No acceptance criteria recorded. Approval is blocked.", ""])
 
     if phase == "review" and review:
         lines.extend(["## Implementation review", ""])
         if pr_url:
             lines.append(f"- **Pull request:** {md(pr_url)}")
         lines.extend([
-            f"- **Verdict:** {md(review.get('verdict'))}",
-            f"- **Baseline:** `{md(review.get('baseline', {}).get('implementationCommit'))}`",
-            f"- **Final commit:** `{md(review.get('finalCommit') or 'baseline preserved / not publishable')}`",
+            f"- **Result:** {md(plain(review.get('verdict')))}",
+            f"- **Original implementation:** `{md(review.get('baseline', {}).get('implementationCommit'))}`",
+            f"- **Final commit:** `{md(review.get('finalCommit') or 'original preserved; waiting for human')}`",
+            f"- **Selected trial fix:** {md(review.get('selectedTrialFixId') or 'none')}",
         ])
-        if checks:
-            lines.append(f"- **Checks:** {' · '.join(md(item) for item in sorted(checks))}")
-        if changed_files:
-            lines.extend(["", "### Changed files", ""] + [f"- `{md(path)}`" for path in sorted(changed_files)])
-        claims = sorted(review.get("claims", []), key=lambda item: natural_id(item.get("id")))
-        lines.extend(["", "### Acceptance criteria against the implementation", "", "| AC | Verbatim criterion | Review status | Evidence |", "|---|---|---|---|"])
-        for criterion in sorted(review.get("acceptanceCriteria", []), key=lambda item: natural_id(item.get("id"))):
-            lines.append(f"| {md(criterion.get('id'))} | {md(criterion.get('text'))} | {md(criterion.get('status'))} | {md('; '.join(criterion.get('evidence', [])))} |")
-        lines.extend(["", "### Review claims and dispositions", ""])
-        if not claims:
-            lines.append("No defect claims.")
-        for claim in claims:
-            adjudication = claim.get("adjudication") or {}
-            candidate = claim.get("candidate") or {}
+        final_check = review.get("finalFullCheck") or {}
+        if final_check:
+            lines.append(f"- **Final full check:** {md(final_check.get('result'))} on `{md(final_check.get('commit'))}` with `{md(final_check.get('command'))}`")
+        lines.extend(["", "### Findings and evidence checks", ""])
+        findings = sorted(review.get("findings", []), key=lambda item: natural_id(item.get("id")))
+        if not findings:
+            lines.append("No defect findings.")
+        for finding in findings:
+            evidence_check = finding.get("evidenceCheck") or {}
             lines.extend([
-                f"#### {md(claim.get('id'))} — {md(adjudication.get('disposition') or 'not adjudicated')} — {md(claim.get('problem'))}",
+                f"#### {md(finding.get('id'))} · {md(plain(evidence_check.get('result')))} · {md(finding.get('problem'))}",
                 "",
-                f"- **Evidence:** {'; '.join(md(item) for item in claim.get('evidence', []))}",
-                f"- **Why:** {md(adjudication.get('rationale') or 'not adjudicated')}",
-                f"- **Candidate comparison:** {md(candidate.get('comparison') or 'none; baseline retained')}",
+                f"- **Evidence:** {'; '.join(md(item) for item in finding.get('evidence', []))}",
+                f"- **Why:** {md(evidence_check.get('reason') or 'not checked yet')}",
+                f"- **Path:** {md(plain(evidence_check.get('path')))}",
+                f"- **Trial fix:** {md(evidence_check.get('trialFixId') or 'none')}",
                 "",
             ])
+        lines.extend(["### Trial fixes", ""])
+        if not review.get("trialFixes"):
+            lines.append("No trial fix was needed.")
+        for trial in review.get("trialFixes", []):
+            lines.append(
+                f"- **{md(trial.get('id'))}:** findings {md(', '.join(trial.get('findingIds', [])))} · "
+                f"{md(plain(trial.get('path')))} · {md(plain(trial.get('comparison')))} · commit `{md(trial.get('commit') or 'not built')}`"
+            )
+        lines.append("")
 
-    lines.extend(["## Decisions requiring human accountability", ""])
-    if not human:
-        lines.append("No human-required decisions were classified.")
-    for decision in human:
+    lines.extend(["## Open or changed human choices", ""])
+    if not attention:
+        lines.append("No open or changed human choices.")
+    for decision in attention:
         resolution = decision.get("resolution") or {}
         lines.extend([
-            f"### {md(decision.get('id'))} — {md(decision.get('status'))} — {md(decision.get('title'))}",
+            f"### {md(decision.get('id'))} · {md(plain(decision.get('status')))} · {md(decision.get('title'))}",
             "",
             f"**Question:** {md(decision.get('question'))}",
             "",
-            f"- **Risk:** {', '.join(md(item) for item in decision.get('riskDimensions', [])) or 'not classified'}",
             f"- **Recommendation:** {md(chosen_label(decision, decision.get('recommendation', {}).get('optionId')))} — {md(decision.get('recommendation', {}).get('rationale'))}",
-            f"- **Strongest counterargument:** {md(decision.get('recommendation', {}).get('counterargument'))}",
-            f"- **Recorded choice:** {md(chosen_label(decision, resolution.get('optionId')))}{(' — ' + md(resolution.get('rationale'))) if resolution else ''}",
+            f"- **Strongest reason against it:** {md(decision.get('recommendation', {}).get('counterargument'))}",
+            f"- **Recorded choice:** {md(chosen_label(decision, resolution.get('optionId')))}",
             "",
-            "| Option | Consequence |",
+            "| Option | What happens if chosen |",
             "|---|---|",
         ])
         for option in decision.get("options", []):
             lines.append(f"| {md(option.get('id'))} — {md(option.get('label'))} | {md(option.get('consequence'))} |")
-        lines.extend(["", "**Decision evidence:**"])
-        for source in decision.get("sources", []):
-            lines.append(f"- `{md(source.get('kind'))}` / `{md(source.get('authority'))}` — {md(source.get('claim'))} ({md(source.get('reference'))})")
         lines.append("")
 
     conflicts = [
         (decision.get("id"), conflict)
-        for decision in decisions
+        for decision in manifest.get("decisions", [])
         for conflict in decision.get("conflicts", [])
+        if conflict.get("status") == "OPEN"
     ]
-    deviations = [item for item in rules if item.get("status") in {"DEVIATION_APPROVED", "UNRESOLVED"} or item.get("classification") in {"MISSING", "CONFLICTING"}]
-    lines.extend(["## Source conflicts and rule deviations", ""])
-    if not conflicts and not deviations:
-        lines.append("None recorded.")
-    for decision_id, conflict in conflicts:
-        lines.append(f"- **{md(decision_id)} / {md(conflict.get('status'))}:** {md(conflict.get('issue'))} — consequence: {md(conflict.get('consequence'))}; resolution: {md(conflict.get('resolution') or 'open')}")
-    for rule in deviations:
-        lines.append(f"- **{md(rule.get('id'))} / {md(rule.get('classification'))} / {md(rule.get('status'))}:** {md(rule.get('exactRule'))} — {md(rule.get('rationale'))} ({md(rule.get('article'))})")
-    lines.append("")
+    deviations = [
+        rule for rule in rules
+        if rule.get("status") in {"DEVIATION_APPROVED", "UNRESOLVED"}
+        or rule.get("classification") in {"MISSING", "CONFLICTING"}
+    ]
+    open_batches = [batch for batch in batches if batch.get("status") == "OPEN"]
+    if conflicts or changes or deviations or open_batches:
+        lines.extend(["## Changes and conflicts that need attention", ""])
+        for decision_id, conflict in conflicts:
+            lines.append(f"- **{md(decision_id)}:** {md(conflict.get('issue'))} — {md(conflict.get('consequence'))}")
+        for change in changes:
+            lines.append(f"- **{md(change.get('id'))} / {md(plain(change.get('status')))}:** {md(change.get('summary'))}")
+        for rule in deviations:
+            lines.append(
+                f"- **{md(rule.get('id'))} / {md(plain(rule.get('classification')))}:** "
+                f"{md(rule.get('exactRule'))} — {md(rule.get('rationale'))}"
+            )
+        for batch in open_batches:
+            lines.append(
+                f"- **{md(batch.get('id'))} / incomplete feedback:** {md(batch.get('processedItems'))} of "
+                f"{md(batch.get('expectedItems'))} processed; open: "
+                f"{md('; '.join(batch.get('unresolvedItems', [])) or 'not named')}"
+            )
+        lines.append("")
 
-    lines.extend(["## Semantic changes since alignment", ""])
-    if not changes:
-        lines.append("None recorded.")
-    for change in changes:
-        lines.append(f"- **{md(change.get('id'))} / {md(change.get('discoveredAt'))} / {md(change.get('status'))}:** {md(change.get('summary'))}")
-    lines.extend(["", "## Acceptance-criteria coverage", "", "| AC | Verbatim criterion | Decision mapping | Status |", "|---|---|---|---|"])
-    for criterion in criteria:
-        mapping = ", ".join(criterion.get("decisionIds", [])) or "none"
-        lines.append(f"| {md(criterion.get('id'))} | {md(criterion.get('text'))} | {md(mapping)} | {md(criterion.get('status'))} |")
-    if not criteria:
-        lines.append("| — | No acceptance criteria recorded | — | UNRESOLVED |")
-
-    lines.extend(["", "## Test-scenario challenge", "", "**Which of these are wrong, and what is missing?**", "", "| Scenario | Behavior | Decision mapping | Status |", "|---|---|---|---|"])
+    lines.extend([
+        "## Test-scenario challenge",
+        "",
+        "**Which of these are wrong, and what is missing?**",
+        "",
+        "| Scenario | Expected behavior | State |",
+        "|---|---|---|",
+    ])
     for scenario in scenarios:
-        mapping = ", ".join(scenario.get("decisionIds", [])) or "none"
-        lines.append(f"| {md(scenario.get('id'))} — {md(scenario.get('title'))} | {md(scenario.get('behavior'))} | {md(mapping)} | {md(scenario.get('status'))} |")
+        lines.append(f"| {md(scenario.get('id'))} — {md(scenario.get('title'))} | {md(scenario.get('behavior'))} | {md(plain(scenario.get('status')))} |")
     if not scenarios:
-        lines.append("| — | No test scenarios recorded | — | PROPOSED |")
+        lines.append("| — | No test scenarios recorded | PROPOSED |")
 
-    lines.extend(["", "## Feedback ingestion", "", "| Batch | Source | Processed | State | Unresolved |", "|---|---|---:|---|---|"])
-    for batch in batches:
-        unresolved = "; ".join(batch.get("unresolvedItems", [])) or "none"
-        lines.append(f"| {md(batch.get('id'))} | {md(batch.get('source'))} | {batch.get('processedItems')} / {batch.get('expectedItems')} | {md(batch.get('status'))} | {md(unresolved)} |")
-    if not batches:
-        lines.append("| — | No batch feedback used | 0 / 0 | COMPLETE | none |")
+    blocked = phase == "review" and review_has_blocker(review, checks, pr_state, mergeability)
+    if phase == "review" and blocked:
+        final_choices = [
+            "- **B (recommended):** Pause and request changes to: `<name the failed check, criterion, or defect>`.",
+            "- **Approval is unavailable** until every blocker is cleared and the page is regenerated from fresh PR facts.",
+        ]
+    elif phase == "review":
+        final_choices = [
+            "- **A:** I approve this package and continue to the explicit merge step.",
+            "- **B:** I request changes to: `<name the item>`.",
+        ]
+    else:
+        final_choices = [
+            "- **A:** I approve the target solution, acceptance criteria, recorded choices, and test scenarios.",
+            "- **B:** I request changes to: `<name the item>`.",
+        ]
 
-    lines.extend(["", "## Verified lower-risk decisions", ""])
-    if not agent:
-        lines.append("None recorded.")
-    for decision in agent:
-        resolution = decision.get("resolution") or {}
-        lines.append(f"- **{md(decision.get('id'))} / {md(decision.get('riskClass'))}:** {md(decision.get('title'))} — {md(chosen_label(decision, resolution.get('optionId')))}; {md(resolution.get('rationale') or 'not resolved')}")
-
-    lines.extend(["", "## Applicable-rule evidence", "", "| Rule | Classification | State | Exact rule | Applies because | Source |", "|---|---|---|---|---|---|"])
-    for rule in rules:
-        lines.append(f"| {md(rule.get('id'))} | {md(rule.get('classification'))} | {md(rule.get('status'))} | {md(rule.get('exactRule'))} | {md(rule.get('evidence'))} | {md(rule.get('registry'))}/{md(rule.get('article'))} |")
-    if not rules:
-        lines.append("| — | — | — | No applicable rules recorded | — | — |")
-    lines.extend(["", "## Detailed source artifacts", "", f"- [Agreement]({detail_prefix}03-agreement.spec.md)", f"- [Target solution]({detail_prefix}03-target-solution.spec.md)", f"- [Test scenarios]({detail_prefix}03-test-scenarios.spec.md)", f"- [Canonical decision state]({detail_prefix}03-decision-manifest.state.json)", "", "---", "This view is generated; do not edit it.", ""])
+    lines.extend([
+        "",
+        "## Final decision",
+        "",
+        *final_choices,
+        "",
+        "## Technical record — optional drill-down",
+        "",
+        f"- Lower-risk decisions: {len(quiet)}",
+        f"- Applicable rules: {len(rules)}",
+        f"- Feedback batches: {len(batches)}",
+    ])
+    if changed_files:
+        lines.append(f"- Changed files: {len(changed_files)}")
+    if checks:
+        lines.append(f"- Extra checks: {'; '.join(md(item) for item in sorted(checks))}")
+    lines.extend([
+        "",
+        f"- [Agreement]({detail_prefix}03-agreement.spec.md)",
+        f"- [Target solution source]({detail_prefix}03-target-solution.spec.md)",
+        f"- [Test scenarios]({detail_prefix}03-test-scenarios.spec.md)",
+        f"- [Machine state]({detail_prefix}03-decision-manifest.state.json)",
+        "",
+        "---",
+        "This view is generated; do not edit it.",
+        "",
+    ])
     return "\n".join(lines)
 
 
@@ -227,112 +411,157 @@ def render_html(
     phase: str,
     review: dict[str, Any] | None = None,
     pr_url: str | None = None,
+    pr_state: str | None = None,
+    mergeability: str | None = None,
     changed_files: list[str] | None = None,
     checks: list[str] | None = None,
 ) -> str:
-    decisions = sorted(manifest.get("decisions", []), key=decision_key)
-    human = [item for item in decisions if item.get("riskClass") == "HUMAN_REQUIRED"]
-    agent = [item for item in decisions if item.get("riskClass") != "HUMAN_REQUIRED"]
+    attention, quiet = attention_decisions(manifest)
+    criteria = sorted(manifest.get("acceptanceCriteria", []), key=criterion_key)
+    scenarios = sorted(manifest.get("testScenarios", []), key=lambda item: natural_id(item.get("id")))
     rules = sorted(manifest.get("applicableRules", []), key=lambda item: natural_id(item.get("id")))
     changes = sorted(manifest.get("semanticChanges", []), key=lambda item: natural_id(item.get("id")))
-    criteria = sorted(manifest.get("acceptanceCriteria", []), key=lambda item: natural_id(item.get("id")))
-    scenarios = sorted(manifest.get("testScenarios", []), key=lambda item: natural_id(item.get("id")))
     batches = sorted(manifest.get("feedbackBatches", []), key=lambda item: natural_id(item.get("id")))
     detail_prefix = "" if phase == "alignment" else "../2-specification/"
     esc = lambda value: html.escape(str(value), quote=True)
+    review_ac = {
+        item.get("id"): item
+        for item in (review or {}).get("acceptanceCriteria", [])
+        if isinstance(item, dict)
+    }
 
-    cards: list[str] = []
-    for decision in human:
+    criterion_cards = "".join(
+        f"<article class='promise {esc(str(item.get('priority')).lower())}'><div class=eyebrow>{esc(item.get('id'))} · {esc(str(item.get('priority')).title())}</div>"
+        f"<h3>{esc(item.get('shortMeaning'))}</h3><p><b>Why it matters:</b> {esc(item.get('whyItMatters'))}</p>"
+        f"<p><b>Exact ticket wording:</b> {esc(item.get('text'))}</p><p class=muted>Design state: {esc(plain(item.get('status')))}</p>"
+        + (
+            f"<p><b>Implementation result:</b> {esc(plain(review_ac[item.get('id')].get('status')))}</p>"
+            f"<p><b>Evidence:</b> {esc('; '.join(review_ac[item.get('id')].get('evidence', [])))}</p>"
+            if item.get("id") in review_ac else ""
+        )
+        + "</article>"
+        for item in criteria
+    ) or "<p class=blocker>No acceptance criteria recorded. Approval is blocked.</p>"
+
+    decision_cards: list[str] = []
+    for decision in attention:
         resolution = decision.get("resolution") or {}
         options = "".join(
             f"<tr><td>{esc(option.get('id'))} — {esc(option.get('label'))}</td><td>{esc(option.get('consequence'))}</td></tr>"
             for option in decision.get("options", [])
         )
-        sources = "".join(
-            f"<li><code>{esc(source.get('kind'))}</code> / <code>{esc(source.get('authority'))}</code> — {esc(source.get('claim'))} <span class=muted>({esc(source.get('reference'))})</span></li>"
-            for source in decision.get("sources", [])
-        )
-        cards.append(
-            f"<article class='card critical'><div class=eyebrow>{esc(decision.get('id'))} · {esc(decision.get('status'))}</div>"
+        decision_cards.append(
+            f"<article class='choice'><div class=eyebrow>{esc(decision.get('id'))} · {esc(plain(decision.get('status')))}</div>"
             f"<h3>{esc(decision.get('title'))}</h3><p class=question>{esc(decision.get('question'))}</p>"
-            f"<p><b>Risk:</b> {esc(', '.join(decision.get('riskDimensions', [])) or 'not classified')}</p>"
             f"<p><b>Recommendation:</b> {esc(chosen_label(decision, decision.get('recommendation', {}).get('optionId')))} — {esc(decision.get('recommendation', {}).get('rationale'))}</p>"
-            f"<p><b>Strongest counterargument:</b> {esc(decision.get('recommendation', {}).get('counterargument'))}</p>"
-            f"<p><b>Recorded choice:</b> {esc(chosen_label(decision, resolution.get('optionId')))}{(' — ' + esc(resolution.get('rationale'))) if resolution else ''}</p>"
-            f"<table><thead><tr><th>Option</th><th>Consequence</th></tr></thead><tbody>{options}</tbody></table>"
-            f"<h4>Decision evidence</h4><ul>{sources}</ul></article>"
+            f"<p><b>Strongest reason against it:</b> {esc(decision.get('recommendation', {}).get('counterargument'))}</p>"
+            f"<p><b>Recorded choice:</b> {esc(chosen_label(decision, resolution.get('optionId')))}</p>"
+            f"<table><thead><tr><th>Option</th><th>What happens if chosen</th></tr></thead><tbody>{options}</tbody></table></article>"
         )
 
-    conflict_rows = []
-    for decision in decisions:
+    attention_items = []
+    for decision in manifest.get("decisions", []):
         for conflict in decision.get("conflicts", []):
-            conflict_rows.append(f"<li><b>{esc(decision.get('id'))} / {esc(conflict.get('status'))}:</b> {esc(conflict.get('issue'))} — {esc(conflict.get('consequence'))}; resolution: {esc(conflict.get('resolution') or 'open')}</li>")
+            if conflict.get("status") == "OPEN":
+                attention_items.append(f"<li><b>{esc(decision.get('id'))}:</b> {esc(conflict.get('issue'))} — {esc(conflict.get('consequence'))}</li>")
+    for change in changes:
+        attention_items.append(f"<li><b>{esc(change.get('id'))} / {esc(plain(change.get('status')))}:</b> {esc(change.get('summary'))}</li>")
     for rule in rules:
         if rule.get("status") in {"DEVIATION_APPROVED", "UNRESOLVED"} or rule.get("classification") in {"MISSING", "CONFLICTING"}:
-            conflict_rows.append(f"<li><b>{esc(rule.get('id'))} / {esc(rule.get('classification'))} / {esc(rule.get('status'))}:</b> {esc(rule.get('exactRule'))} — {esc(rule.get('rationale'))}</li>")
+            attention_items.append(
+                f"<li><b>{esc(rule.get('id'))} · {esc(plain(rule.get('classification')))}:</b> "
+                f"{esc(rule.get('exactRule'))} — {esc(rule.get('rationale'))}</li>"
+            )
+    for batch in batches:
+        if batch.get("status") == "OPEN":
+            attention_items.append(
+                f"<li><b>{esc(batch.get('id'))} · incomplete feedback:</b> "
+                f"{esc(batch.get('processedItems'))} of {esc(batch.get('expectedItems'))} item(s) processed; "
+                f"open: {esc('; '.join(batch.get('unresolvedItems', [])) or 'not named')}</li>"
+            )
+
+    scenario_rows = "".join(
+        f"<tr><td>{esc(item.get('id'))} — {esc(item.get('title'))}</td><td>{esc(item.get('behavior'))}</td><td>{esc(plain(item.get('status')))}</td></tr>"
+        for item in scenarios
+    ) or "<tr><td>—</td><td>No test scenarios recorded</td><td>PROPOSED</td></tr>"
 
     review_section = ""
+    pr_facts = ""
     if phase == "review" and review:
-        claim_items = "".join(
-            f"<li><b>{esc(claim.get('id'))} / {esc((claim.get('adjudication') or {}).get('disposition') or 'not adjudicated')}:</b> {esc(claim.get('problem'))} — {esc((claim.get('adjudication') or {}).get('rationale') or '')}; candidate: {esc((claim.get('candidate') or {}).get('comparison') or 'none')}</li>"
-            for claim in sorted(review.get("claims", []), key=lambda item: natural_id(item.get("id")))
-        ) or "<li>No defect claims.</li>"
-        file_items = "".join(f"<li><code>{esc(path)}</code></li>" for path in sorted(changed_files or [])) or "<li>Not supplied.</li>"
-        check_items = "".join(f"<li>{esc(item)}</li>" for item in sorted(checks or [])) or "<li>Not supplied.</li>"
-        reviewed_ac_rows = "".join(
-            f"<tr><td>{esc(item.get('id'))}</td><td>{esc(item.get('text'))}</td><td>{esc(item.get('status'))}</td><td>{esc('; '.join(item.get('evidence', [])))}</td></tr>"
-            for item in sorted(review.get("acceptanceCriteria", []), key=lambda item: natural_id(item.get("id")))
-        ) or "<tr><td>—</td><td>No review assessment supplied</td><td>NOT_VERIFIABLE</td><td>—</td></tr>"
+        finding_items = "".join(
+            f"<li><b>{esc(item.get('id'))} · {esc(plain((item.get('evidenceCheck') or {}).get('result')))}:</b> "
+            f"{esc(item.get('problem'))} — {esc((item.get('evidenceCheck') or {}).get('reason') or 'not checked yet')} "
+            f"<span class=muted>({esc(plain((item.get('evidenceCheck') or {}).get('path')))})</span></li>"
+            for item in sorted(review.get("findings", []), key=lambda value: natural_id(value.get("id")))
+        ) or "<li>No defect findings.</li>"
+        trial_items = "".join(
+            f"<li><b>{esc(item.get('id'))}:</b> findings {esc(', '.join(item.get('findingIds', [])))} · "
+            f"{esc(plain(item.get('path')))} · {esc(plain(item.get('comparison')))} · <code>{esc(item.get('commit') or 'not built')}</code></li>"
+            for item in review.get("trialFixes", [])
+        ) or "<li>No trial fix was needed.</li>"
+        final_check = review.get("finalFullCheck") or {}
+        final_check_text = (
+            f"{esc(final_check.get('result'))} on <code>{esc(final_check.get('commit'))}</code> with <code>{esc(final_check.get('command'))}</code>"
+            if final_check else "not run; waiting for a human decision"
+        )
         safe_pr = safe_href(pr_url)
-        pr = f"<p><a href='{esc(safe_pr)}'>Open pull request</a></p>" if safe_pr else ""
+        pr_link = f"<p><a href='{esc(safe_pr)}'>Open pull request</a></p>" if safe_pr else ""
+        check_items = "".join(
+            f"<li class='{'blocker' if failed_check(item) else ''}'>{esc(item)}</li>"
+            for item in sorted(checks or [])
+        ) or "<li class=blocker>No live checks were supplied.</li>"
+        file_items = "".join(
+            f"<li><code>{esc(item)}</code></li>" for item in sorted(changed_files or [])
+        ) or "<li class=blocker>No changed files were supplied.</li>"
+        pr_facts = (
+            "<section><h2>Live pull-request facts</h2>" + pr_link
+            + f"<div class=stats><div><b>{esc(pr_state or 'not supplied')}</b><span>PR state</span></div>"
+            + f"<div><b>{esc(mergeability or 'not supplied')}</b><span>can merge</span></div>"
+            + f"<div><b>{len(checks or [])}</b><span>checks</span></div>"
+            + f"<div><b>{len(changed_files or [])}</b><span>changed files</span></div></div>"
+            + f"<h3>Checks</h3><ul>{check_items}</ul><h3>Changed files</h3><ul>{file_items}</ul></section>"
+        )
         review_section = (
-            "<section><h2>Implementation review</h2>" + pr
-            + f"<div class=stats><div><b>{esc(review.get('verdict'))}</b><span>verdict</span></div><div><b>{esc(review.get('baseline', {}).get('implementationCommit'))}</b><span>baseline</span></div><div><b>{esc(review.get('finalCommit') or 'preserved')}</b><span>final commit</span></div></div>"
-            + f"<h3>Acceptance criteria against the implementation</h3><table><thead><tr><th>AC</th><th>Verbatim criterion</th><th>Status</th><th>Evidence</th></tr></thead><tbody>{reviewed_ac_rows}</tbody></table>"
-            + f"<h3>Claims and dispositions</h3><ul>{claim_items}</ul><details><summary>Changed files</summary><ul>{file_items}</ul></details><details><summary>Checks</summary><ul>{check_items}</ul></details></section>"
+            "<section><h2>Implementation review</h2>" + pr_link
+            + f"<div class=stats><div><b>{esc(plain(review.get('verdict')))}</b><span>result</span></div>"
+            + f"<div><b>{esc(review.get('baseline', {}).get('implementationCommit'))}</b><span>original implementation</span></div>"
+            + f"<div><b>{esc(review.get('finalCommit') or 'preserved')}</b><span>final commit</span></div>"
+            + f"<div><b>{esc(review.get('selectedTrialFixId') or 'none')}</b><span>selected trial fix</span></div></div>"
+            + f"<p><b>Final full check:</b> {final_check_text}</p><h3>Findings and evidence checks</h3><ul>{finding_items}</ul>"
+            + f"<h3>Trial fixes</h3><ul>{trial_items}</ul></section>"
         )
 
-    ac_rows = "".join(
-        f"<tr><td>{esc(item.get('id'))}</td><td>{esc(item.get('text'))}</td><td>{esc(', '.join(item.get('decisionIds', [])) or 'none')}</td><td>{esc(item.get('status'))}</td></tr>"
-        for item in criteria
-    ) or "<tr><td>—</td><td>No acceptance criteria recorded</td><td>—</td><td>UNRESOLVED</td></tr>"
-    batch_rows = "".join(
-        f"<tr><td>{esc(item.get('id'))}</td><td>{esc(item.get('source'))}</td><td>{item.get('processedItems')} / {item.get('expectedItems')}</td><td>{esc(item.get('status'))}</td><td>{esc('; '.join(item.get('unresolvedItems', [])) or 'none')}</td></tr>"
-        for item in batches
-    ) or "<tr><td>—</td><td>No batch feedback used</td><td>0 / 0</td><td>COMPLETE</td><td>none</td></tr>"
-    scenario_rows = "".join(
-        f"<tr><td>{esc(item.get('id'))} — {esc(item.get('title'))}</td><td>{esc(item.get('behavior'))}</td><td>{esc(', '.join(item.get('decisionIds', [])) or 'none')}</td><td>{esc(item.get('status'))}</td></tr>"
-        for item in scenarios
-    ) or "<tr><td>—</td><td>No test scenarios recorded</td><td>—</td><td>PROPOSED</td></tr>"
-    agent_items = "".join(
-        f"<li><b>{esc(item.get('id'))} / {esc(item.get('riskClass'))}:</b> {esc(item.get('title'))} — {esc(chosen_label(item, (item.get('resolution') or {}).get('optionId')))}</li>"
-        for item in agent
-    ) or "<li>None recorded.</li>"
-    rule_rows = "".join(
-        f"<tr><td>{esc(item.get('id'))}</td><td>{esc(item.get('classification'))}</td><td>{esc(item.get('status'))}</td><td>{esc(item.get('exactRule'))}</td><td>{esc(item.get('evidence'))}</td><td>{esc(item.get('registry'))}/{esc(item.get('article'))}</td></tr>"
-        for item in rules
-    ) or "<tr><td>—</td><td>—</td><td>—</td><td>No applicable rules recorded</td><td>—</td><td>—</td></tr>"
-    change_items = "".join(
-        f"<li><b>{esc(item.get('id'))} / {esc(item.get('discoveredAt'))} / {esc(item.get('status'))}:</b> {esc(item.get('summary'))}</li>"
-        for item in changes
-    ) or "<li>None recorded.</li>"
-
-    title = f"Human {'PR review' if phase == 'review' else 'design decision'} gate — {esc(manifest.get('ticket'))}"
+    title = "PR approval pack" if phase == "review" else "Design approval pack"
+    blocked = phase == "review" and review_has_blocker(review, checks, pr_state, mergeability)
+    if phase == "review" and blocked:
+        final_decision = (
+            "<p><b>B (recommended):</b> Pause and request changes to the failed check, criterion, or defect.</p>"
+            "<p><b>Approval is unavailable</b> until every blocker is cleared and the page is regenerated from fresh PR facts.</p>"
+        )
+    elif phase == "review":
+        final_decision = (
+            "<p><b>A:</b> I approve this package and continue to the explicit merge step.</p>"
+            "<p><b>B:</b> I request changes to: <code>&lt;name the item&gt;</code>.</p>"
+        )
+    else:
+        final_decision = (
+            "<p><b>A:</b> I approve the target solution, acceptance criteria, recorded choices, and test scenarios.</p>"
+            "<p><b>B:</b> I request changes to: <code>&lt;name the item&gt;</code>.</p>"
+        )
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title}</title><style>
-:root{{--ink:#18212f;--muted:#667085;--line:#d0d5dd;--paper:#f8fafc;--card:#fff;--critical:#b42318;--accent:#175cd3}}*{{box-sizing:border-box}}body{{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 system-ui,-apple-system,sans-serif}}main{{max-width:1100px;margin:auto;padding:32px 20px 64px}}h1{{font-size:30px;margin:0 0 12px}}h2{{margin-top:36px;border-bottom:1px solid var(--line);padding-bottom:8px}}h3{{margin:.25rem 0 .5rem}}h4{{margin-bottom:.25rem}}.action{{background:#fff4ed;border-left:5px solid #f79009;padding:16px 18px;font-size:17px}}.stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}}.stats div{{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}}.stats b{{display:block;overflow-wrap:anywhere}}.stats span,.muted{{color:var(--muted);font-size:13px}}.card{{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}}.card.critical{{border-left:5px solid var(--critical)}}.eyebrow{{font-weight:700;color:var(--critical);font-size:12px;letter-spacing:.05em}}.question{{font-size:17px}}table{{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card)}}th,td{{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}}th{{background:#eef2f6}}code{{overflow-wrap:anywhere}}details{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0}}summary{{cursor:pointer;font-weight:700}}a{{color:var(--accent)}}
-</style></head><body><main><h1>{title}</h1><div class=action><b>Action required:</b> {esc(gate_action(manifest, phase, review))}</div>
-<div class=stats><div><b>{esc(manifest.get('approval', {}).get('status'))}</b><span>approval</span></div><div><b>{sum(item.get('status') != 'RESOLVED' for item in human)} / {len(human)}</b><span>human decisions open / total</span></div><div><b>{len(rules)}</b><span>applicable rules</span></div><div><b>{sum(item.get('status') != 'HUMAN_CONFIRMED' for item in scenarios)} / {len(scenarios)}</b><span>scenarios unconfirmed / total</span></div><div><b>{sum(item.get('status') == 'OPEN' for item in batches)} / {len(batches)}</b><span>feedback batches open / total</span></div></div>
-{review_section}<section><h2>Decisions requiring human accountability</h2>{''.join(cards) or '<p>No human-required decisions were classified.</p>'}</section>
-<section><h2>Source conflicts and rule deviations</h2><ul>{''.join(conflict_rows) or '<li>None recorded.</li>'}</ul></section>
-<section><h2>Semantic changes since alignment</h2><ul>{change_items}</ul></section>
-<section><h2>Acceptance-criteria coverage</h2><table><thead><tr><th>AC</th><th>Verbatim criterion</th><th>Decision mapping</th><th>Status</th></tr></thead><tbody>{ac_rows}</tbody></table></section>
-<section><h2>Test-scenario challenge</h2><p class=question><b>Which of these are wrong, and what is missing?</b></p><table><thead><tr><th>Scenario</th><th>Behavior</th><th>Decision mapping</th><th>Status</th></tr></thead><tbody>{scenario_rows}</tbody></table></section>
-<section><h2>Feedback ingestion</h2><table><thead><tr><th>Batch</th><th>Source</th><th>Processed</th><th>State</th><th>Unresolved</th></tr></thead><tbody>{batch_rows}</tbody></table></section>
-<details><summary>Verified lower-risk decisions ({len(agent)})</summary><ul>{agent_items}</ul></details>
-<details><summary>Applicable-rule evidence ({len(rules)})</summary><table><thead><tr><th>Rule</th><th>Class</th><th>State</th><th>Exact rule</th><th>Applies because</th><th>Source</th></tr></thead><tbody>{rule_rows}</tbody></table></details>
-<section><h2>Detailed source artifacts</h2><ul><li><a href="{detail_prefix}03-agreement.spec.md">Agreement</a></li><li><a href="{detail_prefix}03-target-solution.spec.md">Target solution</a></li><li><a href="{detail_prefix}03-test-scenarios.spec.md">Test scenarios</a></li><li><a href="{detail_prefix}03-decision-manifest.state.json">Canonical decision state</a></li></ul></section>
+<title>{esc(title)} — {esc(manifest.get('ticket'))}</title><style>
+:root{{--ink:#18212f;--muted:#667085;--line:#d0d5dd;--paper:#f7f9fc;--card:#fff;--critical:#b42318;--important:#b54708;--supporting:#175cd3;--accent:#175cd3}}*{{box-sizing:border-box}}body{{margin:0;background:var(--paper);color:var(--ink);font:16px/1.58 system-ui,-apple-system,sans-serif}}main{{max-width:1040px;margin:auto;padding:32px 20px 64px}}h1{{font-size:32px;margin:0 0 12px}}h2{{margin-top:40px;border-bottom:1px solid var(--line);padding-bottom:8px}}h3{{margin:.25rem 0 .5rem}}a{{color:var(--accent)}}.action{{background:#fff4ed;border-left:5px solid #f79009;padding:16px 18px;font-size:17px}}.route{{background:#eef4ff;border:1px solid #b2ccff;border-radius:12px;padding:16px 20px;margin:18px 0}}.route li{{margin:7px 0}}.promise,.choice{{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}}.promise.critical{{border-left:6px solid var(--critical)}}.promise.important{{border-left:6px solid var(--important)}}.promise.supporting{{border-left:6px solid var(--supporting)}}.choice{{border-left:6px solid var(--critical)}}.eyebrow{{font-weight:750;color:#475467;font-size:12px;letter-spacing:.05em;text-transform:uppercase}}.question{{font-size:17px}}.muted{{color:var(--muted);font-size:13px}}.blocker{{background:#fef3f2;border:1px solid #fecdca;padding:14px}}.stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:18px 0}}.stats div{{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}}.stats b{{display:block;overflow-wrap:anywhere}}.stats span{{color:var(--muted);font-size:13px}}table{{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card)}}th,td{{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}}th{{background:#eef2f6}}details{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0}}summary{{cursor:pointer;font-weight:700}}code{{overflow-wrap:anywhere}}
+</style></head><body><main><h1>{esc(title)} — {esc(manifest.get('ticket'))}</h1><div class=action><b>What to do:</b> {esc(gate_action(manifest, phase, review, checks, pr_state, mergeability))}</div>
+<section class=route><h2>Reading route</h2><ol><li><a href="{detail_prefix}03-target-solution.view.html"><b>Read the full target solution.</b></a></li><li>Check every acceptance criterion, starting with Critical.</li><li>Resolve only the open or changed choices.</li><li>Challenge the test scenarios.</li><li>Give the explicit final decision.</li></ol></section>
+{pr_facts}
+<section><h2>Acceptance criteria — what the delivery promises</h2>{criterion_cards}</section>
+{review_section}
+<section><h2>Open or changed human choices</h2>{''.join(decision_cards) or '<p>No open or changed human choices.</p>'}</section>
+{f"<section><h2>Changes and conflicts that need attention</h2><ul>{''.join(attention_items)}</ul></section>" if attention_items else ''}
+<section><h2>Test-scenario challenge</h2><p class=question><b>Which of these are wrong, and what is missing?</b></p><table><thead><tr><th>Scenario</th><th>Expected behavior</th><th>State</th></tr></thead><tbody>{scenario_rows}</tbody></table></section>
+<section><h2>Final decision</h2>{final_decision}</section>
+<details><summary>Technical record — optional drill-down</summary><p>Lower-risk decisions: {len(quiet)} · applicable rules: {len(rules)} · feedback batches: {len(batches)} · changed files supplied: {len(changed_files or [])}</p><ul><li><a href="{detail_prefix}03-agreement.spec.md">Agreement</a></li><li><a href="{detail_prefix}03-target-solution.spec.md">Target solution source</a></li><li><a href="{detail_prefix}03-test-scenarios.spec.md">Test scenarios</a></li><li><a href="{detail_prefix}03-decision-manifest.state.json">Machine state</a></li></ul></details>
 <p class=muted>This view is generated; do not edit it.</p></main></body></html>"""
 
 
@@ -350,6 +579,8 @@ def main() -> int:
     parser.add_argument("--html", type=Path, required=True)
     parser.add_argument("--review-state", type=Path)
     parser.add_argument("--pr-url")
+    parser.add_argument("--pr-state")
+    parser.add_argument("--mergeability")
     parser.add_argument("--changed-file", action="append", default=[])
     parser.add_argument("--check", action="append", default=[])
     args = parser.parse_args()
@@ -357,8 +588,19 @@ def main() -> int:
     review = load_json(args.review_state)
     if args.phase == "review" and review is None:
         parser.error("--review-state is required for review phase")
-    markdown = render_markdown(manifest or {}, args.phase, review, args.pr_url, args.changed_file, args.check)
-    page = render_html(manifest or {}, args.phase, review, args.pr_url, args.changed_file, args.check)
+    if args.phase == "review":
+        if not args.pr_url or not args.pr_state or not args.mergeability:
+            parser.error("--pr-url, --pr-state and --mergeability are required for review phase")
+        if not args.changed_file or not args.check:
+            parser.error("at least one --changed-file and --check are required for review phase")
+    markdown = render_markdown(
+        manifest or {}, args.phase, review, args.pr_url, args.pr_state, args.mergeability,
+        args.changed_file, args.check,
+    )
+    page = render_html(
+        manifest or {}, args.phase, review, args.pr_url, args.pr_state, args.mergeability,
+        args.changed_file, args.check,
+    )
     args.markdown.write_text(markdown, encoding="utf-8")
     args.html.write_text(page, encoding="utf-8")
     return 0

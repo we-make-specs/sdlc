@@ -1,11 +1,10 @@
 ---
 name: run
 description: Drive a ticket or free-text brain dump through the agentic delivery pipeline — resume from the feature folder, invoke each step skill in order, validate its declared outputs, and stop wherever a human is required. Use when the user says "run the pipeline", "start the sdlc workflow", or names a ticket to deliver.
-argument-hint: <ticket-id | ticket-url | free-text description>
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.0'
+  version: '0.7.1'
   tags: orchestration, pipeline, sdlc, workflow
 ---
 <!-- prework:orchestration-design -->
@@ -50,7 +49,7 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 
 ## Workflow
 
-1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
+1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. On a 0.7.0 workspace, run `scripts/migrate_state_070_to_071.py` once for every schema-version-1 decision or review state before selecting the next action. The script preserves exact `.v0.7.0.json` backups, reopens design approval for the new human summaries, and resumes legacy review before trial building; report this plainly and never hand-convert state. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
 2. **Collect the delivery profile at kickoff.** For a new run in an interactive session, ask the three profile questions the manifest contract defines (PR audience, review placement, questioning mode) before invoking step 00, and pass the answers along for it to record. Headless, or when the human gives no preference: the defaults apply silently. Never re-ask on a resume — the manifest already carries the profile.
 3. **Announce the step** (number, name, type) so the run stays legible.
 4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
@@ -61,24 +60,27 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
 7. **Report** after each step: step, outcome, artifacts written, what comes next.
 
-### Step 07: evidence-gated role sequence
+### Step 07: independent, risk-scaled review
 
-Step 07 is one pipeline step but not one agent turn. Before review, record the package's base and
-implementation commits; these are the immutable baseline. Then delegate four fresh roles in order,
-using the normal step-runner prompt plus the named subsection of `skills/07-review/SKILL.md`:
+Step 07 is one pipeline step but may use two, three, or four fresh roles. Before review, record the
+package base, immutable implementation commit, and exact step-06 full-check evidence when available.
+Then delegate only the roles required by `skills/07-review/SKILL.md`:
 
-1. **critic** — writes defect claims only; validate the state with `--phase claims`;
-2. **adjudicator** — independently verifies sources and dispositions; validate with
-   `--phase adjudication`;
-3. **candidate implementer** — challenges accepted/reframed claims, then makes any surviving
-   correction only on a temporary branch/worktree from the recorded implementation commit;
-4. **verifier** — independently compares candidate and baseline; validate with `--phase closed`.
+1. **reviewer** — writes evidence-backed findings only; validate with `--phase findings`;
+2. **evidence checker** — independently marks each finding `VALID`, `NOT_A_PROBLEM`,
+   `PARTLY_RIGHT`, or `ASK_HUMAN`, assigns its cost/risk path, and groups compatible corrections into
+   one trial fix; validate with `--phase checked`;
+3. **trial-fix builder** — only for `LIGHT` or `FULL`; builds the grouped trial from the immutable
+   implementation commit and runs targeted checks;
+4. **final checker** — only when a trial exists; independently compares it with the original, selects
+   at most one safe improvement, and records one final full check; validate with `--phase closed`.
 
-Never send critic prose directly to the package implementer as a mutation request. Never let one role
-perform two adjacent roles. An `ESCALATED` verdict reopens the decision ID recorded in the decision
-manifest, marks dependent unmerged packages `needs-revalidation`, and stops before publication. A
-closed non-escalated state may integrate only candidates marked `BETTER`; otherwise publish the
-untouched baseline. The orchestrator validates and sequences these states but does not adjudicate.
+A `NO_CHANGE` review stops after the evidence checker and closes with the original plus exact step-06
+full-check evidence, when reusable. `ASK_HUMAN` reopens one focused decision, marks only dependent
+unmerged packages `needs-revalidation`, and stops without a PR or trial fix. Never send reviewer prose
+to an implementer as a change order, let adjacent roles collapse into one, or create one trial per
+comment by default. The orchestrator validates and sequences state; it does not decide whether a
+finding is true.
 
 ### Selecting the next action
 

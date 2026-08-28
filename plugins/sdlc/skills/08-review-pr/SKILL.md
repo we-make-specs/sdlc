@@ -4,7 +4,7 @@ description: Pipeline step 08 (GATE) — render one deterministic PR decision pa
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.0'
+  version: '0.7.1'
   tags: sdlc, step, gate, approval, pull-request, human-view
 ---
 
@@ -19,7 +19,7 @@ metadata:
 
 Lets the human judge one implemented package without hunting through the plan, review exchange, PR,
 and specifications. A deterministic Markdown/HTML projection puts the actual PR state, verbatim AC
-assessments, review claim dispositions, semantic deltas, high-risk decisions, conflicts, checks and
+assessments, review findings and evidence-check results, semantic deltas, high-risk decisions, conflicts, checks and
 changed files in one place. Detailed canonical artifacts remain linked for drill-down.
 
 ## Required inputs
@@ -49,8 +49,9 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
 ## Workflow
 
 1. **Fail-closed pre-check.** Require a PR and a closed review state. Run
-   `validate_review_state.py --phase closed` and `validate_decision_manifest.py --phase downstream`.
-   An escalated review returns to focused gate 04 and must have no PR. A missing review because step 07
+   `validate_review_state.py --phase closed --decision-manifest 2-specification/03-decision-manifest.state.json`
+   and `validate_decision_manifest.py --phase downstream`.
+   An `ASK_HUMAN` review returns to focused gate 04 and must have no PR. A missing review because step 07
    was explicitly skipped is stated and requires the human to affirm that exception before this gate
    can continue.
 2. **Fetch current PR facts**: URL, state, mergeability, changed files and check results. Do not trust a
@@ -61,13 +62,16 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
    python3 <plugin>/scripts/render_decision_gate.py \
      2-specification/03-decision-manifest.state.json --phase review \
      --review-state 3-planning/07-review-<package-id>.state.json \
-     --pr-url <url> --changed-file <path> --check <result> \
+     --pr-url <url> --pr-state <state> --mergeability <mergeability> \
+     --changed-file <path> --check '<name>: <result>' \
      --markdown 3-planning/08-human-review-gate.view.md \
      --html 3-planning/08-human-review-gate.view.html
    ```
 
-   Repeat `--changed-file` and `--check` for every item. The renderer is deterministic and escapes
-   content; no agent-authored second summary is allowed to drift from canonical state.
+   Repeat `--changed-file` and `--check` for every item. The renderer rejects an incomplete live-fact
+   input and shows every filename and check result prominently, with failed checks marked as blockers.
+   It is deterministic and escapes content; no agent-authored second summary may drift from canonical
+   state.
 4. **Present a short orientation only:**
 
    ```text
@@ -78,10 +82,10 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
    Open first: 08-human-review-gate.view.html (Markdown fallback beside it)
    ```
 
-   If checks fail, an AC is `NOT_MET`/`PARTIAL`, a blocker remains, or the candidate was not proven
-   better, state that before asking. Do not bury it below process detail.
+   If any check is not explicitly successful, an AC is not `MET`, a blocker remains, or a trial fix was not proven a
+   safe improvement, state that before asking. Do not bury it below process detail.
 5. **Ask decision-friendly.** With a clean state: "A: approve and continue to merge. B: name the
-   concrete change." With a non-approve verdict or failed check, present B first with the evidence and
+   concrete change." With a non-approve verdict or any non-successful check, present B first with the evidence and
    recommend pausing. A missing external input is fixed by supplying that input, not by more coding.
 6. **Classify requested changes before implementation.** A local defect returns to the isolated
    correction/review loop. A request that changes business behavior, security, a public contract,
@@ -100,14 +104,14 @@ semantic risk. No merge.
 - Do not merge and never self-approve.
 - Do not proceed on invalid review/decision state or red checks.
 - Do not restate a long artifact inventory in chat; point to the one generated human view.
-- Do not hide NOT_MET/PARTIAL ACs, rejected/escalated claims, or preserved-baseline outcomes.
+- Do not hide NOT_MET/PARTIAL ACs, findings that were rejected or sent to a human, or preserved-original outcomes.
 - Do not turn a human or reviewer comment into code before classifying its semantic blast radius.
 
 ## Success criteria
 
 - [ ] Human page contains current PR facts, every changed file and every check
 - [ ] Every package AC appears verbatim with review status and evidence
-- [ ] Every review claim shows its independent disposition and candidate comparison
+- [ ] Every review finding shows its independent evidence-check result and linked trial-fix comparison
 - [ ] High-risk decisions, conflicts and semantic changes remain prominent
 - [ ] The human got one short orientation and one primary page
 - [ ] An explicit approval or focused correction was recorded

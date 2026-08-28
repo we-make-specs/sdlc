@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://we-make-specs.dev/sdlc/07-review.state.schema.json",
-  "title": "SDLC review safety state",
+  "title": "SDLC evidence-checked review state",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,20 +10,30 @@
     "baseline",
     "contextLoaded",
     "acceptanceCriteria",
-    "claims",
+    "findings",
+    "trialFixes",
+    "multipleTrialFixReason",
+    "selectedTrialFixId",
+    "finalFullCheck",
     "verdict",
     "finalCommit"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "packageId": { "type": "string", "minLength": 1 },
     "baseline": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["baseCommit", "implementationCommit"],
+      "required": ["baseCommit", "implementationCommit", "implementationFullCheck"],
       "properties": {
         "baseCommit": { "type": "string", "minLength": 7 },
-        "implementationCommit": { "type": "string", "minLength": 7 }
+        "implementationCommit": { "type": "string", "minLength": 7 },
+        "implementationFullCheck": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/fullCheck" }
+          ]
+        }
       }
     },
     "contextLoaded": {
@@ -35,12 +45,24 @@
       "minItems": 1,
       "items": { "$ref": "#/$defs/acAssessment" }
     },
-    "claims": {
+    "findings": {
       "type": "array",
-      "items": { "$ref": "#/$defs/claim" }
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "trialFixes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/trialFix" }
+    },
+    "multipleTrialFixReason": { "type": ["string", "null"] },
+    "selectedTrialFixId": { "type": ["string", "null"] },
+    "finalFullCheck": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/fullCheck" }
+      ]
     },
     "verdict": {
-      "enum": ["IN_REVIEW", "APPROVE", "REQUEST_CHANGES", "COMMENT", "ESCALATED"]
+      "enum": ["IN_REVIEW", "APPROVE", "REQUEST_CHANGES", "COMMENT", "ASK_HUMAN"]
     },
     "finalCommit": { "type": ["string", "null"], "minLength": 7 }
   },
@@ -59,7 +81,7 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "reference", "claim"],
+      "required": ["kind", "reference", "statement"],
       "properties": {
         "kind": {
           "enum": [
@@ -74,60 +96,32 @@
           ]
         },
         "reference": { "type": "string", "minLength": 1 },
-        "claim": { "type": "string", "minLength": 1 }
+        "statement": { "type": "string", "minLength": 1 }
       }
     },
-    "alternative": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["kind", "description", "tradeoffs"],
-      "properties": {
-        "kind": { "enum": ["PRESERVE_BASELINE", "REVIEWER_SUGGESTION", "ALTERNATIVE"] },
-        "description": { "type": "string", "minLength": 1 },
-        "tradeoffs": { "type": "string", "minLength": 1 }
-      }
-    },
-    "adjudication": {
+    "evidenceCheck": {
       "type": ["object", "null"],
       "additionalProperties": false,
       "required": [
-        "disposition",
-        "rationale",
-        "alternatives",
-        "conflictResolution",
-        "decisionId"
+        "result",
+        "path",
+        "reason",
+        "baselineTradeoff",
+        "correctionTradeoff",
+        "decisionId",
+        "trialFixId"
       ],
       "properties": {
-        "disposition": { "enum": ["ACCEPT", "REJECT", "REFRAME", "ESCALATE"] },
-        "rationale": { "type": "string", "minLength": 1 },
-        "alternatives": {
-          "type": "array",
-          "minItems": 3,
-          "items": { "$ref": "#/$defs/alternative" }
-        },
-        "conflictResolution": { "type": ["string", "null"] },
-        "decisionId": { "type": ["string", "null"] }
+        "result": { "enum": ["VALID", "NOT_A_PROBLEM", "PARTLY_RIGHT", "ASK_HUMAN"] },
+        "path": { "enum": ["NO_CHANGE", "LIGHT", "FULL", "HUMAN"] },
+        "reason": { "type": "string", "minLength": 1 },
+        "baselineTradeoff": { "type": "string", "minLength": 1 },
+        "correctionTradeoff": { "type": ["string", "null"] },
+        "decisionId": { "type": ["string", "null"] },
+        "trialFixId": { "type": ["string", "null"] }
       }
     },
-    "candidate": {
-      "type": ["object", "null"],
-      "additionalProperties": false,
-      "required": [
-        "commit",
-        "comparison",
-        "defectRemovedEvidence",
-        "invariantChecks",
-        "regressionChecks"
-      ],
-      "properties": {
-        "commit": { "type": "string", "minLength": 7 },
-        "comparison": { "enum": ["BETTER", "NOT_PROVEN_BETTER"] },
-        "defectRemovedEvidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-        "invariantChecks": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-        "regressionChecks": { "type": "array", "items": { "type": "string", "minLength": 1 } }
-      }
-    },
-    "claim": {
+    "finding": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -140,16 +134,15 @@
         "conflictingSources",
         "severity",
         "confidence",
-        "blastRadius",
+        "impactAreas",
         "failureScenario",
         "verificationMethod",
         "suggestedFix",
-        "adjudication",
-        "candidate"
+        "evidenceCheck"
       ],
       "properties": {
         "id": { "type": "string", "pattern": "^RF-[0-9]+$" },
-        "status": { "enum": ["OPEN", "ADJUDICATED", "CANDIDATE_VERIFIED", "CLOSED"] },
+        "status": { "enum": ["OPEN", "CHECKED", "CLOSED"] },
         "problem": { "type": "string", "minLength": 1 },
         "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "objective": { "$ref": "#/$defs/source" },
@@ -157,12 +150,15 @@
         "conflictingSources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
         "severity": { "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
         "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] },
-        "blastRadius": {
+        "impactAreas": {
           "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
           "items": {
             "enum": [
               "LOCAL_IMPLEMENTATION",
               "TESTS",
+              "BUSINESS_BEHAVIOR",
               "SECURITY",
               "PUBLIC_CONTRACT",
               "ARCHITECTURE",
@@ -174,8 +170,52 @@
         "failureScenario": { "type": "string", "minLength": 1 },
         "verificationMethod": { "type": "string", "minLength": 1 },
         "suggestedFix": { "type": ["string", "null"] },
-        "adjudication": { "$ref": "#/$defs/adjudication" },
-        "candidate": { "$ref": "#/$defs/candidate" }
+        "evidenceCheck": { "$ref": "#/$defs/evidenceCheck" }
+      }
+    },
+    "trialFix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "findingIds",
+        "path",
+        "baseCommit",
+        "commit",
+        "workspaceMode",
+        "separateReason",
+        "status",
+        "comparison",
+        "defectRemovedEvidence",
+        "invariantChecks",
+        "targetedChecks"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^TF-[0-9]+$" },
+        "findingIds": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "path": { "enum": ["LIGHT", "FULL"] },
+        "baseCommit": { "type": "string", "minLength": 7 },
+        "commit": { "type": ["string", "null"], "minLength": 7 },
+        "workspaceMode": { "enum": ["SHARED_TRIAL_BRANCH", "ISOLATED_WORKTREE"] },
+        "separateReason": { "type": ["string", "null"] },
+        "status": { "enum": ["PLANNED", "BUILT", "CHECKED"] },
+        "comparison": { "enum": [null, "SAFE_IMPROVEMENT", "KEEP_ORIGINAL"] },
+        "defectRemovedEvidence": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "invariantChecks": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "targetedChecks": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "fullCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "command", "result", "completedAt", "source", "evidence"],
+      "properties": {
+        "commit": { "type": "string", "minLength": 7 },
+        "command": { "type": "string", "minLength": 1 },
+        "result": { "enum": ["PASSED", "FAILED"] },
+        "completedAt": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["STEP_06", "REVIEW"] },
+        "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
       }
     }
   }

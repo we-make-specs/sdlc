@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -14,6 +15,8 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from schema_validation import validate_schema_instance
+from render_decision_gate import render_html as render_decision_gate_html, render_markdown as render_decision_gate_markdown
+from render_target_solution import render_html as render_target_solution_html
 
 
 HIGH_RISK = {"BUSINESS_BEHAVIOR", "SECURITY", "PUBLIC_CONTRACT", "ARCHITECTURE", "DATA", "OPERATIONS"}
@@ -26,6 +29,20 @@ def require(condition: bool, message: str, errors: list[str]) -> None:
 
 def text(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def decision_content_hash(data: dict[str, object]) -> str:
+    """Hash decision and approval metadata without the field that stores the hash."""
+    content = dict(data)
+    approval = content.get("approval")
+    if isinstance(approval, dict):
+        content["approval"] = {key: value for key, value in approval.items() if key != "artifactHashes"}
+    canonical = json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def unique_ids(items: object, label: str, errors: list[str]) -> set[str]:
@@ -45,7 +62,7 @@ def unique_ids(items: object, label: str, errors: list[str]) -> set[str]:
     return result
 
 
-def validate_decision_manifest(data: object, phase: str) -> list[str]:
+def validate_decision_manifest(data: object, phase: str, artifact_dir: Path | None = None) -> list[str]:
     errors: list[str] = []
     schema_path = SCRIPT_DIR.parent / "artifact-definitions" / "03-decision-manifest.state.schema.json"
     try:
@@ -56,7 +73,7 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
     require(isinstance(data, dict), "root must be an object", errors)
     if not isinstance(data, dict):
         return errors
-    require(data.get("schemaVersion") == 1, "schemaVersion must be 1", errors)
+    require(data.get("schemaVersion") == 2, "schemaVersion must be 2", errors)
     require(text(data.get("ticket")), "ticket is required", errors)
 
     criteria = data.get("acceptanceCriteria")
@@ -65,12 +82,49 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
     rules = data.get("applicableRules")
     changes = data.get("semanticChanges")
     batches = data.get("feedbackBatches")
+    package_criteria = data.get("packageAcceptanceCriteria")
     ac_ids = unique_ids(criteria, "acceptanceCriteria", errors)
     scenario_ids = unique_ids(scenarios, "testScenarios", errors)
     decision_ids = unique_ids(decisions, "decisions", errors)
     rule_ids = unique_ids(rules, "applicableRules", errors)
     change_ids = unique_ids(changes, "semanticChanges", errors)
     unique_ids(batches, "feedbackBatches", errors)
+    require(bool(ac_ids), "at least one acceptance criterion is required", errors)
+    require(bool(scenario_ids), "at least one test scenario is required", errors)
+
+    require(
+        isinstance(package_criteria, list) and bool(package_criteria),
+        "packageAcceptanceCriteria must be a non-empty array",
+        errors,
+    )
+    package_ids: set[str] = set()
+    assigned_ac_ids: set[str] = set()
+    if isinstance(package_criteria, list):
+        for index, mapping in enumerate(package_criteria):
+            prefix = f"packageAcceptanceCriteria[{index}]"
+            require(isinstance(mapping, dict), f"{prefix} must be an object", errors)
+            if not isinstance(mapping, dict):
+                continue
+            package_id = mapping.get("packageId")
+            require(text(package_id), f"{prefix}.packageId is required", errors)
+            if isinstance(package_id, str):
+                require(package_id not in package_ids, f"duplicate package mapping {package_id}", errors)
+                package_ids.add(package_id)
+            refs = mapping.get("acceptanceCriterionIds")
+            require(isinstance(refs, list) and bool(refs), f"{prefix}.acceptanceCriterionIds must not be empty", errors)
+            if isinstance(refs, list):
+                require(len(refs) == len(set(refs)), f"{prefix} repeats an acceptance criterion", errors)
+                for ref in refs:
+                    require(ref in ac_ids, f"{prefix} references unknown acceptance criterion {ref}", errors)
+                    if isinstance(ref, str):
+                        assigned_ac_ids.add(ref)
+        if "ALL" in package_ids:
+            require(len(package_ids) == 1, "packageId ALL cannot be combined with named package mappings", errors)
+        require(
+            assigned_ac_ids == ac_ids,
+            "packageAcceptanceCriteria must assign every acceptance criterion to at least one package",
+            errors,
+        )
 
     if isinstance(criteria, list):
         for index, criterion in enumerate(criteria):
@@ -78,6 +132,13 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
                 continue
             prefix = f"acceptanceCriteria[{index}]"
             require(text(criterion.get("text")), f"{prefix}.text is required", errors)
+            require(text(criterion.get("shortMeaning")), f"{prefix}.shortMeaning is required", errors)
+            require(text(criterion.get("whyItMatters")), f"{prefix}.whyItMatters is required", errors)
+            require(
+                criterion.get("priority") in {"CRITICAL", "IMPORTANT", "SUPPORTING"},
+                f"{prefix}.priority is invalid",
+                errors,
+            )
             refs = criterion.get("decisionIds")
             require(isinstance(refs, list), f"{prefix}.decisionIds must be an array", errors)
             if isinstance(refs, list):
@@ -163,6 +224,23 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
                 require(change.get("decisionId") in decision_ids, f"{prefix} needs a valid decisionId", errors)
             elif change.get("decisionId") is not None:
                 require(change.get("decisionId") in decision_ids, f"{prefix} has unknown decisionId", errors)
+            if change.get("riskClass") == "HUMAN_REQUIRED":
+                require(
+                    change.get("status") != "CLASSIFIED",
+                    f"{prefix} human-required change cannot remain merely CLASSIFIED",
+                    errors,
+                )
+                require(
+                    change.get("decisionId") in decision_ids,
+                    f"{prefix} human-required change needs a valid decisionId",
+                    errors,
+                )
+                if change.get("status") in {"ACCEPTED", "REJECTED"}:
+                    require(
+                        change.get("decisionId") in resolved_human,
+                        f"{prefix} accepted/rejected human-required change needs a resolved human decision",
+                        errors,
+                    )
 
     if isinstance(batches, list):
         for index, batch in enumerate(batches):
@@ -196,6 +274,45 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
                 require(counts.get("total") == total, f"coverage.{key}.total must be {total}", errors)
                 require(counts.get("classified") == classified, f"coverage.{key}.classified must be {classified}", errors)
 
+    if artifact_dir is not None:
+        target_source = artifact_dir / "03-target-solution.spec.md"
+        target_view = artifact_dir / "03-target-solution.view.html"
+        try:
+            expected_target_view = render_target_solution_html(target_source.read_text(encoding="utf-8"))
+            actual_target_view = target_view.read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"human target-solution view unreadable: {exc}")
+        else:
+            require(
+                actual_target_view == expected_target_view,
+                "03-target-solution.view.html is stale or was edited; regenerate it from the target solution",
+                errors,
+            )
+
+        gate_view = artifact_dir / "03-human-decision-gate.view.html"
+        try:
+            actual_gate_view = gate_view.read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"human approval view unreadable: {gate_view.name}: {exc}")
+        else:
+            require(
+                actual_gate_view == render_decision_gate_html(data, "alignment"),
+                "03-human-decision-gate.view.html is stale or was edited; regenerate it from the decision state",
+                errors,
+            )
+
+        gate_markdown = artifact_dir / "03-human-decision-gate.view.md"
+        try:
+            actual_gate_markdown = gate_markdown.read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"human approval fallback unreadable: {gate_markdown.name}: {exc}")
+        else:
+            require(
+                actual_gate_markdown == render_decision_gate_markdown(data, "alignment"),
+                "03-human-decision-gate.view.md is stale or was edited; regenerate it from the decision state",
+                errors,
+            )
+
     if phase in {"approved", "downstream"}:
         for decision in decisions or []:
             if not isinstance(decision, dict):
@@ -225,7 +342,43 @@ def validate_decision_manifest(data: object, phase: str) -> list[str]:
             require(text(approval.get("approvedBy")), "approval.approvedBy is required", errors)
             require(text(approval.get("approvedAt")), "approval.approvedAt is required", errors)
             approved_ids = set(approval.get("approvedDecisionIds") or [])
+            for decision_id in approved_ids:
+                require(decision_id in decision_ids, f"approval references unknown decision {decision_id}", errors)
             require(resolved_human.issubset(approved_ids), "approval must name every resolved human decision", errors)
+            hashes = approval.get("artifactHashes")
+            require(isinstance(hashes, dict), "approval.artifactHashes is required", errors)
+            if isinstance(hashes, dict):
+                for name in ("agreement", "targetSolution", "targetSolutionView", "testScenarios", "decisionContent"):
+                    value = hashes.get(name)
+                    require(
+                        isinstance(value, str) and bool(re.fullmatch(r"[a-f0-9]{64}", value)),
+                        f"approval.artifactHashes.{name} must be a SHA-256 hash",
+                        errors,
+                    )
+                require(
+                    hashes.get("decisionContent") == decision_content_hash(data),
+                    "approved decision content changed after approval",
+                    errors,
+                )
+                if artifact_dir is not None:
+                    files = {
+                        "agreement": artifact_dir / "03-agreement.spec.md",
+                        "targetSolution": artifact_dir / "03-target-solution.spec.md",
+                        "targetSolutionView": artifact_dir / "03-target-solution.view.html",
+                        "testScenarios": artifact_dir / "03-test-scenarios.spec.md",
+                    }
+                    for name, path in files.items():
+                        try:
+                            actual = sha256_file(path)
+                        except OSError as exc:
+                            errors.append(f"approved artifact unreadable: {path.name}: {exc}")
+                            continue
+                        require(
+                            hashes.get(name) == actual,
+                            f"approved artifact changed after approval: {path.name}",
+                            errors,
+                        )
+
 
     return errors
 
@@ -240,7 +393,7 @@ def main() -> int:
     except (OSError, json.JSONDecodeError) as exc:
         print(f"decision manifest unreadable: {exc}", file=sys.stderr)
         return 2
-    errors = validate_decision_manifest(data, args.phase)
+    errors = validate_decision_manifest(data, args.phase, args.manifest.parent)
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

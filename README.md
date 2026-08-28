@@ -52,19 +52,26 @@ quality criteria.
 
 **Human surfaces.** The points where a person joins the loop, either to make decisions
 alongside an agent or to approve before the work continues. These are first-class in the
-workflow, not an afterthought. Gates render one risk-ranked Markdown/HTML page from
-canonical machine state: unresolved and high-risk choices stay prominent, while verified
-lower-risk detail is available without flooding the primary reading path.
+workflow, not an afterthought. Gate 04 renders the complete target solution as HTML and one
+short approval pack from canonical state. The pack orders every acceptance criterion by
+reading priority, then shows only open or changed choices and test scenarios. Lower-risk
+technical detail stays available without flooding the main reading path.
 
 **Decision authority.** Ticket text, acceptance criteria, human decisions, registry rules,
 reference implementations, approved design, runtime evidence, and agent inferences are
-typed separately. Conflicts are adjudicated with their trade-offs visible; no source wins
+typed separately. Conflicts are checked with their trade-offs visible; no source wins
 merely because an agent quoted it confidently.
 
-**Evidence-gated review.** A reviewer produces falsifiable claims, not mutation commands.
-An independent adjudicator resolves each claim, a skeptical implementer makes any proposed
-correction on an isolated candidate, and a separate verifier must prove that candidate
-better than the untouched implementation baseline before it can be integrated.
+**Evidence-checked review.** A reviewer reports falsifiable findings, not change commands.
+An independent evidence checker marks each finding valid, wrong, partly right, or
+human-owned. Wrong or preference findings stop without code work. Compatible valid findings
+share one trial fix, and a separate final checker must prove it is a safe improvement over
+the untouched implementation before it can be integrated. Local corrections take a light
+path; semantic or cross-cutting changes take a full path; design conflicts stop for one
+focused human choice.
+
+The visual guide [SDLC 0.7.1 — review and design approval](plugins/sdlc/docs/sdlc-0.7.1-review-and-approval.html)
+explains the roles, four paths, test budget, human reading route, and state-file boundary with diagrams.
 
 ## Kinds of step
 
@@ -94,20 +101,21 @@ Eleven steps, from an incoming ticket to a closed delivery.
 | 00 | create-workspace | auto | the ticket or free-text brief | `00-manifest.state.md` |
 | 01 | research-current-solution | auto | `00-manifest` | `01-current-solution.research.md` |
 | 02 | analyze | auto | `00-manifest`, `01-current-solution` | `02-questions.inventory.md` |
-| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions`, registry rules | specifications, `03-decision-manifest.state.json`, generated human gate |
-| 04 | approve-target-solution | gate | generated human gate and linked canonical artifacts | decision-level approval |
+| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions`, registry rules | specifications, complete target-solution HTML, decision state, generated approval pack |
+| 04 | approve-target-solution | gate | full target solution, prioritized criteria, open choices and scenarios | hash-locked design approval |
 | 05 | plan | auto | the step-03 artifacts and the research | `05-implementation.plan.md` (optionally a technical analysis) |
 | 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code on a local package branch, `06-decisions.log.md` |
-| 07 | review | auto | approved specifications and decision state (not the plan) | validated claim/adjudication/comparison state, then a clean PR |
+| 07 | review | auto | approved specifications and decision state (not the plan) | validated finding/check/trial state, then a clean PR |
 | 08 | review-pr | gate | live PR facts, decision state, validated review state | generated human PR gate and approval |
 | 09 | merge | collab | `00-manifest`, `06-decisions.log` | the merged pull request |
 | 10 | post-mortem | collab | the ledgers, `02-questions`, `06-decisions.log` | reconciliation, settled assumptions, `10-post-mortem.md`, `status: done` |
 
 A few things worth calling out. Step 03 is where a human and the agent settle the
-design together, and step 04 refuses to continue until the risk-ranked decisions and
-scenarios are explicitly approved. Step 07 keeps the plan blinded and also separates the
-critic, adjudicator, candidate implementer, and verifier: review detects defects but cannot
-silently replace good code. Step 09 never merges on its own; a person gives the word.
+design together, and step 04 refuses to continue until the complete design, criteria and
+scenarios are explicitly approved and hash-locked. Step 07 keeps the plan blinded and
+separates the reviewer, evidence checker, optional trial-fix builder, and final checker:
+review detects defects but cannot silently replace good code or spend a full worktree on a
+preference. Step 09 never merges on its own; a person gives the word.
 
 Each step names the artifacts it touches, and each artifact defines itself once in
 `plugins/sdlc/artifact-definitions/`. Steps do not restate an artifact's structure, they

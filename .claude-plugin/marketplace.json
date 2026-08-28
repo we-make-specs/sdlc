@@ -10,8 +10,8 @@
   "plugins": [
     {
       "name": "sdlc",
-      "description": "Controlled multi-stage delivery with evidence-gated review, explicit decision authority, and concise human approval gates.",
-      "version": "0.7.0",
+      "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
+      "version": "0.7.1",
       "source": "./plugins/sdlc"
     },
     {

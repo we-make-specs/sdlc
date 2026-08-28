@@ -1,44 +1,33 @@
 ---
 name: 07-review
-description: Pipeline step 07 (AUTO) — evidence-first review of a package diff through independent critic, adjudicator, candidate implementer, and verifier roles. Reviewer findings are claims, not mutation commands; the approved implementation remains the baseline unless a candidate is proven better. Use after implementation, before the human review gate.
+description: Pipeline step 07 (AUTO) — independent, risk-scaled review with evidence checking, one combined trial fix by default, and one final full test run. Findings are not code-change commands; the approved implementation remains the baseline unless a trial fix is proven safer and better.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.0'
-  tags: sdlc, step, review, quality-gate, adversarial, adjudication
+  version: '0.7.1'
+  tags: sdlc, step, review, quality-gate, evidence, risk-scaled
 ---
 
-# Step 07 · Review (evidence-gated)  (AUTO)
+# Step 07 · Review  (AUTO)
 
-- **Type:** AUTO — four fresh, isolated roles coordinated by `/sdlc:run`
+- **Type:** AUTO — fresh roles, but only the roles required by the chosen path
 - **Skippable:** yes, only for a deliberately agreed low-risk change
 
 ---
 
 ## What this skill does
 
-Reviews one package before publication without giving a single reviewer authority to rewrite working
-code. The implementation commit is an immutable baseline. A critic records falsifiable defect claims;
-an independent adjudicator weighs each claim against the approved intent, binding rules, repository
-patterns and alternatives; a skeptical implementer may build an isolated candidate for accepted or
-reframed claims; and an independent verifier compares that candidate with the baseline. Only a
-candidate proved better may replace the baseline.
+Checks one package before publication without letting a reviewer rewrite good code by authority or
+confidence alone. The implementation commit is the immutable original. A **reviewer** reports
+evidence-backed findings. A separate **evidence checker** decides whether each finding is valid,
+wrong, partly right, or needs a human. Only valid findings enter a **trial fix**. A separate **final
+checker** compares the trial with the original. The trial replaces the original only when the
+evidence proves it is a safe improvement.
 
-The reviewer remains valuable as a defect sensor. It is deliberately **not** a source of truth and
-does not issue implementation commands.
-
-## When to use this skill
-
-- A completed local package needs an independent check before it is published
-- A prior review suggestion could alter architecture, authorization, serialization, data, operations,
-  or another approved semantic decision
-
-## When NOT to use this skill
-
-- The change is trivial, low risk, and the human explicitly accepted skipping review
-- A pull request already exists and the request is only for the human PR gate
-
----
+The process scales with risk. A preference or wrong finding stops without code or tests. A small,
+local correction uses a shared trial branch and targeted checks. A behavior, security, contract,
+architecture, data, or operations change uses an isolated worktree and semantic checks. A conflict
+over intent stops for one focused human decision.
 
 ## Required inputs
 
@@ -51,11 +40,14 @@ does not issue implementation commands.
 
 ## Required context
 
-- The repository's `## Context Registries` declaration and every indexed article relevant to the
-  change. Record the article and exact rule in the decision manifest's applicable-rule table; a
-  `Context loaded:` trace alone is not evidence.
-- The package base commit and implementation commit. Record both before the critic runs; never move
-  the baseline during review.
+- Follow the repository's `## Context Registries` procedure and read only relevant articles. Record
+  the article and exact rule; `Context loaded:` alone is not evidence.
+- Record the package base commit and implementation commit before review. Never move this baseline.
+- When resuming a schema-version-1 review state, run the backup-first
+  `migrate_state_070_to_071.py` script. It retains the original state and resumes before trial
+  building; old candidates are historical evidence, not automatic proof under this protocol.
+- If step 06 ran the complete package test command on the exact implementation commit, copy its
+  command, commit, completion time, result, and evidence into `baseline.implementationFullCheck`.
 
 ## Artifacts
 
@@ -64,146 +56,173 @@ does not issue implementation commands.
 | reads | `03-agreement.spec.md` | [`artifact-definitions/03-agreement.spec.md`](../../artifact-definitions/03-agreement.spec.md) |
 | reads | `03-target-solution.spec.md` | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
-| reads | `03-decision-manifest.state.json` | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
+| reads/updates | `03-decision-manifest.state.json` | approved package-to-AC map; only an `ASK_HUMAN` path may append a REVIEW semantic change, create/reopen its human decision, and set approval `REOPENED`; [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
 | **must not read** | `05-implementation.plan.md` | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
 | writes | `3-planning/07-review-<package-id>.state.json` | [`artifact-definitions/07-review.state.schema.json`](../../artifact-definitions/07-review.state.schema.json) |
 
-> **The plan is off-limits to critic, adjudicator and verifier.** It carries the implementer's framing.
-> The candidate implementer receives only accepted/reframed claims and the approved specifications,
-> never reviewer prose presented as an instruction.
+> The plan is hidden from the reviewer, evidence checker, and final checker because it contains the
+> implementer's own framing. The trial-fix builder receives checked findings and approved
+> specifications, not reviewer prose presented as an order.
 
----
+## Four paths
+
+| Path | When it applies | Code work | Checks |
+|---|---|---|---|
+| `NO_CHANGE` | wrong finding, preference, or no observable defect | none | no new test run |
+| `LIGHT` | objective local defect; behavior and approved design stay unchanged | one shared trial branch for all compatible findings | targeted checks, then independent diff check |
+| `FULL` | business behavior, security, public contract, architecture, data, operations, or a risky cross-cutting change | isolated worktree from the exact implementation commit | targeted checks, explicit semantic invariants, then final full check |
+| `HUMAN` | sources or trade-offs require authority the agents do not have | none; preserve original | one focused decision at gate 04 |
+
+High-impact areas always take `FULL` or `HUMAN`; confidence does not lower the path.
 
 ## Role protocol
 
-The orchestrator runs each role in a fresh context. No role may silently absorb another role.
+The orchestrator starts each role in a fresh context. It skips roles the chosen path does not need.
 
-### 1. Critic — produce claims, not fixes
+### 1. Reviewer — report findings, not fixes
 
-Review the baseline through all four lenses:
+Check the original through these lenses:
 
-1. acceptance-criteria coverage, item by item;
-2. alignment with the approved design and resolved decisions;
-3. correctness, edge cases, failure handling, security and tests in changed code;
-4. missing scenarios implied by the agreement and design.
+1. every package acceptance criterion and approved scenario;
+2. approved design and resolved decisions;
+3. correctness, edge cases, failure handling, security, tests, and changed documentation;
+4. repository patterns and domain language;
+5. design traceability and skimmability:
+   - a non-obvious choice against a strong repository pattern records why it is better here (for
+     example, a manual mapper where generated mappers are the normal pattern);
+   - application ports state the application's intent, not the storage or messaging mechanism behind
+     an adapter; do not call an outbox enqueue operation `publish` if delivery is not synchronous;
+   - long application-service methods have short, useful comments before meaningful logical blocks
+     when the code cannot otherwise be skimmed; comments describe intent or invariant, never syntax.
 
-Assess every package Primary AC first, preserving its verbatim text and recording `MET`, `NOT_MET`,
-`PARTIAL`, or `NOT_VERIFIABLE` with evidence. For every suspected defect, add one claim to the review state. It must state the observable problem,
-diff evidence, the objective being protected and its source kind, supporting and conflicting sources,
-severity, confidence, blast radius, a concrete failure scenario, and a verification method. A suggested
-fix is optional and has no authority. Do not modify code.
+The last lens does not turn taste into a defect. Missing comments or a different mapper are findings
+only when there is concrete readability, consistency, or maintenance harm. Otherwise record no
+finding or use low severity and let the evidence checker choose `NOT_A_PROBLEM`.
+
+Initialize the review's acceptance-criteria list from the selected package's approved
+`packageAcceptanceCriteria` entry in the decision manifest, preserving each ID and exact text. Never
+derive package scope from the blinded implementation plan. For every suspected defect, record the observable problem, file/line evidence, protected objective,
+supporting and conflicting sources, severity, confidence, impact areas, failure scenario, and how it
+could be verified. A suggested fix is optional and has no authority. Do not modify code. Do not rerun
+the complete suite; use existing step-06 evidence and only a narrow reproduction when needed.
 
 Validate before handoff:
 
 ```bash
 python3 <plugin>/scripts/validate_review_state.py \
-  3-planning/07-review-<package-id>.state.json --phase claims
+  3-planning/07-review-<package-id>.state.json --phase findings \
+  --decision-manifest 2-specification/03-decision-manifest.state.json
 ```
 
-### 2. Adjudicator — resolve the claim's authority and trade-offs
+### 2. Evidence checker — decide the finding and path
 
-Independently verify the critic's citations and applicable-rule table. For every claim:
+Independently verify each citation, reproduce the failure when practical, and compare the real
+trade-off of keeping the original with the real trade-off of correcting it. Do not mechanically obey
+ticket wording, acceptance criteria, registry text, repository precedent, or reviewer opinion. Check
+which source applies, what it means in context, and what each alternative would break.
 
-- compare preserving the baseline, the reviewer's suggestion, and at least one real alternative;
-- identify disagreement among ticket text, acceptance criteria, approved design, registry rules,
-  reference implementations and runtime evidence;
-- choose `ACCEPT`, `REJECT`, `REFRAME`, or `ESCALATE`, with a technical rationale;
-- never treat an acceptance criterion, registry rule, or reviewer statement as automatically dominant;
-  interpret its authority, applicability and consequences;
-- use `ESCALATE` when resolving the conflict would choose externally visible behavior or change an
-  approved architecture/security/data/operational decision without clear higher-authority evidence.
+Record one result in plain language:
 
-An escalation creates or reopens exactly one human-required decision in
-`03-decision-manifest.state.json`, records its ID in the claim, preserves the baseline, and stops the
-package. It does not reopen the whole design by default—only the affected decision and dependent
-packages.
+- `VALID` — the defect is real as stated;
+- `NOT_A_PROBLEM` — wrong, unproven, or only a preference;
+- `PARTLY_RIGHT` — the defect is real but its framing or suggested correction is unsafe;
+- `ASK_HUMAN` — the correct choice depends on business behavior, an approved design decision, or a
+  source conflict agents have no authority to settle.
 
-Validate the adjudicated state before any candidate work:
+Then assign `NO_CHANGE`, `LIGHT`, `FULL`, or `HUMAN`. `ASK_HUMAN` appends a `REVIEW` semantic change,
+creates or reopens exactly one `HUMAN_REQUIRED` decision in the decision manifest, sets approval to
+`REOPENED`, preserves the original, and stops the package. The cross-state validator rejects a review
+whose decision does not exist or is not open. It does not reopen the whole design unless the dependency
+graph proves the whole design is affected.
+
+Group all compatible valid or partly-right findings into **one trial fix for this package and review
+round**. More than one trial fix is allowed only for competing alternatives that cannot safely coexist
+or separate packages. Record why one combined trial is impossible. Never create one trial per review
+comment.
+
+Validate before code work:
 
 ```bash
 python3 <plugin>/scripts/validate_review_state.py \
-  3-planning/07-review-<package-id>.state.json --phase adjudication
+  3-planning/07-review-<package-id>.state.json --phase checked \
+  --decision-manifest 2-specification/03-decision-manifest.state.json
 ```
 
-### 3. Candidate implementer — challenge first, then isolate
+### 3. Trial-fix builder — only when LIGHT or FULL exists
 
-Receive only accepted/reframed claims and their adjudications. For each one, first try to disprove it
-using code, tests and authoritative evidence. Record a rejection challenge for re-adjudication when
-the claim is wrong or the proposed correction would be worse.
+Receive checked findings and their trade-offs. First try once more to disprove the need using code,
+tests, and binding evidence; send a concrete challenge back to the evidence checker if needed.
 
-If a correction remains justified, create it in a temporary branch or worktree from the exact
-implementation commit. Keep the production package branch untouched. Apply the smallest coherent
-correction; preserve all approved semantics not named by the adjudication. Run the relevant checks and
-record the candidate commit. Do not publish it.
+For `LIGHT`, create one temporary shared trial branch from the implementation commit and apply the
+smallest coherent correction for all compatible findings. For `FULL`, create an isolated worktree
+from that commit. Preserve every approved semantic not named by the evidence check. Run only targeted
+tests and checks while building the trial. Record one top-level `trialFixes` entry and link findings
+to it by ID; never copy the same trial object into each finding.
 
-### 4. Verifier — baseline versus candidate
+### 4. Final checker — compare original and trial
 
-In a new context, compare the candidate with the immutable implementation baseline. For every accepted
-or reframed claim, require evidence that:
+In a new context, independently prove for each trial that:
 
-- the alleged defect is removed;
-- approved invariants and applicable binding rules still hold;
-- regression tests and appropriate build/static checks pass;
-- any security, public-contract, architecture, data, or operational blast radius has an explicit
-  semantic invariant check, not merely a green unit test;
-- the candidate is better overall, not just different or locally cleaner.
+- the defect is gone;
+- approved invariants and applicable rules still hold;
+- targeted tests and appropriate build/static checks pass;
+- every `FULL` path has an explicit semantic invariant check;
+- the complete trial is better overall, not merely different or locally cleaner.
 
-Set `BETTER` only when all of those are demonstrated. Otherwise set `NOT_PROVEN_BETTER`; discard the
-candidate and preserve the baseline. The critic and candidate implementer may not verify their own
-work.
+Set `SAFE_IMPROVEMENT` only when all points are demonstrated. Otherwise set `KEEP_ORIGINAL` and
+discard the trial. Only one trial may be selected. After selection, run the complete package test
+command **exactly once** on the final commit. When an unchanged original already has a passing step-06
+full-check record for the exact immutable commit, command, result, completion time, and evidence,
+reuse that record in `finalFullCheck`; the validator rejects an unnecessary repeat. A changed trial
+never reuses original evidence.
+CI may run the suite again after publication because it is an external gate, not another local review
+round.
 
 Validate the final state:
 
 ```bash
 python3 <plugin>/scripts/validate_review_state.py \
-  3-planning/07-review-<package-id>.state.json --phase closed
+  3-planning/07-review-<package-id>.state.json --phase closed \
+  --decision-manifest 2-specification/03-decision-manifest.state.json
 ```
-
----
 
 ## Closing and publication
 
-At most `max_advisor_rounds` critic/adjudicator/challenge cycles may run. The cap bounds cost, not
-judgment. An unresolved high-risk conflict becomes `ESCALATED`; an unproven candidate never wins by
-timeout.
+At most `max_advisor_rounds` reviewer/evidence-checker/challenge cycles may run. The cap controls cost;
+it does not make uncertain evidence true. A human conflict stops as `ASK_HUMAN`. An unproven trial
+never wins because time ran out.
 
 When the final state validates:
 
-- integrate only a `BETTER` candidate onto the package branch;
-- otherwise retain the exact implementation baseline;
+- integrate only the selected `SAFE_IMPROVEMENT` trial;
+- otherwise keep the exact implementation baseline;
 - push and open the pull request with the body prepared in step 06;
-- record the review-state path, verdict, final commit and any open low-risk claims in the package
-  ledger; and
-- post a PR review only when the delivery profile says `review_placement: pr`.
-
-## Output contract
-
-A schema-valid, closed `07-review-<package-id>.state.json` that preserves the evidence chain from claim
-through adjudication and comparison. The package branch and pull request point to `finalCommit`; no
-candidate is integrated unless the independent verifier marked it `BETTER`. An escalated review has no
-`finalCommit`, changes no production code, and names one focused human decision.
+- record the review path, final commit, final full-check evidence, and open low-risk notes in the
+  package ledger; and
+- post a PR review only when the profile says `review_placement: pr`.
 
 ## Constraints and guardrails
 
-- A review finding is a claim, never an implementation command.
-- The reviewer, adjudicator and verifier change no production files.
-- No role may approve or verify its own proposed correction.
-- Never replace the baseline because a reviewer is more confident or uses a stronger model.
-- Never resolve a source conflict by mechanically following the acceptance criterion or registry.
-- Never publish an invalid or incomplete review state.
-- Never broaden a focused conflict into an automatic redesign.
-- State uncertainty and missing evidence explicitly.
+- A finding is evidence to check, never a code-change command.
+- No role may approve or check its own proposed correction.
+- Never replace the original because a reviewer has a stronger model or sounds confident.
+- Never resolve a source conflict by robotically following acceptance criteria or registry text.
+- Never spend a trial branch, worktree, or full suite on a `NO_CHANGE` path.
+- Never create one trial fix per comment by default.
+- Never publish invalid or incomplete state.
 
 ## Success criteria
 
-- [ ] Baseline commits recorded before review and unchanged throughout
-- [ ] Every finding is a falsifiable, evidence-linked claim
-- [ ] All four review lenses applied
-- [ ] Every claim independently adjudicated against three alternatives
-- [ ] Conflicting authorities explicitly resolved or escalated
-- [ ] Accepted/reframed claims implemented only in an isolated candidate
-- [ ] Candidate independently compared with the baseline
-- [ ] High-risk candidates carry semantic invariant checks
-- [ ] Closed review state passes the fail-closed validator
-- [ ] Only a proven-better candidate was integrated and published
-- [ ] Plan remained unread by critic, adjudicator and verifier
+- [ ] Original commits recorded once and unchanged throughout
+- [ ] Review AC IDs and exact wording match the approved mapping for this package
+- [ ] Every finding is falsifiable and linked to evidence
+- [ ] Every finding has an independent plain-English result and risk path
+- [ ] Wrong or preference findings caused no code work and no new test run
+- [ ] Compatible valid findings share one trial fix
+- [ ] Every extra trial fix states why separation was necessary
+- [ ] `LIGHT` used a shared trial branch; `FULL` used an isolated worktree and semantic checks
+- [ ] The final checker was independent from reviewer and trial builder
+- [ ] The full package test ran once after selection, or exact step-06 evidence was safely reused
+- [ ] Only one proven safe improvement was integrated
+- [ ] Plan remained unread by reviewer, evidence checker, and final checker
+- [ ] Closed state passes the fail-closed validator
