@@ -1,7 +1,7 @@
 {
   "name": "sdlc",
-  "description": "Controlled multi-stage delivery pipeline. Eleven steps (autonomous, collaborative, and human-gate) that hand defined artifacts to each other via files on disk. Includes the orchestrator and the artifact contracts.",
-  "version": "0.6.0",
+  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
+  "version": "0.7.1",
   "author": {
     "name": "Markus-Arndt"
   },

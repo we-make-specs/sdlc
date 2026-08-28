@@ -1,0 +1,38 @@
+{
+  "name": "sdlc",
+  "version": "0.7.1",
+  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
+  "author": {
+    "name": "Markus-Arndt",
+    "url": "https://github.com/we-make-specs"
+  },
+  "homepage": "https://github.com/we-make-specs/sdlc",
+  "repository": "https://github.com/we-make-specs/sdlc",
+  "license": "0BSD",
+  "keywords": [
+    "sdlc",
+    "spec-driven",
+    "delivery",
+    "review",
+    "quality-gates"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agentic SDLC",
+    "shortDescription": "Risk-scaled software delivery pipeline",
+    "longDescription": "Drive tickets through research, alignment, full-design approval, planning, implementation, independent evidence checks, and explicit human approval with validated artifacts on disk.",
+    "developerName": "we-make-specs",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/we-make-specs/sdlc",
+    "defaultPrompt": [
+      "Run the SDLC pipeline for this ticket.",
+      "Resume this delivery from its workspace.",
+      "Review this package with the evidence-gated protocol."
+    ],
+    "brandColor": "#175CD3"
+  }
+}

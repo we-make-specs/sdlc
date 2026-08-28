@@ -6,8 +6,8 @@ multi-stage workflow in which agent sessions and humans take turns. Every stage 
 defined input and a defined output, and nothing moves forward until that output meets
 its criteria.
 
-The pipeline ships as a plugin for two agent runtimes: Claude Code and GitHub Copilot
-(CLI and VS Code). The same skills run unchanged in both.
+The pipeline ships as a plugin for three agent runtimes: Codex, Claude Code, and GitHub
+Copilot (CLI and VS Code). The same skills run unchanged in all three.
 
 ## Why this exists
 
@@ -52,7 +52,26 @@ quality criteria.
 
 **Human surfaces.** The points where a person joins the loop, either to make decisions
 alongside an agent or to approve before the work continues. These are first-class in the
-workflow, not an afterthought.
+workflow, not an afterthought. Gate 04 renders the complete target solution as HTML and one
+short approval pack from canonical state. The pack orders every acceptance criterion by
+reading priority, then shows only open or changed choices and test scenarios. Lower-risk
+technical detail stays available without flooding the main reading path.
+
+**Decision authority.** Ticket text, acceptance criteria, human decisions, registry rules,
+reference implementations, approved design, runtime evidence, and agent inferences are
+typed separately. Conflicts are checked with their trade-offs visible; no source wins
+merely because an agent quoted it confidently.
+
+**Evidence-checked review.** A reviewer reports falsifiable findings, not change commands.
+An independent evidence checker marks each finding valid, wrong, partly right, or
+human-owned. Wrong or preference findings stop without code work. Compatible valid findings
+share one trial fix, and a separate final checker must prove it is a safe improvement over
+the untouched implementation before it can be integrated. Local corrections take a light
+path; semantic or cross-cutting changes take a full path; design conflicts stop for one
+focused human choice.
+
+The visual guide [SDLC 0.7.1 — review and design approval](plugins/sdlc/docs/sdlc-0.7.1-review-and-approval.html)
+explains the roles, four paths, test budget, human reading route, and state-file boundary with diagrams.
 
 ## Kinds of step
 
@@ -82,20 +101,21 @@ Eleven steps, from an incoming ticket to a closed delivery.
 | 00 | create-workspace | auto | the ticket or free-text brief | `00-manifest.state.md` |
 | 01 | research-current-solution | auto | `00-manifest` | `01-current-solution.research.md` |
 | 02 | analyze | auto | `00-manifest`, `01-current-solution` | `02-questions.inventory.md` |
-| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions` | `03-agreement.spec.md`, `03-target-solution.spec.md`, `03-test-scenarios.spec.md` |
-| 04 | approve-target-solution | gate | `02-questions`, `03-agreement`, `03-target-solution`, `03-test-scenarios` | approval only |
+| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions`, registry rules | specifications, complete target-solution HTML, decision state, generated approval pack |
+| 04 | approve-target-solution | gate | full target solution, prioritized criteria, open choices and scenarios | hash-locked design approval |
 | 05 | plan | auto | the step-03 artifacts and the research | `05-implementation.plan.md` (optionally a technical analysis) |
 | 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code on a local package branch, `06-decisions.log.md` |
-| 07 | review | auto | `03-agreement`, `03-target-solution`, `03-test-scenarios` (not the plan) | resolved findings, one verdict, the pushed branch and the opened pull request |
-| 08 | review-pr | gate | the pull request, the agent review, `03-agreement` | approval only |
+| 07 | review | auto | approved specifications and decision state (not the plan) | validated finding/check/trial state, then a clean PR |
+| 08 | review-pr | gate | live PR facts, decision state, validated review state | generated human PR gate and approval |
 | 09 | merge | collab | `00-manifest`, `06-decisions.log` | the merged pull request |
 | 10 | post-mortem | collab | the ledgers, `02-questions`, `06-decisions.log` | reconciliation, settled assumptions, `10-post-mortem.md`, `status: done` |
 
 A few things worth calling out. Step 03 is where a human and the agent settle the
-design together, and step 04 refuses to continue until that design is approved. Step 07
-reviews the pull request without reading the plan on purpose: an independent review that
-inherits the implementer's framing is just a rubber stamp. Step 09 never merges on its
-own; a person gives the word.
+design together, and step 04 refuses to continue until the complete design, criteria and
+scenarios are explicitly approved and hash-locked. Step 07 keeps the plan blinded and
+separates the reviewer, evidence checker, optional trial-fix builder, and final checker:
+review detects defects but cannot silently replace good code or spend a full worktree on a
+preference. Step 09 never merges on its own; a person gives the word.
 
 Each step names the artifacts it touches, and each artifact defines itself once in
 `plugins/sdlc/artifact-definitions/`. Steps do not restate an artifact's structure, they
@@ -106,8 +126,9 @@ shape copied into every step that reads it.
 
 ### Prerequisites
 
-One of the two supported runtimes:
+One of the supported runtimes:
 
+- Codex,
 - Claude Code, or
 - GitHub Copilot (CLI, or the VS Code extension with agent plugins enabled).
 
@@ -115,6 +136,15 @@ One of the two supported runtimes:
 
 The pipeline is distributed as a plugin marketplace. You add the marketplace once, then
 install the two plugins from it.
+
+Codex:
+
+```bash
+codex plugin marketplace add we-make-specs/sdlc
+codex plugin add sdlc@we-make-specs
+```
+
+Start a new Codex task after reinstalling so it loads the new skill catalog.
 
 GitHub Copilot CLI:
 
@@ -169,6 +199,8 @@ plugins/sdlc/            the pipeline: orchestrator, eleven steps, artifact cont
 plugins/sdlc-context/    the context-registry lifecycle plugin
 .claude-plugin/          marketplace manifest read by Claude Code
 .github/plugin/          marketplace manifest read by GitHub Copilot and VS Code
+.agents/plugins/         marketplace manifest read by Codex
+plugins/sdlc/.codex-plugin/  native Codex plugin manifest
 AGENTS.md / CLAUDE.md    root instructions for agents working in this repo
 MARKETPLACE.md           how the marketplace and dual-runtime setup fit together
 ```
@@ -176,10 +208,9 @@ MARKETPLACE.md           how the marketplace and dual-runtime setup fit together
 Everything here is generic and project-independent. Project knowledge and filled-in
 specifications live in a context registry, never inside the pipeline.
 
-## Two runtimes, one source
+## Three runtimes, one source
 
-The marketplace installs in both Claude Code and GitHub Copilot. The two runtimes read
-their manifests from different paths, so a handful of files are mirrored and must stay
-byte-identical between the two. The details are in `MARKETPLACE.md` and in the root
-instruction files. If you only use one runtime, you can ignore the mirroring and just
-install as shown above.
+The skills and pipeline state are shared across Codex, Claude Code, and GitHub Copilot.
+Claude and Copilot require byte-identical mirrored manifests; Codex uses its native plugin
+and marketplace manifests. The details and validation commands are in `MARKETPLACE.md` and
+the root instruction files.

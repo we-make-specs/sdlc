@@ -4,7 +4,7 @@ description: Pipeline step 06 (AUTO) — execute one work package of the plan, o
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.6.0'
+  version: '0.7.1'
   tags: sdlc, step, implementation, commits, pull-request
 ---
 
@@ -38,7 +38,7 @@ Executes **one work package** of the plan, task by task and group by group, comm
 
 ## Required context
 
-- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the guidelines and domain-language articles this step touches. Record a `Context loaded:` line in the plan's progress log **before the first task** (`none applicable` when nothing is declared); the articles you load are binding — a deviation is recorded in the progress log with its reason, never silent.
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — follow that procedure: read each declared registry's `index.md` and navigate its index tables to the guidelines and domain-language articles this step touches. Record a `Context loaded:` line in the plan's progress log **before the first task** (`none applicable` when nothing is declared). Reconcile exact rules with the decision manifest; merely loading an article does not make every sentence binding.
 
 ## Artifacts
 
@@ -47,6 +47,7 @@ Executes **one work package** of the plan, task by task and group by group, comm
 | reads | `05-implementation.plan.md` — the execution contract | [`artifact-definitions/05-implementation.plan.md`](../../artifact-definitions/05-implementation.plan.md) |
 | reads | `03-target-solution.spec.md` — reference only, when the plan is underspecified | [`artifact-definitions/03-target-solution.spec.md`](../../artifact-definitions/03-target-solution.spec.md) |
 | reads | `03-test-scenarios.spec.md` | [`artifact-definitions/03-test-scenarios.spec.md`](../../artifact-definitions/03-test-scenarios.spec.md) |
+| reads/updates | `03-decision-manifest.state.json` — validate before code; update only when new semantic evidence forces a focused reopen | [`artifact-definitions/03-decision-manifest.state.schema.json`](../../artifact-definitions/03-decision-manifest.state.schema.json) |
 | updates | `05-implementation.plan.md` — task checkboxes and progress log **only** | same contract |
 | writes | `06-decisions.log.md` — decisions made during implementation | [`artifact-definitions/06-decisions.log.md`](../../artifact-definitions/06-decisions.log.md) |
 
@@ -54,13 +55,14 @@ Executes **one work package** of the plan, task by task and group by group, comm
 
 ## Workflow
 
-1. **Rehydrate and select the package.** Parse the plan fully; missing or task-less → abort. Locate the named package section (the only one, when the plan has one); a plan with several packages and no package ID → abort, the orchestrator selects. Verify the package is ready: every prerequisite package merged, every readiness gate resolved — otherwise abort naming what is unmet.
+1. **Rehydrate and select the package.** Parse the plan fully; missing or task-less → abort. A schema-version-1 decision manifest must first use the backup-first `migrate_state_070_to_071.py` path and return to gate 04. Validate `03-decision-manifest.state.json --phase downstream`; failure means no code may change. Locate the named package section (the only one, when the plan has one); a plan with several packages and no package ID → abort, the orchestrator selects. Verify the package is ready: every prerequisite package merged, every readiness gate resolved — otherwise abort naming what is unmet.
 2. **Enter the package's repository and branch.** Open the target component repository the package declares, read and follow its own instructions, and create the package branch from its declared base. A stacked base (another package's branch) is valid only when the plan explicitly declares it, and carries the duty to rebase onto the main branch after the prerequisite merges.
 3. **Group.** Bucket the package's tasks by group, respect order and dependencies. Tasks already ticked from a previous partial run are skipped and treated as done.
-4. **Per task:** do the work per guidelines and surrounding code → run formatter, linter, tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox.
+4. **Per task:** before editing, compare any newly relevant rule or repository pattern with the decision manifest and the plan's recorded reason. A conflict that could change approved behavior, security, public contract, architecture, data, or operations is not an implementation choice: append an `IMPLEMENTATION` semantic change, reopen the focused human decision, set approval `REOPENED`, mark dependents `needs-revalidation`, and stop with the baseline untouched. Otherwise do the work per approved rules and surrounding code. Keep application ports named for use-case intent rather than adapter mechanism. Apply the planned mapper strategy; a new unexplained switch between generated and manual mapping stops for reconciliation. Add short one-line intent or invariant comments before long logical blocks when the plan calls for them, never syntax narration. Run formatter, linter, and the narrowest relevant tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox. Do not rerun the complete package suite after every task.
 5. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it.
 6. **Fix documentation the diff made stale — in this same package.** Grep the documentation surface (README, docs, root instruction files, registry entries the diff touches) for the old names the diff removed or renamed; correct genuinely stale references in one documentation-only commit. Public surface (commands, environment variables, documented APIs, setup instructions) is where documentation drifts; internal refactorings rarely need it. Nothing stale is a valid outcome — never manufacture documentation churn.
-7. **Conclude locally and prepare the PR body.** Update the package's Status; do not push and do not open a pull request — that happens when the package review closes. Prepare the body for that moment per the manifest profile's `pr_audience`: `team` gets a short reviewer handoff — the delivered behavior, useful review focus, the ticket link, and deliberately no AC copies, no plan deviations, no validation logs, no process notes; `solo` gets the process-rich body — summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues.
+7. **Run one complete package check.** After the final implementation commit is selected, run the repository's complete package test/build command exactly once. Record in the progress log the immutable commit, exact command, completion time, result, and concrete evidence. Step 07 must reuse this record when it keeps that exact passing commit unchanged. A failed complete check blocks publication; targeted per-task checks do not replace it.
+8. **Conclude locally and prepare the PR body.** Update the package's Status; do not push and do not open a pull request — that happens when the package review closes. Prepare the body for that moment per the manifest profile's `pr_audience`: `team` gets a short reviewer handoff — the delivered behavior, useful review focus, the ticket link, and deliberately no AC copies, no plan deviations, no validation logs, no process notes; `solo` gets the process-rich body — summary, the acceptance-criteria list **verbatim from the plan** with fulfilled ones ticked, deviations from plan, known issues.
 
 Fix only problems this work introduced. Pre-existing failures are not yours — the known-red-tests list lives in the testing guidelines. **A pre-existing failure is proven, not assumed:** reproduce the failure against the base branch; the same failure there makes it a documented baseline failure, recorded in the progress log with that evidence and left untouched. Never modify unrelated source to quiet it.
 
@@ -86,9 +88,13 @@ Commits on the package branch (one per task), local; the prepared PR body; the p
 ## Success criteria
 
 - [ ] Every feasible task committed with its done-when verified
+- [ ] Decision manifest validated before code and before any newly discovered semantic choice
+- [ ] No context or reference-pattern conflict was silently implemented or rationalized
 - [ ] One commit per task, explicit paths staged
 - [ ] Nothing pushed and no pull request opened — total blockage returned a named blocker instead
 - [ ] The PR body is prepared per the profile's audience
 - [ ] Progress log has one line per task, including WARN lines for blocked ones
 - [ ] Every verification claim names its command and result; suspected pre-existing failures carry base-branch evidence
+- [ ] Targeted checks ran per task; one complete package check ran after the final implementation commit and recorded exact reusable evidence
+- [ ] Recorded mapper strategy, application-port intent, and skimmability comments were implemented or a conflict was surfaced
 - [ ] No documentation references the old behaviour — checked against the diff's removed names, fixed in this PR

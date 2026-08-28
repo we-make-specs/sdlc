@@ -47,6 +47,11 @@ At the end of step 03, and again at gate 04, the human is asked explicitly:
 
 The gate is not passed by the human saying "looks good" — it is passed by the human either naming a change or explicitly confirming that they checked and found nothing missing.
 
+Step 03 also copies a compact, behavior-preserving projection of every scenario into
+`03-decision-manifest.state.json`. The generated human-decision gate renders that projection under
+the same question. Gate 04 marks each entry `HUMAN_CONFIRMED` only after the explicit answer; the full
+rough data and details remain canonical in this file.
+
 ## Downstream use
 
 - **Step 05 (plan)** derives the test tasks from this file. A scenario without a corresponding task is a planning bug.

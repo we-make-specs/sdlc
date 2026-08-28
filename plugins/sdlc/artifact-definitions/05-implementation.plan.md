@@ -39,7 +39,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 | **Branch** | yes | the package's own branch name |
 | **Prerequisites** | when needed | package IDs that must be merged first |
 | **Readiness gates** | when needed | decisions or release gates that must be resolved before this package starts |
-| **Primary ACs** | yes | the acceptance-criteria subset this package delivers, by AC number |
+| **Primary ACs** | yes | the acceptance-criteria subset this package delivers, by AC number; exact match to the approved package mapping in `03-decision-manifest.state.json` |
 | **Status** | yes | planned → in-progress → in-review → merged, plus the PR link and merge commit once they exist; mirrored in the manifest's work-package ledger |
 | **Close conditions** | yes | what must be true for the package to count as done |
 
@@ -61,6 +61,9 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 - [ ] Every task has exact file paths and exactly one done-when that can be checked mechanically (file exists, test passes).
 - [ ] Parallelism is conservative — tasks are only in the same group when they obviously touch disjoint files. When in doubt, sequential.
 - [ ] Every task traces back to something `03-target-solution.spec.md` specifies. A task with no basis there is scope creep.
+- [ ] Any choice against a strong repository pattern names its verified reason and trade-off in the task or technical analysis; mapper strategy is explicit when both generated and manual mapping are plausible.
+- [ ] Application-port task names express use-case intent instead of an adapter mechanism. Outbox enqueueing is not called synchronous publishing.
+- [ ] Tasks for long application-service methods call for short one-line comments before meaningful logical blocks when needed for skimming; comments describe intent or invariants, not syntax.
 - [ ] Genuine ambiguity is encoded as an advisor check, not silently decided.
 - [ ] A progress-log entry that claims verification names the exact command and its result. A failing check believed unrelated is attributed against the base branch before it is called pre-existing: the same failure there makes it a recorded baseline failure, never a reason to touch unrelated source. Superseded entries stay in the log under a preamble note; nothing is deleted.
 - [ ] A condition outside the repository (a deployment precondition, an external party's confirmation, post-release verification) is a release readiness gate with a named owner. It is never a task, and never silently assumed; a merged branch with an unmet gate is not done.
@@ -122,6 +125,8 @@ max_advisor_rounds: 3
 *(verified in addition to the acceptance criteria)*
 
 - [ ] All tasks marked complete
+- [ ] Non-obvious pattern choices still match the recorded reason (mapper strategy included when relevant)
+- [ ] Application port names state use-case intent and long service blocks are skimmable without syntax-narrating comments
 - [ ] <custom check, e.g. "no references to removed symbol X">
 
 ## Release Readiness Gates

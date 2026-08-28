@@ -1,11 +1,10 @@
 ---
 name: 00-create-workspace
 description: Pipeline step 00 (AUTO) — parse a ticket ID, ticket URL, or free-text brain dump, create or recognise the feature branch and folder, and write the initial manifest. Idempotent. Use at the start of a delivery run, or to bootstrap a feature workspace.
-argument-hint: <ticket-id | ticket-url | free-text description>
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.6.0'
+  version: '0.7.1'
   tags: sdlc, step, workspace, bootstrap
 ---
 

@@ -1,11 +1,10 @@
 ---
 name: run
 description: Drive a ticket or free-text brain dump through the agentic delivery pipeline — resume from the feature folder, invoke each step skill in order, validate its declared outputs, and stop wherever a human is required. Use when the user says "run the pipeline", "start the sdlc workflow", or names a ticket to deliver.
-argument-hint: <ticket-id | ticket-url | free-text description>
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.6.0'
+  version: '0.7.1'
   tags: orchestration, pipeline, sdlc, workflow
 ---
 <!-- prework:orchestration-design -->
@@ -50,16 +49,38 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 
 ## Workflow
 
-1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
+1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. On a 0.7.0 workspace, run `scripts/migrate_state_070_to_071.py` once for every schema-version-1 decision or review state before selecting the next action. The script preserves exact `.v0.7.0.json` backups, reopens design approval for the new human summaries, and resumes legacy review before trial building; report this plainly and never hand-convert state. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
 2. **Collect the delivery profile at kickoff.** For a new run in an interactive session, ask the three profile questions the manifest contract defines (PR audience, review placement, questioning mode) before invoking step 00, and pass the answers along for it to record. Headless, or when the human gives no preference: the defaults apply silently. Never re-ask on a resume — the manifest already carries the profile.
 3. **Announce the step** (number, name, type) so the run stays legible.
 4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
    - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its four slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
    - An `sdlc-step` agent profile is an **optional container** for tool scoping and per-step model routing — when the runtime knows one (user-level `~/.claude/agents/` / `~/.copilot/agents/`, or repo-level), delegate into it, still sending the full step-runner prompt. No profile is required: the rules travel in the prompt, not the profile.
    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
-5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. This is a file check, not a content judgment. Missing → stop and report; never silently continue. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
+5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. Expand `<package-id>` with the selected package ID. Missing → stop and report; never silently continue. For JSON state, run the validator named by the producing skill; existence alone is insufficient. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
 6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
 7. **Report** after each step: step, outcome, artifacts written, what comes next.
+
+### Step 07: independent, risk-scaled review
+
+Step 07 is one pipeline step but may use two, three, or four fresh roles. Before review, record the
+package base, immutable implementation commit, and exact step-06 full-check evidence when available.
+Then delegate only the roles required by `skills/07-review/SKILL.md`:
+
+1. **reviewer** — writes evidence-backed findings only; validate with `--phase findings`;
+2. **evidence checker** — independently marks each finding `VALID`, `NOT_A_PROBLEM`,
+   `PARTLY_RIGHT`, or `ASK_HUMAN`, assigns its cost/risk path, and groups compatible corrections into
+   one trial fix; validate with `--phase checked`;
+3. **trial-fix builder** — only for `LIGHT` or `FULL`; builds the grouped trial from the immutable
+   implementation commit and runs targeted checks;
+4. **final checker** — only when a trial exists; independently compares it with the original, selects
+   at most one safe improvement, and records one final full check; validate with `--phase closed`.
+
+A `NO_CHANGE` review stops after the evidence checker and closes with the original plus exact step-06
+full-check evidence, when reusable. `ASK_HUMAN` reopens one focused decision, marks only dependent
+unmerged packages `needs-revalidation`, and stops without a PR or trial fix. Never send reviewer prose
+to an implementer as a change order, let adjacent roles collapse into one, or create one trial per
+comment by default. The orchestrator validates and sequences state; it does not decide whether a
+finding is true.
 
 ### Selecting the next action
 

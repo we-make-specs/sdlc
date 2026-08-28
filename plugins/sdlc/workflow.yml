@@ -63,7 +63,7 @@ steps:
     isolation: main
     model: strong
     skippable: false
-    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-test-scenarios.spec.md, 2-specification/03-target-overview.view.html]
+    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-target-solution.view.html, 2-specification/03-test-scenarios.spec.md, 2-specification/03-decision-manifest.state.json, 2-specification/03-human-decision-gate.view.md, 2-specification/03-human-decision-gate.view.html]
 
   - id: "04"
     skill: 04-approve-target-solution
@@ -71,7 +71,7 @@ steps:
     isolation: main
     model: none
     skippable: false
-    checks: [target_solution_approved, test_scenarios_approved, no_critical_question_open]
+    checks: [decision_manifest_approved, approval_hashes_valid, human_views_fresh, target_solution_approved, test_scenarios_approved, all_scenarios_human_confirmed, no_critical_question_open]
 
   - id: "05"
     skill: 05-plan
@@ -80,6 +80,7 @@ steps:
     model: strong
     skippable: false
     outputs: [3-planning/05-implementation.plan.md]
+    checks: [decision_manifest_valid]
 
   - id: "06"
     skill: 06-implement
@@ -89,7 +90,7 @@ steps:
     skippable: false
     # package_commits_exist: the package branch carries at least one commit beyond its base.
     # No push and no PR here; publish happens when the step-07 exchange closes.
-    checks: [package_commits_exist]
+    checks: [decision_manifest_valid, package_commits_exist]
 
   - id: "07"
     skill: 07-review
@@ -97,9 +98,15 @@ steps:
     isolation: subagent
     model: strong
     skippable: true
-    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/ —
-    # a mechanical guard against artifact-only pull requests.
-    checks: [review_closed, pr_exists, pr_touches_code]
+    # The orchestrator always uses an independent reviewer and evidence checker.
+    # Trial-fix builder and final-checker roles run only for findings assigned LIGHT
+    # or FULL. Compatible findings share one trial fix; the original remains unless
+    # the final checker proves one trial is a safe improvement.
+    outputs: [3-planning/07-review-<package-id>.state.json]
+    # review_state_valid: the fail-closed validator passed for phase `closed`.
+    # review_state_cross_valid: its human decisions and exact package AC set match decision state.
+    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/.
+    checks: [review_state_valid, review_state_cross_valid, review_closed, pr_exists, pr_touches_code]
 
   - id: "08"
     skill: 08-review-pr
@@ -107,6 +114,7 @@ steps:
     isolation: main
     model: none
     skippable: false
+    outputs: [3-planning/08-human-review-gate.view.md, 3-planning/08-human-review-gate.view.html]
     checks: [pr_approved]
 
   - id: "09"

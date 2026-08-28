@@ -1,0 +1,20 @@
+{
+  "name": "we-make-specs",
+  "interface": {
+    "displayName": "We Make Specs"
+  },
+  "plugins": [
+    {
+      "name": "sdlc",
+      "source": {
+        "source": "local",
+        "path": "./plugins/sdlc"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
