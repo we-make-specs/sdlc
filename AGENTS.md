@@ -4,6 +4,7 @@ This repo is an agent plugin marketplace for agentic software delivery. It holds
 
 ## Map
 
+- `plugins/sdlc-experiment-model-routing/` - self-contained experimental fork; `MODEL-ROUTING.md` owns job roles, model selection, visibility, parallel research and fallbacks across every skill
 - `plugins/sdlc/` - the pipeline: `/sdlc:run` (orchestrator) + `/sdlc:00-...` ... `/sdlc:10-...` (one skill per step), `artifact-definitions/` (one contract per artifact), scripts, and `workflow.yml` (step order, type, model tier, outputs)
 - `plugins/sdlc-context/` - registry lifecycle plugin: `create` scaffolds a registry, `connect` declares registries in a project repo, `update-index-and-crosslinks` keeps indexes, links, and crosslinks current
 - `.claude-plugin/` + `.github/plugin/` - byte-identical Claude/Copilot marketplace manifests

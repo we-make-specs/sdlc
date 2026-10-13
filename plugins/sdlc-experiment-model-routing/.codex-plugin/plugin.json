@@ -1,0 +1,37 @@
+{
+  "name": "sdlc-experiment-model-routing",
+  "version": "0.1.0",
+  "description": "Experimental delivery with visible job-level model routing and parallel research scouts.",
+  "author": {
+    "name": "Markus-Arndt",
+    "url": "https://github.com/we-make-specs"
+  },
+  "homepage": "https://github.com/we-make-specs/sdlc",
+  "repository": "https://github.com/we-make-specs/sdlc",
+  "license": "0BSD",
+  "keywords": [
+    "sdlc",
+    "spec-driven",
+    "delivery",
+    "review",
+    "quality-gates"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SDLC Experiment: Model Routing",
+    "shortDescription": "Visible model routing",
+    "longDescription": "Experimental delivery with visible job-level model routing and parallel research scouts.",
+    "developerName": "we-make-specs",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/we-make-specs/sdlc",
+    "defaultPrompt": [
+      "Run the experimental SDLC pipeline with visible model routing.",
+      "Resume the experiment using its saved routing profile."
+    ],
+    "brandColor": "#175CD3"
+  }
+}

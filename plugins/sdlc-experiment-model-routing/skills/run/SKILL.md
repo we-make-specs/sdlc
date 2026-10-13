@@ -1,0 +1,213 @@
+---
+name: run
+description: Experimental model-routing variant. Drive a ticket or free-text brain dump through the agentic delivery pipeline — resume from the feature folder, invoke each step skill in order, validate its declared outputs, and stop wherever a human is required. Use when the user says "run the pipeline", "start the sdlc workflow", or names a ticket to deliver.
+metadata:
+  owner: Markus-Arndt
+  author: '@Markus-Arndt'
+  version: '0.1.0'
+  tags: orchestration, pipeline, sdlc, workflow
+---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
+<!-- prework:orchestration-design -->
+
+# SDLC Orchestrator
+
+---
+
+## What this skill does
+
+Runs the delivery pipeline defined in `workflow.yml`: determines the next step from what exists in the feature folder, invokes that step's skill, validates the outputs it declared, and hands control to the human at collaborative and gate steps. It sequences and validates — it never does step work itself, and it never approves anything.
+
+---
+
+## When to use this skill
+
+- The user wants to deliver a ticket through the controlled pipeline
+- The user says "run the pipeline", "continue the story", "resume where we left off"
+- A feature folder exists and the user asks what happens next
+
+## When NOT to use this skill
+
+- The user wants a single step in isolation — invoke that step's skill directly
+- The user wants a quick change without the pipeline — this is deliberate overhead, not a default
+
+---
+
+## Required inputs
+
+| Input | Description | Required |
+|---|---|---|
+| Ticket or text | ticket ID, ticket URL, or a free-text description | yes, for a new run |
+| — | for a resume, the current branch and feature folder are enough | — |
+
+## Required context
+
+- `../../workflow.yml` — step order, type, isolation, outputs to validate
+- `../../artifact-definitions/README.md` — the artifact chain and its cross-cutting rules
+- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — how registry knowledge reaches steps; consulting it is each step's own duty, and the orchestrator's only part is grepping for the `Context loaded:` trace each step leaves.
+
+---
+
+## Workflow
+
+1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. On a 0.7.0 workspace, run `scripts/migrate_state_070_to_071.py` once for every schema-version-1 decision or review state before selecting the next action. The script preserves exact `.v0.7.0.json` backups, reopens design approval for the new human summaries, and resumes legacy review before trial building; report this plainly and never hand-convert state. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
+2. **Collect the delivery and routing profiles at kickoff.** Resolve and show the routing profile under [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before dispatch. For a new run, also collect the manifest's delivery profile (PR audience, review placement, questioning mode) and pass both profiles to step 00. Honour choices already supplied. Delivery-profile defaults are unchanged; headless routing requires explicit or saved choices under the shared policy. On resume, reuse both saved profiles.
+3. **Announce the step** (number, name, type) so the run stays legible.
+4. **Invoke the step skill** with ticket and branch context, using the job role and dispatch rules in [MODEL-ROUTING.md](../../MODEL-ROUTING.md). Include the resolved profile and role contract in each delegation. For step 01, complete the Scout phase below before starting the Expert. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
+    - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
+    - A native agent profile is optional. Use it only if it honours the selected role's exact model, effort and permissions. Apply selections through runtime controls and report unsupported selection instead of silently inheriting a different model.
+    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
+5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. Expand `<package-id>` with the selected package ID. Missing → stop and report; never silently continue. For JSON state, run the validator named by the producing skill; existence alone is insufficient. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
+6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run live in this session with the selected Coordinator model; in an unattended leg, stop there and ask the human to join. Use Expert support only where the step permits it, through the shared routing policy. Never delegate a human decision.
+7. **Report** after each step: step, outcome, artifacts written, what comes next. Append dispatch and completion evidence to the manifest's Routing log under the shared policy.
+
+### Step 01: collect evidence before synthesis
+
+Follow the [shared research dispatch](../../model-routing/research.md). It also
+applies to direct step-01 entry. Complete the Scout jobs before starting the
+Expert; the Coordinator owns routing records and the Expert owns the research
+artifact.
+
+### Step 07: independent, risk-scaled review
+
+Step 07 is one pipeline step but may use two, three, or four fresh roles. Before review, record the
+package base, immutable implementation commit, and exact step-06 full-check evidence when available.
+Then delegate only the roles required by `skills/07-review/SKILL.md`:
+
+1. **reviewer** — writes evidence-backed findings only; validate with `--phase findings`;
+2. **evidence checker** — independently marks each finding `VALID`, `NOT_A_PROBLEM`,
+   `PARTLY_RIGHT`, or `ASK_HUMAN`, assigns its cost/risk path, and groups compatible corrections into
+   one trial fix; validate with `--phase checked`;
+3. **trial-fix builder** — only for `LIGHT` or `FULL`; builds the grouped trial from the immutable
+   implementation commit and runs targeted checks;
+4. **final checker** — only when a trial exists; independently compares it with the original, selects
+   at most one safe improvement, and records one final full check; validate with `--phase closed`.
+
+A `NO_CHANGE` review stops after the evidence checker and closes with the original plus exact step-06
+full-check evidence, when reusable. `ASK_HUMAN` reopens one focused decision, marks only dependent
+unmerged packages `needs-revalidation`, and stops without a PR or trial fix. Never send reviewer prose
+to an implementer as a change order, let adjacent roles collapse into one, or create one trial per
+comment by default. The orchestrator validates and sequences state; it does not decide whether a
+finding is true.
+
+### Selecting the next action
+
+Three questions, in order, every time the orchestrator decides what happens next:
+
+1. **Is a shared artifact missing or unapproved?** Research, questions, breakdown, agreement, target solution, scenarios, plan: the first step whose declared outputs are missing, or whose gate has not passed, runs next — exactly the old linear walk. Steps 00 to 05 run once for the whole delivery.
+2. **Otherwise, is a package ready?** Ready means: every prerequisite package merged, no unresolved readiness gate, no `needs-revalidation` mark. Run the tail (06 implement, 07 review, 08 gate, 09 merge) for that one package, then update its ledger row and re-evaluate. Packages execute sequentially, in plan order; with one package this is byte-for-byte the old behavior, which is why there is no second mode.
+3. **Otherwise, stop and name what everything is waiting on:** a human decision, an unmerged prerequisite, an unmet release gate — with the exact ledger rows and escalation lines.
+
+Two safety rules on top:
+
+- **Revalidation.** When a shared decision changes after packages were planned (an amendment, a corrected agreement), mark every unmerged package that relied on it `needs-revalidation` in the work-package ledger, and question 1 applies again — the affected shared step reopens. The mark clears when the package's plan section is re-checked against the amended decision and its Status records that.
+- **Completion.** A package merge never marks the delivery done. `status: done` requires every non-conditional package merged and the delivery-level scenarios satisfied.
+
+### The step-runner prompt
+
+Every step-owner or review-role delegation carries this prompt, slots filled.
+Scout jobs use their bounded role contract and the shared research dispatch.
+The step-runner prompt ships here, so no repo or machine needs extra files for it.
+
+```text
+You execute one step of the SDLC delivery pipeline, alone, in a fresh context.
+
+Step skill: <path to the step's SKILL.md>
+Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
+Routing policy: <path to MODEL-ROUTING.md>
+Role contract: <path to model-routing role file>
+Resolved profile: <exact models and effort from kickoff or manifest>
+Job: <bounded task; optional Scout evidence for research only>
+
+1. Read the skill file completely. Execute only the assigned Job or review role,
+   following the skill's constraints and success criteria for that work.
+2. Rehydrate only from disk: the feature folder's artifacts, whatever the skill
+   names as required context, and the context registries the repo declares in its
+   `## Context Registries` section — consulted per that procedure.
+   Only explicit routing inputs and bounded Scout evidence may accompany these
+   sources. You inherit no session transcript. Review roles keep their stricter
+   input rules; Scout evidence must not leak implementation rationale into review.
+3. Write only the artifacts the skill declares, per their contracts, inside the
+   feature folder — never outside the working repository — and update only your
+   own manifest ledger rows.
+4. Ask no human questions. Anything undecidable goes into the artifact the skill
+   designates for open points, marked as such. If you are blocked, append a Blockers
+   entry to the manifest (what is missing · needed from · blocking step · since ·
+   a ready-to-forward escalation sentence), set `status: blocked`, and return the
+   blocker as your outcome.
+5. Report back: step, outcome, artifacts written, and the summary the skill's output
+   contract asks for. Claim nothing you did not verify.
+```
+
+### Unattended runs (autopilot / headless)
+
+An unattended runtime cannot answer permission prompts — a gated tool call fails closed, mid-step. Two rules keep that survivable:
+
+1. **Preflight before step 00.** Verify with harmless probes that the run has what the steps will need: read/write inside the repo and the feature folder · the git command set (status, branch, checkout, add, commit, push) · the PR tool for steps 06–08 · build/test commands for step 06. Also verify exactly **one delivery plugin is enabled**, this copy, `sdlc-experiment-model-routing`. A disabled stable copy is fine; `sdlc-context` is a separate registry plugin. Competing enabled delivery catalogs or missing capabilities stop the run before starting; name the problem.
+2. **A denial is a blocker, not an obstacle.** On "permission denied / could not request permission": stop the run and report the exact tool, command, or path that needs pre-approval. Never route around a denial with a different tool — that trades a visible failure for an invisible gap.
+
+How to pre-approve depends on the runtime:
+
+- **Copilot CLI** — start the session **in the target repo** (file access defaults to the working directory and below). Pre-approve per run, e.g. `--allow-tool 'shell(git:*)' --allow-tool 'read' --allow-tool 'write'` (plus `--deny-tool` exceptions), or `--allow-all-tools` for a throwaway demo repo — or approve interactively once: per-location approvals persist in `~/.copilot/permissions-config.json`.
+- **Claude Code** — permission rules in the repo's `.claude/settings.json` (`permissions.allow`, e.g. `Bash(git:*)`), or per run via `--allowedTools` / the permission-mode flags.
+
+### When a human is needed
+
+Before any request for a decision, give a short orientation:
+
+```text
+Current phase: <step number> / <name>
+What I need from you: <the exact decision or information>
+Why it matters: <the consequence for the run>
+```
+
+Then offer concrete options with a recommendation. Never "how should I proceed?".
+
+---
+
+## Output contract
+
+- Artifacts written by the invoked step skills, in the feature folder
+- A run report per step: which step, outcome, artifacts, next step
+- No artifacts written by this skill itself
+
+---
+
+## Constraints and guardrails
+
+- **Never approve a gate.** Gates are human decisions; ambiguous praise is not approval.
+- **Keep AUTO work delegated.** While coordinating AUTO steps, write only the manifest's Model routing and Routing log sections. Do not check out, pull, fast-forward, switch branches or perform their work inline. Live collaborative steps and human gates follow their own skill's permitted actions.
+- **Artifacts live in the feature folder, inside the working repository.** A path outside the repo root — a seed folder, another checkout — is invalid even when the kickoff prompt points there; stop and correct rather than write.
+- **Never run a subagent step inline.** Executing it in this session leaks the orchestrator's context into the step; if the runtime offers no delegation mechanism, say so and let the human start the step in a fresh session instead.
+- **Never skip a failed validation.** If outputs are missing, stop and say so — do not paper over it.
+- **A blocker that is not in the manifest does not exist.** When a step reports one, verify the Blockers entry and `status: blocked` are on disk, like any declared output — failure must survive this session, because the next orchestrator may be a script or a CI job reading only the file.
+- **Never resolve context.** Which registries the repo declares lives in its `## Context Registries` section; which articles a step reads is that step's own lookup. The orchestrator greps for the trace (`Context loaded:` lines) and nothing more — anything an orchestrator would have to *compute* belongs in a step or in a file, or the next orchestrator (a script, a CI job) has to reimplement it.
+- **Stay thin.** Carry only ticket, branch, and folder. All real content lives on disk; once a step returns, its artifact is the record.
+- **Do not do step work.** If a step fails, report it — do not finish the job yourself.
+- **Respect skippable.** A step marked skippable may be skipped when clearly irrelevant — say so and why.
+
+---
+
+## Success criteria
+
+- [ ] Every step announced before it runs
+- [ ] Every auto step's outputs validated before advancing
+- [ ] Each `.md`-producing step's `Context loaded:` line verified — by grep, never by resolving anything
+- [ ] Both gates stopped for an explicit human decision
+- [ ] A resumed run continued at the correct step without redoing finished work
+- [ ] Package-tail steps carried the selected package ID and updated only that package's rows
+- [ ] `status: done` was set only per the completion rule, never by a package merge
+- [ ] Every `isolation: subagent` step ran in a fresh context, not inline, carrying the step-runner prompt
+- [ ] Unattended: the preflight ran before step 00, and every denial stopped the run naming the exact missing approval
+- [ ] Failures surfaced with their cause, not worked around
+
+---
+
+## Model routing
+
+Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md). It is the only routing definition;
+this entry point collects the profile and schedules work under it.

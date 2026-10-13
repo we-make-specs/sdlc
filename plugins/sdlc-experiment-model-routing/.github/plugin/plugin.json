@@ -1,0 +1,19 @@
+{
+  "name": "sdlc-experiment-model-routing",
+  "description": "Experimental delivery with visible job-level model routing and parallel research scouts.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Markus-Arndt"
+  },
+  "license": "0BSD",
+  "keywords": [
+    "sdlc",
+    "pipeline",
+    "orchestration",
+    "spec-driven",
+    "delivery",
+    "artifacts",
+    "quality-gates"
+  ],
+  "category": "developer-tools"
+}

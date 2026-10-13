@@ -1,0 +1,93 @@
+# Step order, isolation, outputs and approval checks.
+# All model and job routing is defined in MODEL-ROUTING.md.
+routing_policy: MODEL-ROUTING.md
+
+steps:
+  - id: "00"
+    skill: 00-create-workspace
+    type: auto
+    isolation: subagent
+    skippable: false
+    outputs: [00-manifest.state.md]
+
+  - id: "01"
+    skill: 01-research-current-solution
+    type: auto
+    isolation: subagent
+    skippable: true
+    outputs: [1-research/01-current-solution.research.md]
+
+  - id: "02"
+    skill: 02-analyze
+    type: auto
+    isolation: subagent
+    skippable: false
+    outputs: [2-specification/02-questions.inventory.md, 2-specification/02-questions.view.html, 2-specification/02-work-breakdown.md]
+
+  - id: "03"
+    skill: 03-align
+    type: collab
+    isolation: main
+    skippable: false
+    outputs: [2-specification/03-agreement.spec.md, 2-specification/03-target-solution.spec.md, 2-specification/03-target-solution.view.html, 2-specification/03-test-scenarios.spec.md, 2-specification/03-decision-manifest.state.json, 2-specification/03-human-decision-gate.view.md, 2-specification/03-human-decision-gate.view.html]
+
+  - id: "04"
+    skill: 04-approve-target-solution
+    type: gate
+    isolation: main
+    skippable: false
+    checks: [decision_manifest_approved, approval_hashes_valid, human_views_fresh, target_solution_approved, test_scenarios_approved, all_scenarios_human_confirmed, no_critical_question_open]
+
+  - id: "05"
+    skill: 05-plan
+    type: auto
+    isolation: subagent
+    skippable: false
+    outputs: [3-planning/05-implementation.plan.md]
+    checks: [decision_manifest_valid]
+
+  - id: "06"
+    skill: 06-implement
+    type: auto
+    isolation: subagent
+    skippable: false
+    # package_commits_exist: the package branch carries at least one commit beyond its base.
+    # No push and no PR here; publish happens when the step-07 exchange closes.
+    checks: [decision_manifest_valid, package_commits_exist]
+
+  - id: "07"
+    skill: 07-review
+    type: auto
+    isolation: subagent
+    skippable: true
+    # The orchestrator always uses an independent reviewer and evidence checker.
+    # Trial-fix builder and final-checker roles run only for findings assigned LIGHT
+    # or FULL. Compatible findings share one trial fix; the original remains unless
+    # the final checker proves one trial is a safe improvement.
+    outputs: [3-planning/07-review-<package-id>.state.json]
+    # review_state_valid: the fail-closed validator passed for phase `closed`.
+    # review_state_cross_valid: its human decisions and exact package AC set match decision state.
+    # pr_touches_code: the PR diff contains at least one file outside docs/sdlc/.
+    checks: [review_state_valid, review_state_cross_valid, review_closed, pr_exists, pr_touches_code]
+
+  - id: "08"
+    skill: 08-review-pr
+    type: gate
+    isolation: main
+    skippable: false
+    outputs: [3-planning/08-human-review-gate.view.md, 3-planning/08-human-review-gate.view.html]
+    checks: [pr_approved]
+
+  - id: "09"
+    skill: 09-merge
+    type: collab
+    isolation: main
+    skippable: false
+    checks: [pr_merged]
+
+  - id: "10"
+    skill: 10-post-mortem
+    type: collab
+    isolation: main
+    skippable: false
+    outputs: [3-planning/10-post-mortem.md]
