@@ -1,0 +1,19 @@
+{
+  "name": "sdlc",
+  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
+  "version": "0.7.1",
+  "author": {
+    "name": "Markus-Arndt"
+  },
+  "license": "0BSD",
+  "keywords": [
+    "sdlc",
+    "pipeline",
+    "orchestration",
+    "spec-driven",
+    "delivery",
+    "artifacts",
+    "quality-gates"
+  ],
+  "category": "developer-tools"
+}
