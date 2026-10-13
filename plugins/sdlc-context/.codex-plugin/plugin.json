@@ -1,0 +1,36 @@
+{
+  "name": "sdlc-context",
+  "description": "Context-registry lifecycle for the agentic SDLC: scaffold a registry, connect project repos to their registries, and keep indexes, links, and crosslinks current.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Markus-Arndt"
+  },
+  "license": "0BSD",
+  "keywords": [
+    "context-registry",
+    "knowledge-base",
+    "agents-md",
+    "sdlc",
+    "documentation"
+  ],
+  "homepage": "https://github.com/we-make-specs/sdlc",
+  "repository": "https://github.com/we-make-specs/sdlc",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SDLC Context",
+    "shortDescription": "Context registry tools",
+    "longDescription": "Context-registry lifecycle for the agentic SDLC: scaffold a registry, connect project repos to their registries, and keep indexes, links, and crosslinks current.",
+    "developerName": "we-make-specs",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/we-make-specs/sdlc",
+    "defaultPrompt": [
+      "Create a context registry.",
+      "Connect this project to its context registry.",
+      "Update registry indexes and crosslinks."
+    ]
+  }
+}

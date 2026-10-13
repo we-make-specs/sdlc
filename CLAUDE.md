@@ -7,7 +7,7 @@ This repo is an agent plugin marketplace for agentic software delivery. It holds
 - `plugins/sdlc/` - the pipeline: `/sdlc:run` (orchestrator) + `/sdlc:00-...` ... `/sdlc:10-...` (one skill per step), `artifact-definitions/` (one contract per artifact), scripts, and `workflow.yml` (step order, type, model tier, outputs)
 - `plugins/sdlc-context/` - registry lifecycle plugin: `create` scaffolds a registry, `connect` declares registries in a project repo, `update-index-and-crosslinks` keeps indexes, links, and crosslinks current
 - `.claude-plugin/` + `.github/plugin/` - byte-identical Claude/Copilot marketplace manifests
-- `.agents/plugins/` + `plugins/sdlc/.codex-plugin/` - native Codex marketplace and plugin manifests
+- `.agents/plugins/` + `plugins/*/.codex-plugin/` - native Codex marketplace and plugin manifests
 - `README.md` - the concept, the pipeline, and how to install and use it
 - `MARKETPLACE.md` - how the marketplace and the three-runtime setup fit together
 

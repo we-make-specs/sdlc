@@ -142,9 +142,10 @@ Codex:
 ```bash
 codex plugin marketplace add we-make-specs/sdlc
 codex plugin add sdlc@we-make-specs
+codex plugin add sdlc-context@we-make-specs
 ```
 
-Start a new Codex task after reinstalling so it loads the new skill catalog.
+For an already registered marketplace, run `codex plugin marketplace upgrade we-make-specs` before installing or updating. Start a new Codex task after installation so it loads the new skill catalog.
 
 GitHub Copilot CLI:
 
@@ -200,9 +201,9 @@ plugins/sdlc-context/    the context-registry lifecycle plugin
 .claude-plugin/          marketplace manifest read by Claude Code
 .github/plugin/          marketplace manifest read by GitHub Copilot and VS Code
 .agents/plugins/         marketplace manifest read by Codex
-plugins/sdlc/.codex-plugin/  native Codex plugin manifest
+plugins/*/.codex-plugin/  native Codex plugin manifests
 AGENTS.md / CLAUDE.md    root instructions for agents working in this repo
-MARKETPLACE.md           how the marketplace and dual-runtime setup fit together
+MARKETPLACE.md           how the marketplace and three-runtime setup fit together
 ```
 
 Everything here is generic and project-independent. Project knowledge and filled-in

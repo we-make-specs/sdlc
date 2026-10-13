@@ -15,15 +15,17 @@ An agent plugin marketplace holding the **form** of our delivery pipeline: the o
 ```bash
 codex plugin marketplace add we-make-specs/sdlc
 codex plugin add sdlc@we-make-specs
+codex plugin add sdlc-context@we-make-specs
 ```
 
-After an update, reinstall the plugin and start a new task so the new catalog is loaded.
+For an already registered marketplace, run `codex plugin marketplace upgrade we-make-specs` before installing or updating. Start a new task after installation so the new skill catalog is loaded.
 
 **Claude Code** — inside a session:
 
 ```
 /plugin marketplace add <repo-url>
 /plugin install sdlc@agentic-sdlc-marketplace
+/plugin install sdlc-context@agentic-sdlc-marketplace
 /reload-plugins
 ```
 
@@ -36,12 +38,14 @@ The same commands exist on the CLI (`claude plugin marketplace add …`, `claude
 copilot plugin marketplace add https://github.com/we-make-specs/sdlc.git
 copilot plugin marketplace list
 
-# install the pipeline plugin
+# install the pipeline and context-registry plugins
 copilot plugin install sdlc@agentic-sdlc-marketplace
+copilot plugin install sdlc-context@agentic-sdlc-marketplace
 copilot plugin list
 
 # after the repo changed
 copilot plugin update sdlc
+copilot plugin update sdlc-context
 ```
 
 The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; two installed copies mean two competing step catalogs. The plugin name is the command prefix: `/sdlc:run`.
@@ -66,7 +70,13 @@ plugins/sdlc/
   .codex-plugin/plugin.json              # native Codex plugin manifest
   workflow.yml                           # pipeline manifest: order, type, model tier, outputs
   artifact-definitions/                  # ARTIFACT CONTRACTS — one file per artifact
-  skills/                                # the orchestrator + the ten steps
+  skills/                                # the orchestrator + eleven steps
+plugins/sdlc-context/
+  .claude-plugin/plugin.json             # Claude plugin manifest
+  .github/plugin/plugin.json            # byte-identical Copilot mirror
+  .codex-plugin/plugin.json              # native Codex plugin manifest
+  reference.md                          # registry format and lifecycle rules
+  skills/                               # create, connect, update-index-and-crosslinks
 ```
 
 Claude and Copilot manifests are mirrored because those runtimes look in different places. Codex has a native manifest with its required interface metadata. Everything else — the skills, contracts, scripts, and `workflow.yml` — is shared verbatim.
