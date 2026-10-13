@@ -33,7 +33,6 @@ git diff --no-index plugins/sdlc plugins/sdlc-experiment-model-routing
 
 Exit code 1 is expected for that comparison. Unchanged scripts, schemas and tests
 are intentional copies, not a second implementation. See the
-[Scout model research](docs/scout-models.md) and
-[manual runtime checks](evals/model-routing/README.md). Actual model routing,
+[Scout model research](docs/scout-models.md). Actual model routing,
 latency and savings require a run in the target client; static checks do not
 establish them.
