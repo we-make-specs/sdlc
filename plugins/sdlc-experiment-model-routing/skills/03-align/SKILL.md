@@ -1,12 +1,17 @@
 ---
 name: 03-align
-description: Pipeline step 03 (COLLAB) — work through the question inventory with the human, one well-presented question at a time, keep hunting as answers land, then write the agreement, the target design and the test scenarios. Use when a story has been analyzed and needs human decisions.
+description: Experimental model-routing variant. Pipeline step 03 (COLLAB) — work through the question inventory with the human, one well-presented question at a time, keep hunting as answers land, then write the agreement, the target design and the test scenarios. Use when a story has been analyzed and needs human decisions.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, alignment, discussion, collaborative
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 03 · Align  (COLLAB)
 
@@ -90,7 +95,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
    Validation compares both HTML files byte-for-byte with fresh deterministic rendering, so a stale
    or edited human page blocks the gate. A failure means alignment is incomplete.
 
-   This write-up may be delegated to a fresh strong-tier subagent: the answered inventory, manifest and current state carry everything it needs. The subagent writes canonical artifacts, never the generated gate views. Review the drafts with the human before finishing either way.
+   This write-up may be delegated to a fresh Expert under [MODEL-ROUTING.md](../../MODEL-ROUTING.md): the answered inventory, manifest and current state carry everything it needs. The subagent writes canonical artifacts, never the generated gate views. Review the drafts with the human before finishing either way.
 
 Scale depth to complexity: a small tweak is a short agenda, a cross-cutting change is a long one.
 

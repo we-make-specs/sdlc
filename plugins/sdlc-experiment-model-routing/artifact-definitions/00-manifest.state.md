@@ -21,6 +21,8 @@ It also preserves the **original input verbatim** — the source of truth agains
 |---|---|---|
 | frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`), **profile** (see below) |
 | `## Start here` | yes | three to five links: the current plan, the latest research, the pre-read page — navigation only, nothing that can drift |
+| `## Model routing` | yes | resolved per-run profile under [MODEL-ROUTING.md](../MODEL-ROUTING.md); exact model IDs, supported effort, kickoff overrides, worker limit and selection source |
+| `## Routing log` | yes | Coordinator-owned append-only job records: stage/job, role, requested and runtime-reported model/effort, outcome, elapsed time and usage; unavailable telemetry is `unreported` |
 | `## Original input` | yes | ticket text or brain dump, **unmodified** |
 | `## Component repositories` | yes | one row per participating repository: component, relative location, delivery role; a single-repo story has exactly one row with location `.` |
 | `## Artifact ledger` | yes | one row per artifact: status, artifact, purpose; only `00-manifest.state.md` is `present` at creation |
@@ -39,6 +41,12 @@ Three choices shape how later steps talk and where two texts land. They are coll
 | `questioning` | `chat` (one question per round) \| `annotation` (annotation rounds on the inventory) | step 03 |
 
 Defaults, used when the kickoff was headless or the human gave no preference: `solo` · `pr` · `chat` — exactly the previous behavior.
+
+The separate Model routing section is resolved at kickoff under the shared policy.
+It has no implicit headless default. Step 00 copies the supplied profile and any
+buffered job records; subsequent workers leave both routing sections to the
+Coordinator. Explicit changes append a dated explanation rather than erasing the
+old routing log. These sections never change approved requirements or gate hashes.
 
 ## Blockers — failure as a file, not a message
 
@@ -85,6 +93,28 @@ profile:
 ## Original input
 
 <ticket text or brain dump, unmodified>
+
+## Model routing
+
+Policy: sdlc-experiment-model-routing 0.1.0 / MODEL-ROUTING.md
+Selection: <explicit kickoff | accepted recommendation | resumed>
+Worker limit: <resolved limit, maximum two in this experiment>
+Stage overrides: <explicit kickoff overrides or none>
+
+| Role | Exact model ID | Effort | Selection reason |
+|---|---|---|---|
+| Coordinator | <runtime model ID> | <supported effort or default> | <reason> |
+| Scout | <runtime model ID> | <supported effort or default> | <reason> |
+| Builder | <runtime model ID> | <supported effort or default> | <reason> |
+| Expert | <runtime model ID> | <supported effort or default> | <reason> |
+
+## Routing log
+
+| Stage/job | Role | Requested model / effort | Runtime model / effort | Outcome | Elapsed | Usage |
+|---|---|---|---|---|---|---|
+
+The Coordinator appends completed job records here. Use `unreported` when runtime
+metadata is unavailable; never substitute a worker's claimed identity.
 
 ## Component repositories
 

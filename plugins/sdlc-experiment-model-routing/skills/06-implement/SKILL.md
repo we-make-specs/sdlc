@@ -1,12 +1,17 @@
 ---
 name: 06-implement
-description: Pipeline step 06 (AUTO) — execute one work package of the plan, one commit per task, keeping the plan's progress log current. The branch stays local; it is pushed and opened as a pull request after the package review closes. Use once a plan has been written and approved.
+description: Experimental model-routing variant. Pipeline step 06 (AUTO) — execute one work package of the plan, one commit per task, keeping the plan's progress log current. The branch stays local; it is pushed and opened as a pull request after the package review closes. Use once a plan has been written and approved.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, implementation, commits, pull-request
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 06 · Implement  (AUTO)
 

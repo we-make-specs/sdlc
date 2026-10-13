@@ -1,7 +1,7 @@
 {
-  "name": "sdlc",
-  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
-  "version": "0.7.1",
+  "name": "sdlc-experiment-model-routing",
+  "description": "Experimental delivery with visible job-level model routing and parallel research scouts.",
+  "version": "0.1.0",
   "author": {
     "name": "Markus-Arndt"
   },

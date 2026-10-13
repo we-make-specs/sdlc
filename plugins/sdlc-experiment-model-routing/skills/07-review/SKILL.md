@@ -1,12 +1,17 @@
 ---
 name: 07-review
-description: Pipeline step 07 (AUTO) — independent, risk-scaled review with evidence checking, one combined trial fix by default, and one final full test run. Findings are not code-change commands; the approved implementation remains the baseline unless a trial fix is proven safer and better.
+description: Experimental model-routing variant. Pipeline step 07 (AUTO) — independent, risk-scaled review with evidence checking, one combined trial fix by default, and one final full test run. Findings are not code-change commands; the approved implementation remains the baseline unless a trial fix is proven safer and better.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, review, quality-gate, evidence, risk-scaled
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 07 · Review  (AUTO)
 

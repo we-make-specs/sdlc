@@ -1,12 +1,17 @@
 ---
 name: run
-description: Drive a ticket or free-text brain dump through the agentic delivery pipeline — resume from the feature folder, invoke each step skill in order, validate its declared outputs, and stop wherever a human is required. Use when the user says "run the pipeline", "start the sdlc workflow", or names a ticket to deliver.
+description: Experimental model-routing variant. Drive a ticket or free-text brain dump through the agentic delivery pipeline — resume from the feature folder, invoke each step skill in order, validate its declared outputs, and stop wherever a human is required. Use when the user says "run the pipeline", "start the sdlc workflow", or names a ticket to deliver.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: orchestration, pipeline, sdlc, workflow
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 <!-- prework:orchestration-design -->
 
 # SDLC Orchestrator
@@ -41,7 +46,7 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 
 ## Required context
 
-- `../../workflow.yml` — step order, type, isolation, model tier, outputs to validate
+- `../../workflow.yml` — step order, type, isolation, outputs to validate
 - `../../artifact-definitions/README.md` — the artifact chain and its cross-cutting rules
 - The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — how registry knowledge reaches steps; consulting it is each step's own duty, and the orchestrator's only part is grepping for the `Context loaded:` trace each step leaves.
 
@@ -50,15 +55,22 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 ## Workflow
 
 1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. On a 0.7.0 workspace, run `scripts/migrate_state_070_to_071.py` once for every schema-version-1 decision or review state before selecting the next action. The script preserves exact `.v0.7.0.json` backups, reopens design approval for the new human summaries, and resumes legacy review before trial building; report this plainly and never hand-convert state. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
-2. **Collect the delivery profile at kickoff.** For a new run in an interactive session, ask the three profile questions the manifest contract defines (PR audience, review placement, questioning mode) before invoking step 00, and pass the answers along for it to record. Headless, or when the human gives no preference: the defaults apply silently. Never re-ask on a resume — the manifest already carries the profile.
+2. **Collect the delivery and routing profiles at kickoff.** Resolve and show the routing profile under [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before dispatch. For a new run, also collect the manifest's delivery profile (PR audience, review placement, questioning mode) and pass both profiles to step 00. Honour choices already supplied. Delivery-profile defaults are unchanged; headless routing requires explicit or saved choices under the shared policy. On resume, reuse both saved profiles.
 3. **Announce the step** (number, name, type) so the run stays legible.
-4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
-   - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its four slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
-   - An `sdlc-step` agent profile is an **optional container** for tool scoping and per-step model routing — when the runtime knows one (user-level `~/.claude/agents/` / `~/.copilot/agents/`, or repo-level), delegate into it, still sending the full step-runner prompt. No profile is required: the rules travel in the prompt, not the profile.
-   - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
+4. **Invoke the step skill** with ticket and branch context, using the job role and dispatch rules in [MODEL-ROUTING.md](../../MODEL-ROUTING.md). Include the resolved profile and role contract in each delegation. For step 01, complete the Scout phase below before starting the Expert. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
+    - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
+    - A native agent profile is optional. Use it only if it honours the selected role's exact model, effort and permissions. Apply selections through runtime controls and report unsupported selection instead of silently inheriting a different model.
+    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
 5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. Expand `<package-id>` with the selected package ID. Missing → stop and report; never silently continue. For JSON state, run the validator named by the producing skill; existence alone is insufficient. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
-6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
-7. **Report** after each step: step, outcome, artifacts written, what comes next.
+6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run live in this session with the selected Coordinator model; in an unattended leg, stop there and ask the human to join. Use Expert support only where the step permits it, through the shared routing policy. Never delegate a human decision.
+7. **Report** after each step: step, outcome, artifacts written, what comes next. Append dispatch and completion evidence to the manifest's Routing log under the shared policy.
+
+### Step 01: collect evidence before synthesis
+
+Follow the [shared research dispatch](../../model-routing/research.md). It also
+applies to direct step-01 entry. Complete the Scout jobs before starting the
+Expert; the Coordinator owns routing records and the Expert owns the research
+artifact.
 
 ### Step 07: independent, risk-scaled review
 
@@ -97,21 +109,28 @@ Two safety rules on top:
 
 ### The step-runner prompt
 
-Every subagent delegation carries this prompt verbatim, slots filled. It lives here and only here — it ships and updates with the plugin, so no repo or machine needs extra files for it.
+Every step-owner or review-role delegation carries this prompt, slots filled.
+Scout jobs use their bounded role contract and the shared research dispatch.
+The step-runner prompt ships here, so no repo or machine needs extra files for it.
 
 ```text
 You execute one step of the SDLC delivery pipeline, alone, in a fresh context.
 
 Step skill: <path to the step's SKILL.md>
 Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
+Routing policy: <path to MODEL-ROUTING.md>
+Role contract: <path to model-routing role file>
+Resolved profile: <exact models and effort from kickoff or manifest>
+Job: <bounded task; optional Scout evidence for research only>
 
-1. Read the skill file completely and follow it exactly — its workflow, constraints,
-   and success criteria are your entire job description.
+1. Read the skill file completely. Execute only the assigned Job or review role,
+   following the skill's constraints and success criteria for that work.
 2. Rehydrate only from disk: the feature folder's artifacts, whatever the skill
    names as required context, and the context registries the repo declares in its
    `## Context Registries` section — consulted per that procedure.
-   You inherit nothing from the session that spawned you — that isolation is
-   deliberate; do not ask it for more context.
+   Only explicit routing inputs and bounded Scout evidence may accompany these
+   sources. You inherit no session transcript. Review roles keep their stricter
+   input rules; Scout evidence must not leak implementation rationale into review.
 3. Write only the artifacts the skill declares, per their contracts, inside the
    feature folder — never outside the working repository — and update only your
    own manifest ledger rows.
@@ -128,7 +147,7 @@ Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
 
 An unattended runtime cannot answer permission prompts — a gated tool call fails closed, mid-step. Two rules keep that survivable:
 
-1. **Preflight before step 00.** Verify with harmless probes that the run has what the steps will need: read/write inside the repo and the feature folder · the git command set (status, branch, checkout, add, commit, push) · the PR tool for steps 06–08 · build/test commands for step 06. Also verify the runtime lists exactly **one** installed sdlc-family plugin, this copy, `sdlc`; a second one (another installed copy of this pipeline, or a stale version) means two competing step catalogs answering the same intent. Anything missing → stop *before* starting, and name it.
+1. **Preflight before step 00.** Verify with harmless probes that the run has what the steps will need: read/write inside the repo and the feature folder · the git command set (status, branch, checkout, add, commit, push) · the PR tool for steps 06–08 · build/test commands for step 06. Also verify exactly **one delivery plugin is enabled**, this copy, `sdlc-experiment-model-routing`. A disabled stable copy is fine; `sdlc-context` is a separate registry plugin. Competing enabled delivery catalogs or missing capabilities stop the run before starting; name the problem.
 2. **A denial is a blocker, not an obstacle.** On "permission denied / could not request permission": stop the run and report the exact tool, command, or path that needs pre-approval. Never route around a denial with a different tool — that trades a visible failure for an invisible gap.
 
 How to pre-approve depends on the runtime:
@@ -161,7 +180,7 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 ## Constraints and guardrails
 
 - **Never approve a gate.** Gates are human decisions; ambiguous praise is not approval.
-- **Never mutate the working tree.** The orchestrator reads state; it does not checkout, pull, fast-forward, or switch branches. Tree changes belong to step 00, inside its subagent.
+- **Keep AUTO work delegated.** While coordinating AUTO steps, write only the manifest's Model routing and Routing log sections. Do not check out, pull, fast-forward, switch branches or perform their work inline. Live collaborative steps and human gates follow their own skill's permitted actions.
 - **Artifacts live in the feature folder, inside the working repository.** A path outside the repo root — a seed folder, another checkout — is invalid even when the kickoff prompt points there; stop and correct rather than write.
 - **Never run a subagent step inline.** Executing it in this session leaks the orchestrator's context into the step; if the runtime offers no delegation mechanism, say so and let the human start the step in a fresh session instead.
 - **Never skip a failed validation.** If outputs are missing, stop and say so — do not paper over it.
@@ -190,6 +209,5 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 
 ## Model routing
 
-`workflow.yml` assigns a model tier per step (`strong` / `standard` / `fast`), mapped to concrete models in one place. Rationale: analysis, research, planning, and review benefit from the strongest model; implementation against a precise plan works with a mid-tier one; mechanical steps run cheap.
-
-How a tier is applied depends on the runtime. Now that AUTO steps run as subagents, the natural mechanism is the per-agent model override both runtimes offer (Claude Code: `model:` in the agent definition · Copilot: the custom-agent / SDK model field); failing that, a `--model` flag, or the orchestrator naming the tier so the human selects it. **Not yet verified for our runtimes** — see the capability research task.
+Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md). It is the only routing definition;
+this entry point collects the profile and schedules work under it.

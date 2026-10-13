@@ -1,12 +1,17 @@
 ---
 name: 10-post-mortem
-description: Pipeline step 10 (COLLAB) — close the delivery by reconciling the ledgers with reality, settling every assumed answer with the human, harvesting generalizable lessons, and writing the one-page post-mortem note. Runs whenever the last package is merged, no matter who merged it.
+description: Experimental model-routing variant. Pipeline step 10 (COLLAB) — close the delivery by reconciling the ledgers with reality, settling every assumed answer with the human, harvesting generalizable lessons, and writing the one-page post-mortem note. Runs whenever the last package is merged, no matter who merged it.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, post-mortem, close, lessons
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 10 · Post-Mortem  (COLLAB)
 

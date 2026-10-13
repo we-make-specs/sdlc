@@ -1,5 +1,11 @@
 # Agentic SDLC
 
+**Model-routing experiment:** [Plugin overview](plugins/sdlc-experiment-model-routing/README.md)
+and [shared routing policy](plugins/sdlc-experiment-model-routing/MODEL-ROUTING.md).
+Use `/sdlc-experiment-model-routing:run` to try it and
+`/sdlc-experiment-model-routing:routing` to inspect choices. Enable one delivery
+plugin at a time; the stable `sdlc` plugin is unchanged.
+
 An architecture for agentic software delivery. Instead of treating an AI model as an
 autocomplete that a developer babysits, this project runs delivery as a controlled,
 multi-stage workflow in which agent sessions and humans take turns. Every stage has a

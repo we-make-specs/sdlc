@@ -10,6 +10,13 @@ An agent plugin marketplace holding the **form** of our delivery pipeline: the o
 
 ## Install
 
+The optional `sdlc-experiment-model-routing` plugin provides visible job-level
+routing and parallel research Scouts. Its
+[shared policy](plugins/sdlc-experiment-model-routing/MODEL-ROUTING.md) applies to
+every step. Use it in place of `sdlc`, with only one delivery plugin enabled.
+Install it using the commands below with `sdlc-experiment-model-routing` as the
+plugin name; its version is 0.1.0. The stable plugin remains 0.7.1.
+
 **Codex:**
 
 ```bash

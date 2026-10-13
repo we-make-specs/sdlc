@@ -1,12 +1,17 @@
 ---
 name: 00-create-workspace
-description: Pipeline step 00 (AUTO) — parse a ticket ID, ticket URL, or free-text brain dump, create or recognise the feature branch and folder, and write the initial manifest. Idempotent. Use at the start of a delivery run, or to bootstrap a feature workspace.
+description: Experimental model-routing variant. Pipeline step 00 (AUTO) — parse a ticket ID, ticket URL, or free-text brain dump, create or recognise the feature branch and folder, and write the initial manifest. Idempotent. Use at the start of a delivery run, or to bootstrap a feature workspace.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, workspace, bootstrap
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 00 · Create Workspace  (AUTO)
 
@@ -59,7 +64,7 @@ Bootstraps or recognises the feature workspace: parses the input, ensures the br
 5. **Choose the placement and create the workspace.** One rule decides it: a story touching exactly one repository gets the feature folder `docs/sdlc/features/<YYYY-MM>/<story-slug>/` inside it; a story spanning several repositories gets a plain sibling folder `<story-slug>_workspace/` next to them. When the run starts inside a single repository but the input names components or repositories beyond it, say so before scaffolding anything and suggest the sibling placement; the human decides at kickoff, nothing moves silently. Never write next to the input source. In-repo placement: create the branch (type `fix` for bug labels, else `feature`); if the branch exists but is not checked out, stop — do not silently reuse. Sibling placement: create no branch here — branches belong to the work packages and are created at implementation time in their target repositories. If the workspace exists and is non-empty on a fresh run, stop — a previous run is in progress.
 6. **Declare the component repositories** in the manifest: the current repository as `.` for the in-repo placement, or each participating repository by portable relative path for the sibling placement.
 7. **Verify the context declaration.** The working repo's root `CLAUDE.md`/`AGENTS.md` must carry a `## Context Registries` section (multi-repo runs: each repo's own). Section missing entirely → append a Blockers entry (`Missing: context declaration in <repo>` · `Needed from: repo owner`), set `status: blocked`, stop. Exactly `- none` is a valid, conscious declaration. Materializing and reading the registries is the ambient `## Context Registries` procedure's job, run by each step when it needs them — not this step's. This can only happen *after* the checkout exists — the declaration lives in it.
-8. **Write the manifest and AGENTS.md** per their contracts, carrying the original input over unchanged. Record the folder path in `folder:` — every later step and the orchestrator treat it as authoritative and re-derive nothing. Record the delivery profile the orchestrator collected at kickoff; absent answers use the contract's defaults. This step asks nothing itself. Scaffold nothing else: the numbered folders appear when the first artifact is written into them, and placeholder companions are never created.
+8. **Write the manifest and AGENTS.md** per their contracts, carrying the original input over unchanged. Record the folder path in `folder:` — every later step and the orchestrator treat it as authoritative and re-derive nothing. Record the delivery profile the orchestrator collected at kickoff; absent answers use the contract's defaults. Record the resolved routing profile and buffered dispatch reports in the manifest routing sections. A missing routing profile returns to the caller before execution under the shared policy. This step asks nothing itself. Scaffold nothing else: the numbered folders appear when the first artifact is written into them, and placeholder companions are never created.
 9. **Report:** ticket, title, branch, folder, and whether the workspace was newly created or recognised.
 
 ---

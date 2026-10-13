@@ -1,12 +1,17 @@
 ---
 name: 02-analyze
-description: Pipeline step 02 (AUTO) — read the story the way a skeptical implementer would, hunt for gaps, ambiguities, contradictions, edge cases and missing inputs, and write the tiered question inventory that seeds the alignment conversation. Use after the current-state research, before step 03.
+description: Experimental model-routing variant. Pipeline step 02 (AUTO) — read the story the way a skeptical implementer would, hunt for gaps, ambiguities, contradictions, edge cases and missing inputs, and write the tiered question inventory that seeds the alignment conversation. Use after the current-state research, before step 03.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, analysis, questions, gap-hunting
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 02 · Analyze  (AUTO)
 

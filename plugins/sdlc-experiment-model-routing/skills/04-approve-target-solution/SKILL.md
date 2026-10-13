@@ -1,12 +1,17 @@
 ---
 name: 04-approve-target-solution
-description: Pipeline step 04 (GATE) — guide the human through the complete target solution, prioritized acceptance criteria, open choices, and scenarios; then wait for explicit hash-locked approval before planning.
+description: Experimental model-routing variant. Pipeline step 04 (GATE) — guide the human through the complete target solution, prioritized acceptance criteria, open choices, and scenarios; then wait for explicit hash-locked approval before planning.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, gate, approval, human, decision-manifest
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 04 · Gate: Approve Target Solution  (GATE)
 

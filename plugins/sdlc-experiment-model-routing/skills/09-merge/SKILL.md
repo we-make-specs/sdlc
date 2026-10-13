@@ -1,12 +1,17 @@
 ---
 name: 09-merge
-description: Pipeline step 09 (COLLAB) — present the ready pull request, pair-program any last fixes with the human, and merge only on their explicit command. Never merges autonomously.
+description: Experimental model-routing variant. Pipeline step 09 (COLLAB) — present the ready pull request, pair-program any last fixes with the human, and merge only on their explicit command. Never merges autonomously.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, merge, collaborative, final-gate
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 09 · Merge  (COLLAB)
 

@@ -35,6 +35,9 @@ work-package ledger. It links everything worth opening.
 
 ## Operating rules
 
+- Follow the saved Model routing profile in the manifest and the active
+  experimental plugin's MODEL-ROUTING.md before step work. Only the Coordinator
+  writes routing records; a worker never spawns another worker.
 - The manifest's ledgers are the single source for artifact and package state;
   update your own rows there, never a copy elsewhere.
 - Each work package maps to one component repository and one pull request; never

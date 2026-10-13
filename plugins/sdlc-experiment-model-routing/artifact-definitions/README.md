@@ -1,4 +1,8 @@
 # Artifact Contracts
+
+Experimental routing is defined in [MODEL-ROUTING.md](../MODEL-ROUTING.md).
+The manifest stores the resolved profile and job log; existing approval schemas
+and required validators are unchanged.
 <!-- prework:spec-artifact-catalog -->
 
 **One file per artifact. One source of truth per artifact.**

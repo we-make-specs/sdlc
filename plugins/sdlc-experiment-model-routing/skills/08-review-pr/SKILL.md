@@ -1,12 +1,17 @@
 ---
 name: 08-review-pr
-description: Pipeline step 08 (GATE) — render one deterministic PR decision page from the canonical decision and review states, then wait for explicit human approval. No merging and no review-detail flood in chat.
+description: Experimental model-routing variant. Pipeline step 08 (GATE) — render one deterministic PR decision page from the canonical decision and review states, then wait for explicit human approval. No merging and no review-detail flood in chat.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, gate, approval, pull-request, human-view
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 08 · Gate: Review PR  (GATE)
 

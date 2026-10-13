@@ -1,12 +1,17 @@
 ---
 name: 05-plan
-description: Pipeline step 05 (AUTO) — turn the approved alignment artifacts into an executable plan with parallelism groups, exact file paths, verifiable done-when conditions, and advisor checks. Optionally produces a technical analysis first.
+description: Experimental model-routing variant. Pipeline step 05 (AUTO) — turn the approved alignment artifacts into an executable plan with parallelism groups, exact file paths, verifiable done-when conditions, and advisor checks. Optionally produces a technical analysis first.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, planning, tasks
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 05 · Plan  (AUTO)
 

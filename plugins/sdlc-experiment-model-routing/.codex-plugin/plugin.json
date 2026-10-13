@@ -1,7 +1,7 @@
 {
-  "name": "sdlc",
-  "version": "0.7.1",
-  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
+  "name": "sdlc-experiment-model-routing",
+  "version": "0.1.0",
+  "description": "Experimental delivery with visible job-level model routing and parallel research scouts.",
   "author": {
     "name": "Markus-Arndt",
     "url": "https://github.com/we-make-specs"
@@ -18,9 +18,9 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Agentic SDLC",
-    "shortDescription": "Risk-scaled software delivery pipeline",
-    "longDescription": "Drive tickets through research, alignment, full-design approval, planning, implementation, independent evidence checks, and explicit human approval with validated artifacts on disk.",
+    "displayName": "SDLC Experiment: Model Routing",
+    "shortDescription": "Visible model routing",
+    "longDescription": "Experimental delivery with visible job-level model routing and parallel research scouts.",
     "developerName": "we-make-specs",
     "category": "Developer Tools",
     "capabilities": [
@@ -29,9 +29,8 @@
     ],
     "websiteURL": "https://github.com/we-make-specs/sdlc",
     "defaultPrompt": [
-      "Run the SDLC pipeline for this ticket.",
-      "Resume this delivery from its workspace.",
-      "Review this package with the evidence-gated protocol."
+      "Run the experimental SDLC pipeline with visible model routing.",
+      "Resume the experiment using its saved routing profile."
     ],
     "brandColor": "#175CD3"
   }

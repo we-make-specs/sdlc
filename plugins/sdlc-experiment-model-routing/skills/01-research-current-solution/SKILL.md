@@ -1,12 +1,17 @@
 ---
 name: 01-research-current-solution
-description: Pipeline step 01 (AUTO) — investigate how the functionality affected by the story works today and write a code-grounded current-state document. Use before designing a change, to establish a factual baseline.
+description: Experimental model-routing variant. Pipeline step 01 (AUTO) — investigate how the functionality affected by the story works today and write a code-grounded current-state document. Use before designing a change, to establish a factual baseline.
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.1.0'
   tags: sdlc, step, research, current-state
 ---
+
+**Routing first:** Read [MODEL-ROUTING.md](../../MODEL-ROUTING.md) before step work.
+Use its saved profile, role contracts and visible dispatch rules, including when
+this skill is invoked directly. Do not redefine routing in this step.
+
 
 # Step 01 · Research Current Solution  (AUTO)
 
@@ -57,7 +62,7 @@ This artifact opens the research series. Any later step that has to investigate 
 
 1. **Locate the feature folder.** Missing folder or manifest → abort with a clear error; do not guess.
 2. **Read the manifest first.** The story text is the **scope boundary** — do not research code outside it.
-3. **Investigate:** search broadly first (many directories, few reads), then grep for concrete symbols, routes, and config keys, then read only the highest-signal files. Follow imports from entry points inward.
+3. **Use Scout evidence when provided.** Verify its source references and inspect critical code directly. For direct entry, the caller schedules the [shared Scout phase](../../model-routing/research.md) before starting this Expert; no nested worker fan-out. Do not repeat broad discovery when the evidence already answers it. **Investigate remaining gaps:** search broadly first (many directories, few reads), then grep for concrete symbols, routes, and config keys, then read only the highest-signal files. Follow imports from entry points inward.
 4. **Trust the code over the docs.** Use documentation only for confirmation; where the two disagree, report the code's behaviour and note the discrepancy.
 5. **Stop** once you can describe what the functionality does today, which files participate, how data flows, and where a change would naturally land.
 6. **Write the artifact** per its contract: conceptual model first, functional groups along the decomposition axis that fits the story, evidence IDs in the body, exact locations only in the source map. Then mark the artifact present in the manifest ledger.
