@@ -35,8 +35,8 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 | Field | Required | Meaning |
 |---|---|---|
 | **Repository** | yes | the one component repository this package changes (a manifest component row) |
-| **Base** | yes | the branch it forks from — normally the repository's main branch; another package's branch only when the plan explicitly approves a stacked branch, which carries the duty to rebase after the prerequisite merges |
-| **Branch** | yes | the package's own branch name |
+| **Base** | yes | the component base selected at setup, verified when planning, or an explicitly approved replacement; a stacked package base requires explicit approval and rebase after the prerequisite merges |
+| **Branch** | yes | the package branch, following the applicable repository/registry naming rule |
 | **Prerequisites** | when needed | package IDs that must be merged first |
 | **Readiness gates** | when needed | decisions or release gates that must be resolved before this package starts |
 | **Primary ACs** | yes | the acceptance-criteria subset this package delivers, by AC number; exact match to the approved package mapping in `03-decision-manifest.state.json` |
@@ -65,6 +65,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 - [ ] Application-port task names express use-case intent instead of an adapter mechanism. Outbox enqueueing is not called synchronous publishing.
 - [ ] Tasks for long application-service methods call for short one-line comments before meaningful logical blocks when needed for skimming; comments describe intent or invariants, not syntax.
 - [ ] Genuine ambiguity is encoded as an advisor check, not silently decided.
+- [ ] Changed public response/event contracts have a focused serialized-result check against the published schema or consumer contract, including relevant empty/missing/null cases.
 - [ ] A progress-log entry that claims verification names the exact command and its result. A failing check believed unrelated is attributed against the base branch before it is called pre-existing: the same failure there makes it a recorded baseline failure, never a reason to touch unrelated source. Superseded entries stay in the log under a preamble note; nothing is deleted.
 - [ ] A condition outside the repository (a deployment precondition, an external party's confirmation, post-release verification) is a release readiness gate with a named owner. It is never a task, and never silently assumed; a merged branch with an unmet gate is not done.
 - [ ] Progress log is empty at creation — step 05 never pre-fills it.

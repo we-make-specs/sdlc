@@ -4,7 +4,7 @@ description: Pipeline step 08 (GATE) — render one deterministic PR decision pa
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, gate, approval, pull-request, human-view
 ---
 
@@ -26,7 +26,7 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
 
 | Input | Description | Required |
 |---|---|---|
-| Pull request | URL, state, mergeability, checks and changed files | yes |
+| Pull request | URL, head commit, base, state, mergeability, checks and complete diff | yes |
 | Review state | closed `07-review-<package-id>.state.json` | yes |
 | Decision manifest | approved authority and semantic-change record | yes |
 | Human | approves or requests focused changes | yes |
@@ -45,6 +45,7 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
 | reads | `07-review-<package-id>.state.json` | [`artifact-definitions/07-review.state.schema.json`](../../artifact-definitions/07-review.state.schema.json) |
 | reads | pull-request metadata | live source of URL, checks and changed files |
 | writes | `08-human-review-gate.view.md` and `.view.html` | deterministic projections, never canonical truth |
+| updates | selected package's manifest ledger row | approver, date, reviewed PR/head and outcome |
 
 ## Workflow
 
@@ -54,8 +55,11 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
    An `ASK_HUMAN` review returns to focused gate 04 and must have no PR. A missing review because step 07
    was explicitly skipped is stated and requires the human to affirm that exception before this gate
    can continue.
-2. **Fetch current PR facts**: URL, state, mergeability, changed files and check results. Do not trust a
-   stale PR body for these.
+2. **Fetch current PR facts**: URL, head commit, base, state, mergeability, changed files and
+   check results. Compare the head with the closed review's `finalCommit`, resolving any
+   abbreviated commit in the component repository. A different head returns to step 07 for
+   verification before approval; do not describe an old review as current. Do not trust a
+   stale PR body for these facts.
 3. **Render both views**, supplying every changed file and check to the renderer:
 
    ```bash
@@ -79,19 +83,41 @@ changed files in one place. Detailed canonical artifacts remain linked for drill
    What I need from you: approve this package or name a focused correction
    Why it matters: approval advances it to the explicit merge step
    PR: <state> · agent verdict: <verdict> · checks: <passing/failing counts> · ACs: <status counts>
-   Open first: 08-human-review-gate.view.html (Markdown fallback beside it)
+   Review: <PR diff URL or active review session>
+   Context: 08-human-review-gate.view.html (Markdown fallback beside it)
    ```
 
    If any check is not explicitly successful, an AC is not `MET`, a blocker remains, or a trial fix was not proven a
    safe improvement, state that before asking. Do not bury it below process detail.
-5. **Ask decision-friendly.** With a clean state: "A: approve and continue to merge. B: name the
+5. **Open the correct review surface.** When the human uses Plannotator, open its PR/code
+   review on the actual PR URL. Prefer an available review tool; otherwise run:
+
+   ```bash
+   plannotator review '<PR_URL>' --json
+   ```
+
+   Keep the generated gate page available as context. Never replace the diff with
+   `annotate` on a gate document, and never create a second question document merely to
+   ask for PR approval. `questioning: annotation` controls step 03, not this choice.
+   If PR review is unavailable, provide the platform's full diff and accept explicit
+   approval in chat after the human reviews it. A verified local comparison against the
+   PR's base is another fallback, but a working-tree-only diff is not the whole PR.
+   For an asynchronous review tool, return control and wait for its result; do not launch
+   another session or poll while it is active.
+6. **Ask decision-friendly.** With a clean state: "A: approve and continue to merge. B: name the
    concrete change." With a non-approve verdict or any non-successful check, present B first with the evidence and
    recommend pausing. A missing external input is fixed by supplying that input, not by more coding.
-6. **Classify requested changes before implementation.** A local defect returns to the isolated
+7. **Classify requested changes before implementation.** A local defect returns to the isolated
    correction/review loop. A request that changes business behavior, security, a public contract,
    architecture, data, operations, an approved decision, or a binding rule becomes a semantic change
    and focused gate-04 decision. Never forward prose directly as an unconditional mutation command.
-7. **Wait for explicit approval.** Vague praise is not approval. Do not merge here.
+8. **Record the explicit outcome.** For structured review results, use the `decision` field:
+   `approved` is approval, `annotated` carries feedback to classify, and `dismissed` leaves
+   the gate open. Notes attached to approval are not automatically change requests. In
+   chat, "I reviewed it" alone is not approval. Before recording approval, refetch the PR
+   head and checks; a changed head requires refreshed review and renewed approval. Record
+   the human, date, PR URL and reviewed head in the selected package row's `Human review`
+   field. Do not merge here.
 
 ## Output contract
 
@@ -106,6 +132,7 @@ semantic risk. No merge.
 - Do not restate a long artifact inventory in chat; point to the one generated human view.
 - Do not hide NOT_MET/PARTIAL ACs, findings that were rejected or sent to a human, or preserved-original outcomes.
 - Do not turn a human or reviewer comment into code before classifying its semantic blast radius.
+- Do not confuse document annotation, a closed review window, or an old-head approval with PR approval.
 
 ## Success criteria
 
@@ -113,6 +140,6 @@ semantic risk. No merge.
 - [ ] Every package AC appears verbatim with review status and evidence
 - [ ] Every review finding shows its independent evidence-check result and linked trial-fix comparison
 - [ ] High-risk decisions, conflicts and semantic changes remain prominent
-- [ ] The human got one short orientation and one primary page
-- [ ] An explicit approval or focused correction was recorded
+- [ ] The human got one short orientation, the complete PR diff and its generated context page
+- [ ] Approval or correction is recorded against the current PR head; dismissal did not advance the gate
 - [ ] Nothing was merged

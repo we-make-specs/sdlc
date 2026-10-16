@@ -183,7 +183,13 @@ When an article changes state, rename the file and touch every place that shows 
 
 ## 9. The `## Context Registries` section (wire format)
 
-A project repo declares its registries in a `## Context Registries` section of its root entry file. This format is a shared contract with the pipeline's reader side: keep it exactly as specified, extend it nowhere.
+A project repository or delivery root declares its registries in a `## Context Registries`
+section of its root entry file. A delivery root need not be a Git repository. Local paths
+and `.sdlc/context/` are always relative to the directory containing that declaration,
+not the shell's current directory or an enclosing Git repository. Read both delivery-root
+and relevant component declarations when working across them; neither silently overrides
+the other. This is a shared contract with the pipeline's reader side: keep the section
+format exactly as specified, extend it nowhere.
 
 - One list item per registry: a git URL or a `./`-relative path.
 - Optionally one indented explainer line directly under each item.
@@ -235,8 +241,11 @@ Which entry file to write (`AGENTS.md`, `CLAUDE.md`, or both) is decided by dete
 
 1. **Detect before writing.** Check which entry files exist at the target root.
 2. **Mirror what exists.** Update every entry file that is present. When both `AGENTS.md` and `CLAUDE.md` exist, compare them before writing: if they already differ, that is a validation failure; report the differing regions and stop without writing anything. When they match, apply every change to both, verify byte-identity after writing, and repair only divergence introduced by this run's own writes.
-3. **Ask only when creating.** When neither exists and one is needed, ask the user which format they want: `AGENTS.md` only (recommended default), `CLAUDE.md` only, or both as byte-identical twins. Wait for the answer.
+3. **Reuse settled choices.** When neither exists, use an entry-file choice already supplied by the user or authorized delivery setup. Only when that choice is missing, ask for `AGENTS.md` only (recommended default), `CLAUDE.md` only, or byte-identical twins, and wait for the answer. Unattended callers receive the missing choice as a blocker.
 4. **Never create `CLAUDE.md` unasked.** Only when the user explicitly chose it.
+
+An unattended delivery setup reuses a settled redirect-stub choice. If none was supplied,
+it skips that optional file and reports this; it does not block registry connection.
 
 ### The Copilot redirect stub
 

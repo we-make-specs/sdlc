@@ -4,7 +4,7 @@ description: Pipeline step 00 (AUTO) — parse a ticket ID, ticket URL, or free-
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, workspace, bootstrap
 ---
 
@@ -17,7 +17,9 @@ metadata:
 
 ## What this skill does
 
-Bootstraps or recognises the feature workspace: parses the input, ensures the branch and feature folder exist, and writes the initial manifest. After this, every later step operates purely on files in the feature folder.
+Bootstraps or recognises the delivery workspace: resolves the input, prepares component
+checkouts, creates the feature folder and writes its manifest. Later steps use that
+manifest to find artifacts and source repositories.
 
 ## When to use this skill
 
@@ -35,11 +37,18 @@ Bootstraps or recognises the feature workspace: parses the input, ensures the br
 | Input | Description | Required |
 |---|---|---|
 | Ticket or text | ticket ID, ticket URL, or free text | yes |
-| Git working tree | the current clone | yes |
+| Workspace selection | ticket root, target code repository, or existing manifest | yes |
+| Component sources | verified existing checkouts or remote URLs; requested base refs when applicable | yes for a new run |
 
 ## Required context
 
-- The repo's root `AGENTS.md`/`CLAUDE.md` **`## Context Registries`** declaration — this step's guard is that the repo carries one (registries, or a conscious `- none`). It is written by `/sdlc-context:connect`; materializing and reading the registries is each later step's own duty, not this step's.
+- The [workspace location and path rules](../../artifact-definitions/README.md#workspace-location-and-paths).
+- The selected root's and component repositories' `AGENTS.md`/`CLAUDE.md` instructions and
+  `## Context Registries` declarations. Read the declared registries' entry files, indexes,
+  and branch/setup rules before choosing a branch. A conscious `- none` is valid; a missing
+  declaration is a named setup blocker. Record a `Context loaded:` line in a new manifest.
+  A new ticket root receives its declaration in step 5 from settled kickoff inputs or
+  validated component declarations; its missing entry file before setup is not a blocker.
 
 ## Artifacts
 
@@ -48,42 +57,96 @@ Bootstraps or recognises the feature workspace: parses the input, ensures the br
 | writes | `00-manifest.state.md` | [`artifact-definitions/00-manifest.state.md`](../../artifact-definitions/00-manifest.state.md) |
 | writes | `AGENTS.md` — static, from the template | [`artifact-definitions/AGENTS.md`](../../artifact-definitions/AGENTS.md) |
 
+Setup also creates the phase directories and, for a new ticket root, prepares the declared
+component clones and root entry file. These are setup outputs, not implementation work.
+
 ---
 
 ## Workflow
 
-1. **Verify a safe tree.** If a checkout would clobber tracked changes, stop and report. Branch off the current HEAD — do not silently switch to the main branch.
-2. **Check idempotency.** Branch already matches the pattern and manifest exists → confirm and return unchanged. Branch exists, manifest missing → create only the manifest.
-3. **Resolve metadata.** Ticket mode: fetch title, description, labels from the ticket system; on failure abort with a clear error — no silent fallback to free text. Free-text mode: `ticket = none`, title from the first meaningful line.
-4. **Build the slug:** lowercase, transliterate umlauts, non-alphanumerics to `-`, truncate to 50 characters.
-5. **Choose the placement and create the workspace.** One rule decides it: a story touching exactly one repository gets the feature folder `docs/sdlc/features/<YYYY-MM>/<story-slug>/` inside it; a story spanning several repositories gets a plain sibling folder `<story-slug>_workspace/` next to them. When the run starts inside a single repository but the input names components or repositories beyond it, say so before scaffolding anything and suggest the sibling placement; the human decides at kickoff, nothing moves silently. Never write next to the input source. In-repo placement: create the branch (type `fix` for bug labels, else `feature`); if the branch exists but is not checked out, stop — do not silently reuse. Sibling placement: create no branch here — branches belong to the work packages and are created at implementation time in their target repositories. If the workspace exists and is non-empty on a fresh run, stop — a previous run is in progress.
-6. **Declare the component repositories** in the manifest: the current repository as `.` for the in-repo placement, or each participating repository by portable relative path for the sibling placement.
-7. **Verify the context declaration.** The working repo's root `CLAUDE.md`/`AGENTS.md` must carry a `## Context Registries` section (multi-repo runs: each repo's own). Section missing entirely → append a Blockers entry (`Missing: context declaration in <repo>` · `Needed from: repo owner`), set `status: blocked`, stop. Exactly `- none` is a valid, conscious declaration. Materializing and reading the registries is the ambient `## Context Registries` procedure's job, run by each step when it needs them — not this step's. This can only happen *after* the checkout exists — the declaration lives in it.
-8. **Write the manifest and AGENTS.md** per their contracts, carrying the original input over unchanged. Record the folder path in `folder:` — every later step and the orchestrator treat it as authoritative and re-derive nothing. Record the delivery profile the orchestrator collected at kickoff; absent answers use the contract's defaults. This step asks nothing itself. Scaffold nothing else: the numbered folders appear when the first artifact is written into them, and placeholder companions are never created.
-9. **Report:** ticket, title, branch, folder, and whether the workspace was newly created or recognised.
+1. **Find an existing delivery first.** Follow the catalog's discovery rules. A matching,
+   complete workspace returns unchanged, regardless of the shell's current branch. A
+   blocked or partial workspace returns its blocker; never start a duplicate or silently
+   migrate it. If a requested branch already exists without a manifest, verify its identity
+   and preserve it; do not reset it to a new base.
+2. **Resolve the input.** Fetch ticket metadata once when the integration is available.
+   On lookup failure, use supplied text, an export or a screenshot only when it identifies
+   the requested ticket and contains enough readable requirements to proceed. Preserve the
+   ticket ID, record source paths and the error, and mark `not verified against live ticket`
+   in Input provenance. Record cut-off or missing content as unresolved; never invent it or
+   silently change to free-text mode. No usable supplied source means a blocker naming the
+   needed ticket text. Free-text mode uses `ticket: none`. Step 02 carries unresolved source
+   gaps into its inventory; source conflicts must be settled before design approval.
+3. **Resolve placement and slug.** Use the catalog's single path contract. A selected ticket
+   root gets `delivery/`, even for one component. A parent Git repository does not identify
+   the component. Use the lowercased ticket ID for the story slug; derive it from the title
+   only for free text. A non-empty proposed delivery directory without a matching manifest
+   is a conflict, not a directory to overwrite.
+4. **Prepare components.** Verify each remote and existing checkout before changing anything.
+   Clone missing components into the ticket root's `repositories/`; never borrow another
+   ticket's Git storage. For new clones, fetch and select the requested base, or the remote
+   default branch when no base was requested. For a reused checkout, preserve current HEAD
+   unless a different base was explicitly selected. Record the base ref and commit. Never
+   discard local changes, replace a non-empty directory, or silently switch an existing
+   checkout. Missing remote/base information returns a focused blocker to the orchestrator.
+5. **Load setup conventions and connect the root.** Read component instructions and relevant
+   registry rules, including branch naming. For a new ticket root, use the context plugin's
+   `connect` contract with the kickoff's entries and entry-file choice. Existing component
+   URL declarations may supply the root's entries; rebase local paths only when they remain
+   inside the selected root. Do not invent a registry or declare `none` because information
+   is missing. Keep component declarations intact. Add a short root-entry link to
+   `delivery/00-manifest.state.md`, preserving other content and existing entry-file twins.
+6. **Prepare the branch where needed.** In-repo runs create or verify the delivery branch
+   using the selected base and the applicable naming rule, including ticket case. An
+   explicit user choice is honored; conflicting applicable rules return a focused blocker.
+   Existing branch names are evidence, not a rule. With no declared convention, use
+   `feature/<story-slug>` or `fix/<story-slug>` for a bug. Ticket-root runs defer package
+   branches to step 06; never create a branch in the ticket or notes repository.
+7. **Write setup outputs.** Write the manifest and workspace `AGENTS.md` per their contracts,
+   including `workspace_root`, `folder`, component locations, base refs/commits, input
+   provenance and the collected delivery profile. Create `1-research/`, `2-specification/`
+   and `3-planning/` inside the feature folder. Leave input files in place; create no
+   placeholder artifacts or `.gitkeep` files. An undecidable setup choice is a durable
+   Blockers entry with `status: blocked` once the delivery location is known. This step
+   asks no questions itself; it returns the exact missing choice for the orchestrator.
+8. **Verify and report.** Resolve all recorded paths from the manifest, verify each checkout's
+   identity and base, and report ticket, root, folder, components, branch or deferred branch,
+   provenance status, and whether setup was created or recognized.
 
 ---
 
 ## Output contract
 
-Branch checked out, feature folder created, manifest written per contract. Nothing else modified. Returns ticket, title, branch, folder, and the newly-created flag.
+Manifest and entry files written per contract, phase directories created, component
+checkouts verified. In-repo branch checked out; ticket-root package branches deferred.
+Returns ticket, title, branch, root, folder, components, and the newly-created flag.
 
 ---
 
 ## Constraints and guardrails
 
-- **Atomic.** On abort, leave no partial artifacts — remove a branch or folder this run created.
+- **Preserve recoverable setup.** On failure, keep verified clones and the blocked manifest.
+  Remove only incomplete temporary paths this run created; never delete a pre-existing
+  folder, checkout or input. Record what remains so the next run can repair it.
 - **No commit.** The first commit happens at implementation.
 - **Never edit the original input.** It is the source of truth for final verification.
-- **The input source is read-only.** A ticket, a seed file, or a pasted story is captured verbatim into the manifest and never touched again — no artifact is ever written next to it.
+- **The input source is read-only.** Preserve supplied files and original text. A screenshot
+  transcription is labeled as such and links its source; missing text stays missing.
+  Delivery artifacts go in the selected feature folder, never inside an input folder.
 - **A workspace without a context declaration is not a workspace.** No `## Context Registries` section in the repo → blocker, never a silent default. Forgetting is the failure this guards against; a conscious `- none` passes.
 
 ---
 
 ## Success criteria
 
-- [ ] In-repo placement: branch exists and is checked out. Sibling placement: no branch created; the component repositories are declared by relative path
+- [ ] Placement follows the selected root; unrelated parent Git repositories were not used as components
+- [ ] In-repo branch is checked out; ticket-root package branches are deferred
+- [ ] Components have verified remotes, relative locations and recorded base refs/commits
+- [ ] New ticket components are independent clones; existing selected checkouts were preserved
 - [ ] Workspace folder and manifest exist, manifest valid against its contract
 - [ ] The repo carries a `## Context Registries` declaration (registries or `- none`) — or the run is blocked with the declaration named as missing
-- [ ] No other files touched
+- [ ] Root/context instructions and branch rules were read before branch creation
+- [ ] Input provenance and lookup failures are recorded without changing source material
+- [ ] The three phase directories exist; no placeholder artifacts were created
+- [ ] Only setup outputs and declared component preparation were changed
 - [ ] Re-running the skill changes nothing

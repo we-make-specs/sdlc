@@ -185,6 +185,38 @@ output, and stops wherever a human is required. You can also invoke a single ste
 directly, from `/sdlc:00-create-workspace` through `/sdlc:10-post-mortem`, when you want to
 redo one stage.
 
+For a new delivery started from a ticket folder, setup uses this layout:
+
+```text
+<ticket-root>/
+  AGENTS.md
+  .sdlc/context/<registry>/
+  context/                         supplied input stays where it is
+  delivery/
+    00-manifest.state.md
+    AGENTS.md
+    1-research/
+    2-specification/
+    3-planning/
+  repositories/<repo>/             independent clone per new component
+```
+
+This also applies to a single-repository ticket. Starting directly in a code repository
+still supports `docs/sdlc/features/`; existing deliveries keep their recorded layout.
+Resume from the ticket root, delivery directory, or a component below `repositories/`.
+Setup records component remotes and base commits, follows declared branch conventions,
+and keeps input material unchanged. Supplied ticket text or screenshots can be used when
+live lookup fails, with provenance and missing content recorded explicitly.
+
+At the PR gate, review the actual diff in the selected code-review surface or on the PR
+platform. The generated approval page supplies context; document annotation does not
+replace code review. Approval is recorded for the reviewed head and does not merge it.
+
+If a step repeatedly waits after tools have already completed, inspect runtime integration
+timeouts before changing models. An unavailable connector can delay tool-list refreshes
+even during local file work; the shared workflow reports that condition without changing
+global connection settings.
+
 The `sdlc-context` plugin manages the knowledge side:
 
 ```

@@ -4,7 +4,7 @@ description: Pipeline step 03 (COLLAB) — work through the question inventory w
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, alignment, discussion, collaborative
 ---
 
@@ -36,7 +36,7 @@ The inventory is the agenda, not a script: it seeds the conversation, and the co
 
 | Input | Description | Required |
 |---|---|---|
-| Feature folder | located via the manifest for the current branch | yes |
+| Feature folder | located via the selected delivery manifest | yes |
 | Human | this step takes turns with a person | yes |
 
 ## Required context

@@ -19,14 +19,34 @@ It also preserves the **original input verbatim** — the source of truth agains
 
 | Section | Required | Content |
 |---|---|---|
-| frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **folder** (repo-relative feature-folder path — authoritative for every step), created, url, **status** (`in-progress` \| `blocked` \| `done`), **profile** (see below) |
+| frontmatter | yes | ticket, title, cycle (`YYYY-MM`), branch, **workspace_root** (relative to this manifest), **folder** (relative to that root), created, url, **status** (`in-progress` \| `blocked` \| `done`), **profile** (see below) |
+| context trace | new runs | `Context loaded:` naming setup/branch rules read, or the explicit no-registry declaration |
 | `## Start here` | yes | three to five links: the current plan, the latest research, the pre-read page — navigation only, nothing that can drift |
 | `## Original input` | yes | ticket text or brain dump, **unmodified** |
-| `## Component repositories` | yes | one row per participating repository: component, relative location, delivery role; a single-repo story has exactly one row with location `.` |
+| `## Input provenance` | new runs | source paths or ticket URL, lookup/verification status and date, failure reason and unresolved missing content |
+| `## Component repositories` | yes | one row per component: manifest-relative location, verified remote, selected base ref and commit, delivery role |
 | `## Artifact ledger` | yes | one row per artifact: status, artifact, purpose; only `00-manifest.state.md` is `present` at creation |
-| `## Work-package ledger` | yes | one row per work package: ID, pull request, target component, status, depends on, blocked by; a single-PR story has exactly one row |
+| `## Work-package ledger` | yes | one row per package: ID, PR, component, status, dependencies, blockers and human review; a single-PR story has one row |
 | `## Blockers` | when blocked | append-only; one entry per blocker — see below |
 | `## People` | no | who clarifies, implements, reviews |
+
+Path meanings and legacy handling are defined once in the [catalog](README.md#workspace-location-and-paths).
+New fields are required for new setup; existing manifests retain their path meanings and
+are not rewritten merely to resume. A blank `branch` is valid before package branches
+are selected in a ticket-root delivery.
+
+Input provenance distinguishes a successful live lookup from supplied material. A failed
+lookup followed by a readable supplied snapshot records `not verified against live ticket`,
+without changing the ticket to `none`. Screenshot text is labeled as a transcription and
+links the unchanged image; clipped text is an unresolved gap, never reconstructed. Later
+verification adds a dated provenance note and routes conflicts through alignment; it never
+silently replaces Original input. A usable snapshot permits research; missing requirements
+or source conflicts must be settled before design approval.
+
+The package row's `Human review` starts as `pending`. Step 08 records the outcome and,
+for approval, the human, date, PR URL and reviewed head commit there. Add this column to a
+legacy ledger when recording its next review, not merely on resume. A changed head makes
+the previous approval stale; it cannot authorize the new code.
 
 ## The delivery profile
 
@@ -48,10 +68,12 @@ Entry fields: **Missing** (what, concretely) · **Needed from** (person / team /
 
 ## Quality criteria
 
-- [ ] Original input is byte-for-byte what came in. No cleanup, no summarising, no "fixing" typos — later verification depends on it.
-- [ ] Branch name and folder path match the frontmatter. In a one-package delivery `branch:` names that package's branch; with several packages it stays empty and the work-package ledger owns the branches.
-- [ ] `folder:` names the directory this file actually lives in, per the placement rule in the catalog README: the in-repo feature folder for a single-repository story, the sibling workspace folder for a cross-repository delivery. Every step and the orchestrator treat it as authoritative; nothing re-derives the location, and nothing is ever written next to the input source.
+- [ ] Supplied text is preserved verbatim. Image transcriptions identify the unchanged source and any unreadable or missing text.
+- [ ] Branch name and folder path match the frontmatter. In a one-package delivery `branch:` names the package branch once created; before then it may be empty. With several packages it stays empty and the plan's package sections name the branches.
+- [ ] `workspace_root` and `folder` resolve back to this file's actual directory per the catalog path contract; legacy manifests retain their existing meanings.
 - [ ] Every component repository is declared by a portable relative path; absolute paths are prohibited.
+- [ ] New component rows record verified remotes and base refs/commits; a parent notes repository is not mistaken for a component.
+- [ ] New setup records input provenance and the registry/branch rules consulted.
 - [ ] The work-package ledger's state fields (PR link, merge commit, blocker, dependency) are the single source for package state; other artifacts reference the row, never duplicate it.
 - [ ] `status: blocked` if and only if at least one Blockers entry is unresolved.
 - [ ] The profile is recorded at creation and never re-asked; absent answers use the defaults.
@@ -66,7 +88,8 @@ ticket: <ID | none>
 title: <title>
 cycle: <YYYY-MM>
 branch: <branch-name>
-folder: docs/sdlc/features/<YYYY-MM>/<story-slug>
+workspace_root: ..
+folder: delivery
 created: <YYYY-MM-DD>
 url: <ticket link, empty for free text>
 status: in-progress
@@ -78,6 +101,8 @@ profile:
 
 # Story: <title>
 
+Context loaded: <setup and branch rules read, or explicit none>
+
 ## Start here
 
 - [Plan](3-planning/05-implementation.plan.md) · [Current state](1-research/01-current-solution.research.md) · [Full target solution](2-specification/03-target-solution.view.html) · [Design approval pack](2-specification/03-human-decision-gate.view.html)
@@ -86,11 +111,18 @@ profile:
 
 <ticket text or brain dump, unmodified>
 
+## Input provenance
+
+- Source: <ticket URL or path relative to this manifest>
+- Verification: <live ticket checked | supplied input, not verified against live ticket | free text>
+- Checked on: <date> · Lookup failure: <exact reason, or none>
+- Unresolved source gaps: <missing or clipped content, or none>
+
 ## Component repositories
 
-| Component | Relative location | Delivery role |
-|---|---|---|
-| <the repository> | `.` | <its role — a single-repo story has exactly this one row> |
+| Component | Relative location | Remote | Base ref | Base commit | Delivery role |
+|---|---|---|---|---|---|
+| <the repository> | `../repositories/<repo>` | <verified remote, no credentials> | <selected ref> | <resolved commit> | <its role> |
 
 ## Artifact ledger
 
@@ -119,9 +151,9 @@ profile:
 
 ## Work-package ledger
 
-| ID | Pull request | Target component | Status | Depends on | Blocked by |
-|---|---|---|---|---|---|
-| WP-01 | <link once open> | <component> | planned | none | none |
+| ID | Pull request | Target component | Status | Depends on | Blocked by | Human review |
+|---|---|---|---|---|---|---|
+| WP-01 | <link once open> | <component> | planned | none | none | pending |
 
 ## Blockers
 

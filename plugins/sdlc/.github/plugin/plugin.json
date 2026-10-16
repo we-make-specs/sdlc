@@ -1,7 +1,7 @@
 {
   "name": "sdlc",
-  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
-  "version": "0.7.1",
+  "description": "Controlled delivery with explicit workspace setup, independent review, and human approval.",
+  "version": "0.7.2",
   "author": {
     "name": "Markus-Arndt"
   },

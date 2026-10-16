@@ -4,7 +4,7 @@ description: Pipeline step 02 (AUTO) — read the story the way a skeptical impl
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, analysis, questions, gap-hunting
 ---
 
@@ -36,7 +36,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 
 | Input | Description | Required |
 |---|---|---|
-| Feature folder | located via the manifest for the current branch | yes |
+| Feature folder | located via the selected delivery manifest | yes |
 | Codebase | read/search access | yes |
 
 ## Required context
@@ -57,7 +57,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 
 ## Workflow
 
-1. **Rehydrate.** Feature folder or manifest missing → abort with a clear error. Read the original input and the current-state research fully.
+1. **Rehydrate.** Feature folder or manifest missing means abort with a clear error. Read the original input, its provenance and the current-state research fully. Carry missing or clipped source content into the question inventory; do not treat a supplied snapshot as a successful live lookup or repeatedly retry an integration already recorded as unavailable.
 2. **Decompose the story into atomic claims.** Every sentence that asserts a behaviour, a constraint, or a scope boundary becomes one numbered claim. This list is the working surface for the hunt, and it is recorded as the inventory's atomic-claims table; entries cite these IDs in their Evidence.
 3. **Run every probe in the hunt table** over the claims and the current state. Top to bottom, skip none.
 4. **Write each finding as a self-contained entry** per the contract: tier, track, category, context, evidence per the shared evidence rules (claim IDs plus evidence IDs resolving in the inventory's source map), the question itself, options with trade-offs, your own recommendation — and, where you can answer with high confidence yourself, a proposed answer for the human to merely confirm.

@@ -39,7 +39,7 @@ steps:
     isolation: subagent
     model: fast
     skippable: false
-    outputs: [00-manifest.state.md]
+    outputs: [00-manifest.state.md, AGENTS.md]
 
   - id: "01"
     skill: 01-research-current-solution

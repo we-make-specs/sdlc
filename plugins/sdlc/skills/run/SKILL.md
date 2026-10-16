@@ -4,7 +4,7 @@ description: Drive a ticket or free-text brain dump through the agentic delivery
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: orchestration, pipeline, sdlc, workflow
 ---
 <!-- prework:orchestration-design -->
@@ -37,27 +37,29 @@ Runs the delivery pipeline defined in `workflow.yml`: determines the next step f
 | Input | Description | Required |
 |---|---|---|
 | Ticket or text | ticket ID, ticket URL, or a free-text description | yes, for a new run |
-| — | for a resume, the current branch and feature folder are enough | — |
+| Existing delivery | selected manifest, delivery directory, or ticket root | for a resume |
 
 ## Required context
 
 - `../../workflow.yml` — step order, type, isolation, model tier, outputs to validate
 - `../../artifact-definitions/README.md` — the artifact chain and its cross-cutting rules
-- The repo's **`## Context Registries`** declaration (in its `AGENTS.md`) — how registry knowledge reaches steps; consulting it is each step's own duty, and the orchestrator's only part is grepping for the `Context loaded:` trace each step leaves.
+- The workspace and component **`## Context Registries`** declarations, or settled inputs
+  for a new root. Each step reads the relevant registry articles; the orchestrator passes
+  the declarations and checks the `Context loaded:` trace.
 
 ---
 
 ## Workflow
 
-1. **Resume or start.** Locate the workspace: a `00-manifest.state.md` in the current directory wins (the sibling-workspace case); otherwise find the one under `docs/sdlc/features/**` whose `branch` matches the current branch. Its `folder:` field is authoritative for the whole run. **Read `status:` first:** `blocked` → do not advance; present the unresolved Blockers entries with their escalation lines and stop — the run continues only after a human marks the blocker resolved. On a 0.7.0 workspace, run `scripts/migrate_state_070_to_071.py` once for every schema-version-1 decision or review state before selecting the next action. The script preserves exact `.v0.7.0.json` backups, reopens design approval for the new human summaries, and resumes legacy review before trial building; report this plainly and never hand-convert state. Otherwise select the next action with the three questions under "Selecting the next action" below. No separate state file — the folder is the state. If no manifest matches the current branch, this is a new run: begin at step 00. **Never take the feature-folder path from the kickoff prompt** — where a story comes from (a seed file, a ticket) is not where artifacts go.
-2. **Collect the delivery profile at kickoff.** For a new run in an interactive session, ask the three profile questions the manifest contract defines (PR audience, review placement, questioning mode) before invoking step 00, and pass the answers along for it to record. Headless, or when the human gives no preference: the defaults apply silently. Never re-ask on a resume — the manifest already carries the profile.
+1. **Resume or start.** Use the catalog's [workspace discovery and path rules](../../artifact-definitions/README.md#finding-an-existing-delivery), including a selected ticket root's `delivery/` and existing in-repo layouts. Do not confuse a notes repository with a component, or an input-file path with a workspace selection. Ambiguous matches stop for a location; they never trigger a new run. Keep an existing manifest's paths. **Read `status:` first:** `blocked` means present the unresolved Blockers entries and stop until the missing input is supplied or the human resolves the blocker. On a schema-version-1 workspace, run `scripts/migrate_state_070_to_071.py` once for its decision/review states before selecting the next action. This preserves exact backups and reopens approval; report that plainly and never hand-convert state. Otherwise select the next action with the three questions below. Only a confirmed new delivery begins at step 00.
+2. **Settle kickoff inputs.** Reuse the user's selected ticket root, component sources, base refs, registry entries and entry-file choice. For a new ticket root, propose the catalog layout with `AGENTS.md`; ask only for missing or conflicting choices, not for preferences already supplied. Collect the three delivery-profile choices from the manifest contract (PR audience, review placement, questioning mode); use its defaults when no preference is given. In an unattended run, missing root/source choices are blockers. Pass the settled inputs to step 00, which owns cloning, branches and setup writes. Never re-ask or relocate a delivery on resume.
 3. **Announce the step** (number, name, type) so the run stays legible.
 4. **Invoke the step skill** with ticket and branch context, using the model tier configured for it in `workflow.yml`. Steps 06 to 09 additionally receive the selected package ID (implicit when the plan has one package).
-   - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism (Claude Code: the Task tool · Copilot CLI: a task-tool subagent) and hand it the **step-runner prompt below**, its four slots filled. The step inherits nothing else — it rehydrates from disk, and that isolation is what the blinded review depends on.
+   - Steps marked `isolation: subagent` run in a **fresh subagent context**: spawn one with the runtime's generic delegation mechanism and hand it the **step-runner prompt below**, with its paths and inputs resolved. The step rehydrates from its declared inputs; independent review remains blind to implementation framing.
    - An `sdlc-step` agent profile is an **optional container** for tool scoping and per-step model routing — when the runtime knows one (user-level `~/.claude/agents/` / `~/.copilot/agents/`, or repo-level), delegate into it, still sending the full step-runner prompt. No profile is required: the rules travel in the prompt, not the profile.
    - Steps marked `isolation: main` (collab, gate) run live in this session — never delegate a step a human takes part in.
-5. **Validate.** After any step that declares `outputs` — auto or collab — check that every declared output exists **inside the manifest's `folder:`**. Expand `<package-id>` with the selected package ID. Missing → stop and report; never silently continue. For JSON state, run the validator named by the producing skill; existence alone is insufficient. One grep-check of the same class: after any step past 00 with `.md` outputs, its first declared `.md` output contains a `Context loaded:` line. Absent → stop and report — the step skipped its context registries. (Step 00 is exempt: the manifest carries no registry context.)
-6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. Collab steps run **live in this session** — the orchestrator conducts them itself: announce the step and begin; in an unattended leg, stop there and ask the human to join. Collab quality depends on the session's model — when it is below the step's tier in `workflow.yml`, say so up front; the human can switch models or accept it, and a collab step's artifact write-up may be delegated to a fresh strong-tier subagent where the step's skill allows it.
+5. **Validate.** Check every declared output inside the resolved manifest directory, expanding `<package-id>` for the selected package. Missing outputs stop the run. Run the producing skill's validators for JSON state; existence alone is insufficient. Verify the `Context loaded:` trace in each step's first `.md` output, including a newly created step-00 manifest. Legacy manifests need no trace retrofit on resume. After new setup, also verify the root/folder round trip, component identities and bases, and phase directories. A source snapshot is valid only with provenance and unresolved gaps recorded; it is not evidence that live ticket lookup succeeded.
+6. **Hand over for humans.** Gate steps present their briefing and wait for an explicit decision. The review surface follows what is reviewed: questions/specifications use document annotation when selected; step 08 uses the actual PR diff or explicit approval in chat after the human reviews it. `questioning` does not select a PR review mode. Collab steps run live in this session; in an unattended leg, stop for the human. When the session is below the configured model tier, say so; the human can switch or accept it. Delegate a collab artifact write-up only where that step permits it.
 7. **Report** after each step: step, outcome, artifacts written, what comes next.
 
 ### Step 07: independent, risk-scaled review
@@ -97,24 +99,30 @@ Two safety rules on top:
 
 ### The step-runner prompt
 
-Every subagent delegation carries this prompt verbatim, slots filled. It lives here and only here — it ships and updates with the plugin, so no repo or machine needs extra files for it.
+Every subagent delegation carries this prompt, slots filled. For step 00, the feature
+folder is the proposed location and the component list may include verified remotes to
+clone; pass all settled kickoff inputs. Later steps use the manifest's resolved paths.
 
 ```text
 You execute one step of the SDLC delivery pipeline, alone, in a fresh context.
 
 Step skill: <path to the step's SKILL.md>
 Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
+Workspace root: <path> · Component repositories: <resolved paths or setup sources>
 
 1. Read the skill file completely and follow it exactly — its workflow, constraints,
    and success criteria are your entire job description.
-2. Rehydrate only from disk: the feature folder's artifacts, whatever the skill
-   names as required context, and the context registries the repo declares in its
-   `## Context Registries` section — consulted per that procedure.
+2. Rehydrate from the declared inputs: the feature folder's artifacts (or supplied
+   seed material for step 00), the skill's required context, and the workspace and
+   component context declarations. Read each entry file explicitly; changing a
+   shell directory does not prove its instructions were loaded.
    You inherit nothing from the session that spawned you — that isolation is
    deliberate; do not ask it for more context.
-3. Write only the artifacts the skill declares, per their contracts, inside the
-   feature folder — never outside the working repository — and update only your
-   own manifest ledger rows.
+3. Write artifacts inside the resolved feature folder and update only your own
+   manifest ledger rows. Run artifact validators there; run Git/build commands
+   inside the declared component. Source edits, setup writes and review trials
+   are allowed only where the step's contract authorizes them. Keep input files
+   unchanged and external delivery artifacts out of component commits.
 4. Ask no human questions. Anything undecidable goes into the artifact the skill
    designates for open points, marked as such. If you are blocked, append a Blockers
    entry to the manifest (what is missing · needed from · blocking step · since ·
@@ -128,13 +136,35 @@ Ticket: <ticket> · Branch: <branch> · Feature folder: <path>
 
 An unattended runtime cannot answer permission prompts — a gated tool call fails closed, mid-step. Two rules keep that survivable:
 
-1. **Preflight before step 00.** Verify with harmless probes that the run has what the steps will need: read/write inside the repo and the feature folder · the git command set (status, branch, checkout, add, commit, push) · the PR tool for steps 06–08 · build/test commands for step 06. Also verify the runtime lists exactly **one** installed sdlc-family plugin, this copy, `sdlc`; a second one (another installed copy of this pipeline, or a stale version) means two competing step catalogs answering the same intent. Anything missing → stop *before* starting, and name it.
+1. **Preflight before step 00.** Verify with harmless probes the paths and tools needed now: access to the selected root and components, Git and clone access for missing components, and readable supplied input. Check PR/build tools when their steps need them; do not require a build command before the code repository exists. Verify that exactly one installed pipeline copy answers the step names. Missing requirements stop the run with their names.
 2. **A denial is a blocker, not an obstacle.** On "permission denied / could not request permission": stop the run and report the exact tool, command, or path that needs pre-approval. Never route around a denial with a different tool — that trades a visible failure for an invisible gap.
 
 How to pre-approve depends on the runtime:
 
-- **Copilot CLI** — start the session **in the target repo** (file access defaults to the working directory and below). Pre-approve per run, e.g. `--allow-tool 'shell(git:*)' --allow-tool 'read' --allow-tool 'write'` (plus `--deny-tool` exceptions), or `--allow-all-tools` for a throwaway demo repo — or approve interactively once: per-location approvals persist in `~/.copilot/permissions-config.json`.
+- **Copilot CLI:** start in the selected workspace root so its delivery folder and nested
+  components are in scope. Verify access separately for explicitly selected components
+  elsewhere. Pre-approve the required paths and commands through the host's permission
+  controls; per-location approvals persist in `~/.copilot/permissions-config.json`.
 - **Claude Code** — permission rules in the repo's `.claude/settings.json` (`permissions.allow`, e.g. `Bash(git:*)`), or per run via `--allowedTools` / the permission-mode flags.
+
+### Unavailable integrations and slow steps
+
+These rules apply in interactive and unattended runs. Try a required integration once
+with a bounded timeout. If it is unavailable, report the failing integration and use the
+step's documented supplied-input path where one exists. Otherwise record a blocker. Do
+not silently retry on every step, call a fallback a live verification, or change global
+connection settings. A fresh session without an optional failing integration may be
+needed; use the host's supported controls rather than inventing a bypass.
+
+When a step stalls, inspect available timestamps before changing model tiers or reducing
+research scope. Separate model-call time, tool execution, startup and gaps between calls.
+Repeated gaps after completed tools can come from runtime tool-catalog refreshes even
+when the step never calls that integration. Report matching timeout evidence and the
+needed host recovery; a prompt cannot repair a runtime retry loop. Restrict delegated
+tools to the step's needs when the host supports it, but verify that this also prevents
+unwanted connections before claiming it fixes latency. Keep runtime-specific settings
+out of the shared plugin. A blocked step returns its existing artifacts and blocker;
+never invent completed work to escape a timeout.
 
 ### When a human is needed
 
@@ -161,13 +191,20 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 ## Constraints and guardrails
 
 - **Never approve a gate.** Gates are human decisions; ambiguous praise is not approval.
-- **Never mutate the working tree.** The orchestrator reads state; it does not checkout, pull, fast-forward, or switch branches. Tree changes belong to step 00, inside its subagent.
-- **Artifacts live in the feature folder, inside the working repository.** A path outside the repo root — a seed folder, another checkout — is invalid even when the kickoff prompt points there; stop and correct rather than write.
+- **Delegate repository mutations.** Step 00 owns checkout preparation; implementation,
+  review trials and merging stay with their designated steps. The orchestrator does not
+  clone, switch branches or repair a failed step itself.
+- **Artifacts live in the resolved feature folder.** It may be outside component
+  repositories. Keep the catalog's path bases, input protection and resume rules; never
+  substitute the current working directory or derive placement from repository count.
 - **Never run a subagent step inline.** Executing it in this session leaks the orchestrator's context into the step; if the runtime offers no delegation mechanism, say so and let the human start the step in a fresh session instead.
 - **Never skip a failed validation.** If outputs are missing, stop and say so — do not paper over it.
 - **A blocker that is not in the manifest does not exist.** When a step reports one, verify the Blockers entry and `status: blocked` are on disk, like any declared output — failure must survive this session, because the next orchestrator may be a script or a CI job reading only the file.
-- **Never resolve context.** Which registries the repo declares lives in its `## Context Registries` section; which articles a step reads is that step's own lookup. The orchestrator greps for the trace (`Context loaded:` lines) and nothing more — anything an orchestrator would have to *compute* belongs in a step or in a file, or the next orchestrator (a script, a CI job) has to reimplement it.
-- **Stay thin.** Carry only ticket, branch, and folder. All real content lives on disk; once a step returns, its artifact is the record.
+- **Pass declarations, not invented context.** Kickoff supplies registry entries and
+  entry-file choices to setup. Each step reads the applicable root/component declarations
+  and selects its own articles; the orchestrator verifies the recorded trace.
+- **Stay thin.** Carry ticket, selected paths, component sources and settled kickoff
+  choices. Once a step returns, its artifact is the record.
 - **Do not do step work.** If a step fails, report it — do not finish the job yourself.
 - **Respect skippable.** A step marked skippable may be skipped when clearly irrelevant — say so and why.
 
@@ -177,7 +214,9 @@ Then offer concrete options with a recommendation. Never "how should I proceed?"
 
 - [ ] Every step announced before it runs
 - [ ] Every auto step's outputs validated before advancing
-- [ ] Each `.md`-producing step's `Context loaded:` line verified — by grep, never by resolving anything
+- [ ] Each `.md`-producing step's context trace verified, including new setup manifests
+- [ ] New ticket-root setup and legacy resume use the same explicit path contract
+- [ ] Offline ticket input is labeled, and repeated integration failures are surfaced
 - [ ] Both gates stopped for an explicit human decision
 - [ ] A resumed run continued at the correct step without redoing finished work
 - [ ] Package-tail steps carried the selected package ID and updated only that package's rows

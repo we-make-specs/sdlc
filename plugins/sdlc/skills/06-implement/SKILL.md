@@ -4,7 +4,7 @@ description: Pipeline step 06 (AUTO) — execute one work package of the plan, o
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, implementation, commits, pull-request
 ---
 
@@ -33,7 +33,7 @@ Executes **one work package** of the plan, task by task and group by group, comm
 
 | Input | Description | Required |
 |---|---|---|
-| Feature folder | located via the manifest for the current branch | yes |
+| Feature folder | located via the selected delivery manifest | yes |
 | Codebase | full access: read, edit, build, test, git | yes |
 
 ## Required context
@@ -56,7 +56,13 @@ Executes **one work package** of the plan, task by task and group by group, comm
 ## Workflow
 
 1. **Rehydrate and select the package.** Parse the plan fully; missing or task-less → abort. A schema-version-1 decision manifest must first use the backup-first `migrate_state_070_to_071.py` path and return to gate 04. Validate `03-decision-manifest.state.json --phase downstream`; failure means no code may change. Locate the named package section (the only one, when the plan has one); a plan with several packages and no package ID → abort, the orchestrator selects. Verify the package is ready: every prerequisite package merged, every readiness gate resolved — otherwise abort naming what is unmet.
-2. **Enter the package's repository and branch.** Open the target component repository the package declares, read and follow its own instructions, and create the package branch from its declared base. A stacked base (another package's branch) is valid only when the plan explicitly declares it, and carries the duty to rebase onto the main branch after the prerequisite merges.
+2. **Enter the package's repository and branch.** Resolve the component from the manifest,
+   verify its remote and current checkout, and read its own instructions. Create the
+   package branch from the plan's declared base using its applicable branch convention.
+   Reuse an existing matching package branch without resetting it; conflicting identity
+   or local changes stop for resolution. A stacked base is valid only when explicitly
+   planned, with rebase onto the default branch after the prerequisite merges. Keep
+   artifact commands in the feature folder and source/build commands in this component.
 3. **Group.** Bucket the package's tasks by group, respect order and dependencies. Tasks already ticked from a previous partial run are skipped and treated as done.
 4. **Per task:** before editing, compare any newly relevant rule or repository pattern with the decision manifest and the plan's recorded reason. A conflict that could change approved behavior, security, public contract, architecture, data, or operations is not an implementation choice: append an `IMPLEMENTATION` semantic change, reopen the focused human decision, set approval `REOPENED`, mark dependents `needs-revalidation`, and stop with the baseline untouched. Otherwise do the work per approved rules and surrounding code. Keep application ports named for use-case intent rather than adapter mechanism. Apply the planned mapper strategy; a new unexplained switch between generated and manual mapping stops for reconciliation. Add short one-line intent or invariant comments before long logical blocks when the plan calls for them, never syntax narration. Run formatter, linter, and the narrowest relevant tests → **verify the done-when literally** (file exists → check it; test passes → run it; unverifiable → treat as failed) → stage only that task's files → commit → append the progress-log line, naming the exact verification command and its result, and tick the checkbox. Do not rerun the complete package suite after every task.
 5. **Blocked task:** never silently skip. Record `WARN T<id>:` in the progress log and continue with independent tasks. If a long dependent chain is blocked, stop there and note the blocker. **If nothing was implementable** — the first task or the whole chain is blocked — append the blocker to the manifest's Blockers section with `status: blocked`, and return it as the step outcome so the orchestrator stops the run naming it.

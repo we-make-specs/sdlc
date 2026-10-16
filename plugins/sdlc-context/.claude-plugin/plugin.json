@@ -1,7 +1,7 @@
 {
   "name": "sdlc-context",
-  "description": "Context-registry lifecycle for the agentic SDLC: scaffold a registry, connect project repos to their registries, and keep indexes, links, and crosslinks current.",
-  "version": "0.3.0",
+  "description": "Context-registry lifecycle: scaffold registries, connect project or delivery roots, and maintain indexes and crosslinks.",
+  "version": "0.3.1",
   "author": {
     "name": "Markus-Arndt"
   },

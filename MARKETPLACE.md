@@ -52,6 +52,11 @@ The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; tw
 
 The catalog also carries `sdlc-context`, the registry lifecycle plugin (`/sdlc-context:create`, `/sdlc-context:connect`, `/sdlc-context:update-index-and-crosslinks`). It installs alongside any pipeline copy.
 
+The current source release pairs `sdlc` 0.7.2 with `sdlc-context` 0.3.1. Both support
+delivery roots alongside code repositories. The mirrored catalog records both versions;
+the native catalog resolves the same plugin directories and reads their native manifests.
+Existing deliveries retain their recorded layout when either plugin is updated.
+
 **VS Code:** add the repo URL to `chat.plugins.marketplaces` in `settings.json`, then install from the Extensions view (`@agentPlugins`). Agent plugins are in preview — `chat.plugins.enabled` must be on.
 
 > Plugins are cached. After editing anything here, re-run the install command.
