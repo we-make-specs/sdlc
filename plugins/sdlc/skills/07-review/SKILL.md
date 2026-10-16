@@ -4,7 +4,7 @@ description: Pipeline step 07 (AUTO) — independent, risk-scaled review with ev
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, review, quality-gate, evidence, risk-scaled
 ---
 
@@ -155,7 +155,9 @@ tests, and binding evidence; send a concrete challenge back to the evidence chec
 
 For `LIGHT`, create one temporary shared trial branch from the implementation commit and apply the
 smallest coherent correction for all compatible findings. For `FULL`, create an isolated worktree
-from that commit. Preserve every approved semantic not named by the evidence check. Run only targeted
+from that commit. In a ticket-root delivery, create it under that root's `repositories/`
+using the declared component clone, never another ticket's checkout. Preserve every
+approved semantic not named by the evidence check. Run only targeted
 tests and checks while building the trial. Record one top-level `trialFixes` entry and link findings
 to it by ID; never copy the same trial object into each finding.
 

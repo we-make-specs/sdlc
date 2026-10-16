@@ -33,6 +33,11 @@ Read [00-manifest.state.md](00-manifest.state.md) before anything else: it holds
 the identity, the participating repositories, the artifact ledger, and the
 work-package ledger. It links everything worth opening.
 
+Resolve workspace and component paths using the manifest's declared path bases.
+Run artifact tools here and Git/build commands in the target component.
+Read the workspace root's entry file and the component's own instructions,
+including their context declarations; do not rely on automatic loading.
+
 ## Operating rules
 
 - The manifest's ledgers are the single source for artifact and package state;

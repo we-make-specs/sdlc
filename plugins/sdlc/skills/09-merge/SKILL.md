@@ -4,7 +4,7 @@ description: Pipeline step 09 (COLLAB) — present the ready pull request, pair-
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, merge, collaborative, final-gate
 ---
 
@@ -52,6 +52,10 @@ For follow-up questions consult the pull-request body; do not open the plan unle
 ---
 
 ## Workflow
+
+Before presenting a merge, compare the current PR head and checks with the package's
+recorded human review. Code changed since approval returns through the applicable review
+and approval steps. Do not carry an old-head approval across new fixes or a rebase.
 
 1. **Present the state** in one consolidated message: title and ticket · the PR link with state, mergeability, and any red checks · the agent verdict plus summary · inline comments as a list `file:line — first sentence` (first few, then a count) — then ask with concrete options: "A: inspect more · B: implement changes · C: prepare the merge · D: defer."
 2. **Pair-program requested fixes.** Answer precisely, quoting `path:line`. Make the change, **actually run the verification it calls for**, and report honestly. Stage only touched files, commit, push, re-check CI. A failing hook → fix the cause and make a **new** commit; never amend, never skip.

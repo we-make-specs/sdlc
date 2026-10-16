@@ -4,7 +4,7 @@ description: Pipeline step 04 (GATE) — guide the human through the complete ta
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, gate, approval, human, decision-manifest
 ---
 
@@ -63,6 +63,9 @@ advance to planning.
    answer or an explicit deferral. Missing promised inputs, malformed state, count mismatches, or an
    `OPEN` feedback batch return to step 03. The validator also proves that the two HTML pages exactly
    match their current sources. Do not compensate with a prose summary.
+   Check Original input and its provenance too. Unresolved missing requirements or source
+   conflicts return to alignment. A supplied snapshot can be the agreed source without a
+   live ticket lookup; record that human decision and keep the unverified label honest.
 2. **Present only the orientation in chat:**
 
    ```text
@@ -78,6 +81,8 @@ advance to planning.
    summary. The pack then presents all ticket criteria with short meanings, reasons, and priorities.
    `CRITICAL`, `IMPORTANT`, and `SUPPORTING` control reading order only; every criterion remains a
    delivery promise unless the human explicitly changes it.
+   When document annotation is selected, open these specification views in annotation
+   mode. PR/code review is reserved for the implemented diff at step 08.
 3. **Close focused decisions one at a time.** For each unresolved `HUMAN_REQUIRED` item, show its
    question, options, consequences, recommendation, strongest counterargument, source conflict and
    risk dimensions. Record the chosen option, rationale, human name/handle and date immediately. A

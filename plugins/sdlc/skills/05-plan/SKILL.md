@@ -4,7 +4,7 @@ description: Pipeline step 05 (AUTO) — turn the approved alignment artifacts i
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.1'
+  version: '0.7.2'
   tags: sdlc, step, planning, tasks
 ---
 
@@ -33,7 +33,7 @@ Turns the approved design into the single work list implementation executes: tas
 
 | Input | Description | Required |
 |---|---|---|
-| Feature folder | located via the manifest for the current branch | yes |
+| Feature folder | located via the selected delivery manifest | yes |
 | Codebase | read access, to verify paths and patterns | yes |
 
 ## Required context
@@ -66,6 +66,11 @@ Turns the approved design into the single work list implementation executes: tas
 4. **Stop on a newly discovered conflict.** When planning discovers a previously unrecorded binding, missing, or conflicting rule—or a reference implementation that challenges an approved choice—append the rule and a `PLANNING` semantic change, create or reopen the smallest affected `HUMAN_REQUIRED` decision, set approval to `REOPENED`, mark dependent unmerged packages `needs-revalidation`, and stop for focused gate 04. Never rationalize the approved design after the fact and never silently switch patterns. An advisory rule that changes no approved semantics may be classified and recorded without reopening.
 5. **Freeze the cut and draft the tasks.** Copy the agreed cut from the work breakdown into the plan's package sections the way ACs are copied: same packages, same dependencies, no reinterpretation. Each package's Primary ACs must exactly match its approved `packageAcceptanceCriteria` entry in the decision manifest; drift reopens alignment instead of being hidden in the review-blinded plan. A technical-analysis finding that changes the cut goes back through the breakdown's open decisions, not silently into the plan. Then draft each package's tasks. Application port names describe the use case's intent rather than the adapter mechanism; for an outbox, prefer language such as `queue` over `persist`, and do not use `publish` when delivery happens later. When a service method has long logical blocks, include short one-line intent or invariant comments in the relevant task—never comments that merely narrate syntax. Be conservative with parallelism — same group only when tasks obviously touch disjoint files; when in doubt, sequential.
 6. **Draft advisor checks.** What a clean-context checker should confirm beyond the ACs. **Genuine ambiguity becomes a check** only when it cannot change approved semantics; semantic conflicts reopen their focused decision instead. Conditions outside the repository become **release readiness gates**, each with a named owner and what it blocks. Every planning-uncertainty entry from the technical analysis becomes a just-in-time check, phrased "immediately before T<n>, verify <fact>".
+   For a changed public response or event contract, plan one representative serialized
+   result checked against the actual published/generated schema or consumer contract,
+   including relevant empty, missing and null fields. Prefer the existing test setup;
+   model-object assertions or a green mocked call alone do not prove wire compatibility.
+   If no machine-readable contract exists, verify the agreed consumer-facing shape.
 7. **Write the plan** per its contract only after the decision manifest still passes `--phase downstream`, then mark the artifact present in the manifest ledger.
 
 ---

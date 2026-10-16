@@ -1,7 +1,7 @@
 {
   "name": "sdlc",
-  "version": "0.7.1",
-  "description": "Controlled delivery with risk-scaled evidence checks, full-design human approval, and hash-locked decisions.",
+  "version": "0.7.2",
+  "description": "Controlled delivery with explicit workspace setup, independent review, and human approval.",
   "author": {
     "name": "Markus-Arndt",
     "url": "https://github.com/we-make-specs"
@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "Agentic SDLC",
     "shortDescription": "Risk-scaled software delivery pipeline",
-    "longDescription": "Drive tickets through research, alignment, full-design approval, planning, implementation, independent evidence checks, and explicit human approval with validated artifacts on disk.",
+    "longDescription": "Drive tickets from delivery workspaces or existing repositories through research, alignment, full-design approval, implementation, independent review and explicit PR approval with validated artifacts on disk.",
     "developerName": "we-make-specs",
     "category": "Developer Tools",
     "capabilities": [
