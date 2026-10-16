@@ -4,7 +4,7 @@ description: Declare context registries for a project repository or delivery roo
 argument-hint: '[registry-url-or-path ...]'
 metadata:
   owner: Markus-Arndt
-  version: '0.3.1'
+  version: '0.3.2'
   tags: context-registry, wire-format, project-setup, sdlc
 ---
 

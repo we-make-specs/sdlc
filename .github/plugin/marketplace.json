@@ -5,19 +5,19 @@
   },
   "metadata": {
     "description": "Generic agentic software-delivery pipeline: orchestrator, delivery steps, and artifact contracts. Project-independent.",
-    "version": "0.9.1"
+    "version": "0.9.2"
   },
   "plugins": [
     {
       "name": "sdlc",
       "description": "Controlled delivery with explicit workspace setup, independent review, and human approval.",
-      "version": "0.7.2",
+      "version": "0.7.3",
       "source": "./plugins/sdlc"
     },
     {
       "name": "sdlc-context",
       "description": "Context-registry lifecycle: scaffold registries, connect project or delivery roots, and maintain indexes and crosslinks.",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "source": "./plugins/sdlc-context"
     }
   ]

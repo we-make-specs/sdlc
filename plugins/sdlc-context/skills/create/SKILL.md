@@ -4,7 +4,7 @@ description: Scaffold a new context registry at a target path, with the rulebook
 argument-hint: '[target-path]'
 metadata:
   owner: Markus-Arndt
-  version: '0.3.1'
+  version: '0.3.2'
   tags: registry, scaffolding, context, sdlc
 ---
 

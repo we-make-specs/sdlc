@@ -84,6 +84,28 @@ class PluginPackagingTests(unittest.TestCase):
             bodies.append(re.sub(r"<!--.*?-->", "", body, flags=re.DOTALL).strip())
         self.assertEqual(*bodies)
 
+    def test_namespaced_commands_cover_shared_skills(self):
+        for plugin in (ROOT / "plugins").iterdir():
+            if not plugin.is_dir():
+                continue
+            skills = {skill.parent.name: skill for skill in (plugin / "skills").glob("*/SKILL.md")}
+            commands = {command.stem: command for command in (plugin / "commands").glob("*.md")}
+            with self.subTest(plugin=plugin.name):
+                self.assertEqual(commands.keys(), skills.keys())
+            for name, command in commands.items():
+                with self.subTest(command=command.relative_to(ROOT)):
+                    text = command.read_text()
+                    self.assertTrue(text.startswith("---\n"))
+                    frontmatter, body = text.split("---", 2)[1:]
+                    command_name = f"{plugin.name}:{name}"
+                    self.assertRegex(frontmatter, rf"(?m)^name: {re.escape(command_name)}$")
+                    self.assertLessEqual(len(command_name), 64)
+                    self.assertRegex(frontmatter, r"(?m)^description: \S")
+                    targets = re.findall(r"\]\(([^)]+/SKILL\.md)\)", body)
+                    self.assertEqual(len(targets), 1)
+                    self.assertEqual((command.parent / targets[0]).resolve(), skills[name].resolve())
+                    self.assertNotIn("${CLAUDE_PLUGIN_ROOT}", text)
+
 
 if __name__ == "__main__":
     unittest.main()

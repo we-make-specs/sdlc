@@ -4,7 +4,7 @@ description: Pipeline step 08 (GATE) — render one deterministic PR decision pa
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.2'
+  version: '0.7.3'
   tags: sdlc, step, gate, approval, pull-request, human-view
 ---
 
