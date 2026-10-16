@@ -19,15 +19,6 @@ This repo is an agent plugin marketplace for agentic software delivery. It holds
 - Verify facts against the code, never against older documents.
 - Unfinished is marked `TODO:` - plausible filler is worse than a gap.
 
-## Git identity
-
-Use the GitHub account `mararn1618` for commits, pushes and pull requests in this
-repository, regardless of where the checkout lives.
-
-- Set repository-local `user.name` to `Markus Arndt` and `user.email` to `15421484+mararn1618@users.noreply.github.com`.
-- Verify both author and committer identity before committing; directory-based client settings must not override this identity.
-- Verify Git transport and pull-request authentication use `mararn1618` before remote writes. Keep identity overrides local to this repository.
-
 ## Three-target rule
 
 The marketplace installs in **Codex**, **Claude Code**, and **Copilot CLI / VS Code**. The skills remain shared; manifests follow each runtime's contract.
