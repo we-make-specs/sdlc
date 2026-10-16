@@ -4,7 +4,7 @@ description: Pipeline step 07 (AUTO) — independent, risk-scaled review with ev
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.2'
+  version: '0.7.3'
   tags: sdlc, step, review, quality-gate, evidence, risk-scaled
 ---
 

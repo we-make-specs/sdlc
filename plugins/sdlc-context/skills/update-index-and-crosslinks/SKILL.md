@@ -4,7 +4,7 @@ description: 'Maintenance pass for a context registry: syncs every two-level ind
 argument-hint: '[registry-root]'
 metadata:
   owner: Markus-Arndt
-  version: '0.3.1'
+  version: '0.3.2'
   tags: context-registry, index, crosslinks, maintenance
 ---
 

@@ -48,12 +48,13 @@ copilot plugin update sdlc
 copilot plugin update sdlc-context
 ```
 
-The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; two installed copies mean two competing step catalogs. The plugin name is the command prefix: `/sdlc:run`.
+The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; two installed copies mean two competing step catalogs. Use `/sdlc:run` to start or resume a delivery.
 
 The catalog also carries `sdlc-context`, the registry lifecycle plugin (`/sdlc-context:create`, `/sdlc-context:connect`, `/sdlc-context:update-index-and-crosslinks`). It installs alongside any pipeline copy.
 
-The current source release pairs `sdlc` 0.7.2 with `sdlc-context` 0.3.1. Both support
-delivery roots alongside code repositories. The mirrored catalog records both versions;
+The current source release pairs `sdlc` 0.7.3 with `sdlc-context` 0.3.2. Both include
+namespaced command aliases and support delivery roots alongside code repositories.
+The mirrored catalog records both versions;
 the native catalog resolves the same plugin directories and reads their native manifests.
 Existing deliveries retain their recorded layout when either plugin is updated.
 
@@ -76,12 +77,14 @@ plugins/sdlc/
   workflow.yml                           # pipeline manifest: order, type, model tier, outputs
   artifact-definitions/                  # ARTIFACT CONTRACTS — one file per artifact
   skills/                                # the orchestrator + eleven steps
+  commands/                              # namespaced aliases that load the shared skills
 plugins/sdlc-context/
   .claude-plugin/plugin.json             # Claude plugin manifest
   .github/plugin/plugin.json            # byte-identical Copilot mirror
   .codex-plugin/plugin.json              # native Codex plugin manifest
   reference.md                          # registry format and lifecycle rules
   skills/                               # create, connect, update-index-and-crosslinks
+  commands/                             # namespaced aliases that load the shared skills
 ```
 
 Claude and Copilot manifests are mirrored because those runtimes look in different places. Codex has a native manifest with its required interface metadata. Everything else — the skills, contracts, scripts, and `workflow.yml` — is shared verbatim.
@@ -94,7 +97,8 @@ Claude and Copilot manifests are mirrored because those runtimes look in differe
 - **Codex keeps its native manifest valid.** Run `python3 <plugin-creator-skill>/scripts/validate_plugin.py plugins/sdlc`; `.codex-plugin/plugin.json` explicitly declares the shared `skills/` path and UI metadata.
 - **Plugin skills stay format-neutral:** frontmatter is `name`, `description`, `argument-hint` only · siblings referenced relatively (`../../workflow.yml`), never via `${CLAUDE_PLUGIN_ROOT}` · no `hooks/` · no `.mcp.json`. Those are the only places the layouts genuinely differ — needing one means writing it once per format.
 - Claude-only frontmatter (`context: fork`, `agent:`, `model:`, `allowed-tools:`, `effort:`) never belongs in `plugins/`.
-- **No component paths in the Claude/Copilot `plugin.json` copies** — both runtimes discover `skills/` by convention, and the explicit syntaxes are not interchangeable. Codex's native manifest uses `"skills": "./skills/"`. After touching a manifest, run both the Claude validator and the Codex validator.
+- **No component paths in the Claude/Copilot `plugin.json` copies:** both runtimes discover `skills/` and `commands/` by convention. Codex's native manifest uses `"skills": "./skills/"` and does not load the command aliases. After touching a manifest, run both the Claude validator and the Codex validator.
+- **Keep command aliases thin.** Shared skills keep their unprefixed names. Each alias uses `<plugin>:<skill>` and loads the matching `SKILL.md` with the user's arguments and context. Do not copy workflow instructions into aliases.
 
 ---
 
@@ -120,13 +124,23 @@ See [`plugins/sdlc/skills/run/SKILL.md`](plugins/sdlc/skills/run/SKILL.md) for h
 
 ## Invoking it
 
-The plugin name is the command prefix and the skill's frontmatter `name` is the rest, so the everyday entry point is short:
+The public command uses the plugin name as its prefix:
 
 ```
 /sdlc:run <ticket-id | ticket-url | free-text description>
 ```
 
-The eleven steps are `/sdlc:00-create-workspace` … `/sdlc:10-post-mortem` — reach for one only to redo a single stage; normally `run` sequences them for you. Neither the skill names nor the numbers are repeated inside the skills: `workflow.yml` is the single source for step order, so renaming a step means editing it there and in that skill's frontmatter, nowhere else.
+The eleven steps are `/sdlc:00-create-workspace` through `/sdlc:10-post-mortem`. Use one to redo a single stage; normally `run` sequences them for you. `workflow.yml` remains the source for step order. When renaming a skill, update its directory, frontmatter, workflow entry and command alias together.
+
+Copilot CLI reads skill names directly, so an unprefixed `name: run` appears as `/run`.
+The `commands/` aliases add `/sdlc:run` and the other qualified names while keeping the
+bare commands available. Claude Code resolves each alias to the same command name as
+its skill, without a second menu entry. Codex continues to load only the shared skills
+and supplies its own namespace. Prefixing the shared skill names would double that
+namespace in Codex.
+
+After updating both plugins, start a new session. Check `copilot skill list` for
+`sdlc:run`, the eleven prefixed steps, and all three `sdlc-context:` commands.
 
 ---
 

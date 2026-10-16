@@ -166,11 +166,13 @@ Claude Code, inside a session:
 /plugin install sdlc-context@agentic-sdlc-marketplace
 ```
 
-The plugin name is the command prefix. After install, the pipeline commands appear as
-`/sdlc:...` and the registry commands as `/sdlc-context:...`.
+After install, use `/sdlc:...` for the pipeline and `/sdlc-context:...` for the registry
+commands. The packages include command aliases so these names also work in Copilot CLI,
+which otherwise exposes the shared skills as bare names such as `/run` and `/connect`.
 
 Plugins are cached. If you change anything in this repo, re-run the install (or update)
-command to pick it up.
+command to pick it up, then start a new session. In Copilot CLI, `copilot skill list`
+should include `sdlc:run` and `sdlc-context:connect` after the update.
 
 ### Use
 

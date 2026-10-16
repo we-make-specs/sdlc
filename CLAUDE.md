@@ -14,7 +14,7 @@ This repo is an agent plugin marketplace for agentic software delivery. It holds
 ## Rules
 
 - **Separation principle:** a skill never carries project knowledge, it points at the registry. A repo declares its registries in a `## Context Registries` section in its root instruction file (written by `/sdlc-context:connect`); agents entering the repo follow that procedure, navigating each registry's `index.md` tables to the articles their task needs. The registry format is defined in `plugins/sdlc-context/reference.md`.
-- **Skill names carry no prefix.** The command is `<plugin name>:<frontmatter name>`, so a skill called `sdlc-04-plan` inside plugin `sdlc` would read `/sdlc:sdlc-04-plan`. Step skills are named for their number alone (`04-plan`); the entry point is `run`.
+- **Shared skill names carry no prefix.** The entry point is `run`; step names match their directories. Codex and Claude Code add the plugin namespace, while Copilot CLI uses the frontmatter name directly. Each skill also has a thin `commands/<skill>.md` alias with `name: <plugin>:<skill>` for the same public command. Aliases only load the shared skill and pass through the request; keep workflow logic in `SKILL.md`.
 - Navigate a registry via its index.md tables (two levels deep, no Last Read tracking); the format is defined in `plugins/sdlc-context/reference.md`.
 - Verify facts against the code, never against older documents.
 - Unfinished is marked `TODO:` - plausible filler is worse than a gap.
@@ -38,6 +38,6 @@ Codex's `.codex-plugin/plugin.json` is not a mirror: it explicitly declares `"sk
 
 **2. Plugin skills stay format-neutral.** Inside `plugins/`: no `${CLAUDE_PLUGIN_ROOT}`, reference siblings relatively (`../../workflow.yml`); no runtime-specific hooks or MCP configuration. Runtime-specific metadata belongs in that runtime's manifest.
 
-Leave component paths out of the Claude/Copilot `plugin.json` copies and let those runtimes discover `skills/` by convention. Codex's native manifest uses its own accepted `./skills/` path. After manifest changes, run `claude plugin validate ./plugins/sdlc` and the plugin-creator `validate_plugin.py plugins/sdlc`; the Claude `category` warning is known and harmless.
+Leave component paths out of the Claude/Copilot `plugin.json` copies and let those runtimes discover `skills/` and `commands/` by convention. Codex's native manifest uses its own accepted `./skills/` path and does not load the command aliases. After manifest changes, run `claude plugin validate ./plugins/sdlc` and the plugin-creator `validate_plugin.py plugins/sdlc`; the Claude `category` warning is known and harmless.
 
 Claude-only frontmatter (`context: fork`, `agent:`, `model:`, `allowed-tools:`, `effort:`) never belongs in `plugins/`.

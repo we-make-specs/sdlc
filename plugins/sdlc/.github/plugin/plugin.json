@@ -1,7 +1,7 @@
 {
   "name": "sdlc",
   "description": "Controlled delivery with explicit workspace setup, independent review, and human approval.",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "author": {
     "name": "Markus-Arndt"
   },
