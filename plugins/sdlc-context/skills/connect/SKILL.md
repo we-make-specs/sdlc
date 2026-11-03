@@ -121,9 +121,13 @@ STOP: complete these steps before your first code, config, or documentation
 change in this session. They are mandatory.
 
 1. For every registry listed below, read its entry file (AGENTS.md) and its
-   root index.md. Git URLs live at .sdlc/context/<name>/ where <name> is
-   the URL's last segment without .git: clone the URL there when the
-   folder is missing, otherwise refresh it first with
+   root index.md. Use a local directory explicitly supplied for that
+   registry in this session read-only, without cloning or refreshing.
+   If its AGENTS.md or index.md is missing or unreadable, stop and report
+   the problem. Never search for alternative copies.
+   Without a supplied directory, Git URLs live at .sdlc/context/<name>/
+   where <name> is the URL's last segment without .git: clone the URL there
+   when the folder is missing, otherwise refresh it first with
    git -C .sdlc/context/<name> pull --ff-only. When the pull fails
    (offline, auth), use the existing copy and append (stale) to that
    registry's name in the Context loaded line.
