@@ -52,8 +52,9 @@ The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; tw
 
 The catalog also carries `sdlc-context`, the registry lifecycle plugin (`/sdlc-context:create`, `/sdlc-context:connect`, `/sdlc-context:update-index-and-crosslinks`). It installs alongside any pipeline copy.
 
-The current source release pairs `sdlc` 0.7.3 with `sdlc-context` 0.3.2. Both include
-namespaced command aliases and support delivery roots alongside code repositories.
+Marketplace 0.9.3 pairs `sdlc` 0.7.4 with `sdlc-context` 0.3.3. Registry skills share
+their templates and policies, support either entry-file format, and accept explicitly
+supplied registry directories. Workspace setup is defined by step 00.
 The mirrored catalog records both versions;
 the native catalog resolves the same plugin directories and reads their native manifests.
 Existing deliveries retain their recorded layout when either plugin is updated.
@@ -83,6 +84,7 @@ plugins/sdlc-context/
   .github/plugin/plugin.json            # byte-identical Copilot mirror
   .codex-plugin/plugin.json              # native Codex plugin manifest
   reference.md                          # registry format and lifecycle rules
+  skill-rules.md                        # shared output policy for registry skills
   skills/                               # create, connect, update-index-and-crosslinks
   commands/                             # namespaced aliases that load the shared skills
 ```

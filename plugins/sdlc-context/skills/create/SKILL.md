@@ -4,7 +4,7 @@ description: Scaffold a new context registry at a target path, with the rulebook
 argument-hint: '[target-path]'
 metadata:
   owner: Markus-Arndt
-  version: '0.3.2'
+  version: '0.3.3'
   tags: registry, scaffolding, context, sdlc
 ---
 
@@ -12,7 +12,7 @@ metadata:
 
 ## What this skill does
 
-Scaffolds a fresh context registry in the format defined by `../../reference.md`: the rulebook entry file at the root, a two-level `index.md` in every folder, `_todo_` article templates, and a README for human maintainers. It asks the user for a preset and an entry format, writes the tree, verifies it, and reports. It never fills articles with content and never modifies an existing registry.
+Scaffolds a fresh context registry in the format defined by `../../reference.md`: the rulebook entry file at the root, a two-level `index.md` in every folder, `_todo_` article templates, and a README for human maintainers. It resolves the preset and entry format, writes the tree, verifies it, and reports. It never fills articles with content and never modifies an existing registry.
 
 ## When to use this skill
 
@@ -30,11 +30,12 @@ Scaffolds a fresh context registry in the format defined by `../../reference.md`
 |---|---|---|
 | target-path | Folder where the registry is created | Yes, from the argument or by asking |
 | Preset | `minimal` or `skeleton` | Yes, asked in the workflow |
-| Entry format | `AGENTS.md`, `CLAUDE.md`, or both | Yes, asked in the workflow |
-| Copilot stub | yes or no | Yes, asked in the workflow |
+| Entry format | choice per reference.md section 10 | Yes, reuse or ask |
+| Copilot stub | yes or no | Reuse or offer per reference.md section 10 |
 
 ## Required context
 
+- Read and follow the [shared skill rules](../../skill-rules.md) before starting the workflow.
 - `../../reference.md`: the format spec. Quote its templates, do not re-invent them. When this file and reference.md disagree, reference.md wins.
 
 ## Workflow
@@ -53,19 +54,10 @@ Scaffolds a fresh context registry in the format defined by `../../reference.md`
    ```
 
    Accept only `minimal` or `skeleton`. On any other answer, restate the options and ask again; never guess.
-4. **Ask question 2, the entry format.** Plain text, wait for the answer:
-
-   ```text
-   Which entry file format?
-   - AGENTS.md only (recommended)
-   - CLAUDE.md only
-   - both, kept as byte-identical twins
-   ```
-
-   Accept only these three. On any other answer, restate the options and ask again. Never create `CLAUDE.md` unless the user explicitly chose the second or third option (entry-file policy, `../../reference.md` section 10).
-5. **Ask question 3, the Copilot redirect stub.** Plain text, wait for the answer: "Add .github/copilot-instructions.md redirecting Copilot to the entry file? Recommended when the registry is maintained with Copilot; some Copilot versions ignore AGENTS.md otherwise." On yes, the scaffold includes the stub with the exact redirect template from `../../reference.md` section 10.
+4. **Resolve the entry format.** Follow the [entry-file policy](../../reference.md#10-entry-file-policy). Reuse a settled choice; otherwise ask for a supported format and wait for the answer.
+5. **Resolve the Copilot redirect stub.** Follow the redirect procedure in `../../reference.md` section 10. Include any authorized stub in the scaffold only after the collision check below.
 6. **Collision check, fail closed.** Compute the complete list of files and folders the chosen preset and entry format will create, then add both `AGENTS.md` and `CLAUDE.md` to the list regardless of the chosen entry format: scaffolding one next to a pre-existing other would leave differing entry files, a validation failure per `../../reference.md` section 10. If any listed path already exists at the target, report every colliding path and stop without writing anything. This skill never overwrites a file.
-7. **Scaffold.** Create the folders, then write every file, substituting the registry name (the target folder's basename), today's date as `<today>` in `YYYY-MM-DD` format, and the preset-specific names and descriptions:
+7. **Scaffold.** Create the folders, then write every file, substituting the registry name (the target folder's basename), `<entry-file>` per reference.md section 10, today's date as `<today>` in `YYYY-MM-DD` format, and the preset-specific names and descriptions:
    - The entry file(s) from the rulebook template in `../../reference.md` section 3, copied exactly, with the Domain indexes table listing the scaffolded folders. When only one entry file was chosen, drop the twin mentions and the byte-identity step as the template's substitution note says.
    - An `index.md` per folder from the section 4 template: `type: index` frontmatter, H1, one prose sentence, one bare table (no `## Contents` heading), columns `Name | Type | Description | Updated`.
    - The root `index.md` is **two levels deep**: one folder row per scaffolded folder, and under each folder row one `├─`/`└─` row per article inside it. Link text is the real filename including the `_todo_` prefix; folder rows link to `<folder>/index.md`.
@@ -159,7 +151,7 @@ TODO:
 # <registry-name>
 
 This folder is a context registry: curated markdown knowledge that agents
-navigate on demand via the index.md tables. The rules live in AGENTS.md
+navigate on demand via the index.md tables. The rules live in <entry-file>
 (the rulebook); this README is for humans maintaining the registry.
 
 Maintaining it:
@@ -170,15 +162,6 @@ Maintaining it:
 - Keep indexes and cross-links current with
   /sdlc-context:update-index-and-crosslinks.
 ```
-
-## Output discipline
-
-The user sees exactly two kinds of messages from this skill: questions and the final Result block. Nothing else.
-
-- Work silently. No step-by-step narration, no file-by-file progress, no restating these instructions, no explaining the registry format.
-- Each question is one short message: one line of context, the options, nothing more.
-- The final message is the Result block, preceded by at most one sentence. Anything that does not fit the block does not belong in the final message.
-- Every run ends with the block, success or failure: Status says what happened, the body says what changed or why nothing did, Next steps give the user concrete actions or state `none`.
 
 ## Result block
 
@@ -214,16 +197,16 @@ Next steps:
 
 - **Fail closed.** Any failed check in steps 2, 6, or 8 stops the run with a precise report; steps 2 and 6 stop before anything is written.
 - **Never overwrite an existing file.** Collisions are validation failures, not merge opportunities.
-- **Never create `CLAUDE.md` unasked.** Only when the user explicitly chose it in question 2.
+- **Never create `CLAUDE.md` unasked.** Only when the user explicitly chose it.
 - **Only the root gets entry files.** Interior folders contain `index.md` and articles, nothing else.
 - **Two levels everywhere.** Every index lists its own entries plus `├─`/`└─` rows for each subfolder's immediate contents.
 - **Real filenames as link text**, prefixes included; every link targets a file, never a directory.
 - **No zero-byte files, no `.gitkeep`, no dummy files.** An empty folder is carried by its `index.md`.
-- **Ask, do not assume.** All three questions require an explicit answer; silence or an off-list answer is never consent.
+- **Ask, do not assume.** Ask for missing required choices; silence or an unsupported answer is never consent. Handle the optional stub per the entry-file policy.
 
 ## Success criteria
 
-- [ ] All three questions asked and answered before any write
+- [ ] Preset and entry format settled, optional stub handled per reference.md section 10 before any write
 - [ ] Created tree matches the chosen preset exactly, verified per step 8
 - [ ] Entry file matches the rulebook template of `../../reference.md` section 3
 - [ ] Every index is two levels deep with 4 columns and no `## Contents` heading

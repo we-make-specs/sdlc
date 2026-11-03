@@ -4,7 +4,7 @@ description: Pipeline step 04 (GATE) — guide the human through the complete ta
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.3'
+  version: '0.7.4'
   tags: sdlc, step, gate, approval, human, decision-manifest
 ---
 

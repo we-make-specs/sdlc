@@ -222,11 +222,7 @@ These hold for every artifact and are not repeated in the individual contracts.
 
 ## Starting a feature
 
-```bash
-mkdir -p docs/sdlc/features/<YYYY-MM>/<story-slug>
-# copy the skeleton section out of each contract you need
-```
-
-Step 00 scaffolds exactly two files: the manifest and `AGENTS.md`. The numbered folders appear when the first artifact is written into them, and placeholder companions are never created — a workspace shows what has actually happened, not what might.
+Follow [step 00](../skills/00-create-workspace/SKILL.md) for workspace setup and
+initial outputs. It owns the creation procedure for both supported layouts.
 
 Optional artifacts (`05-technical-analysis.research.md`, `05-technical-questions.inventory.md`) are only created when the change has real technical depth. A feature has the artifacts it has reached — not all of them, always.

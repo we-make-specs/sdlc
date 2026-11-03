@@ -4,7 +4,7 @@ description: 'Maintenance pass for a context registry: syncs every two-level ind
 argument-hint: '[registry-root]'
 metadata:
   owner: Markus-Arndt
-  version: '0.3.2'
+  version: '0.3.3'
   tags: context-registry, index, crosslinks, maintenance
 ---
 
@@ -32,6 +32,8 @@ Keeps a registry's index tables, links, and cross-links true to the files on dis
 | registry-root | Path to the registry root folder | No. Falls back to the current directory, else the skill asks |
 
 ## Required context
+
+Read and follow the [shared skill rules](../../skill-rules.md) before starting the workflow.
 
 `../../reference.md`. Read it before writing anything. The passes below depend on: section 3 (the rulebook), section 4 (index.md format, two-level rule, row membership, column rules), section 5 (articles), section 6 (cross-links), section 7 (prefixes), section 8 (tooling rules), section 10 (entry-file policy).
 
@@ -66,7 +68,7 @@ On confirmation, migrate:
 3. Expand one-level tables to **two levels**: under every folder row, one `├─`/`└─` row per immediate entry of that subfolder.
 4. Rows typed `url` or `repo` point outside the repository, which the format forbids: list them to the user and ask per row whether to delete it or move the reference into an article's prose. Rows typed `data` become `context`.
 5. Remove tool-written `related:` frontmatter keys from articles. Cross-link knowledge lives in the "Related:" blockquote, which the cross-link pass handles.
-6. At the root: ensure `index.md` exists and holds the two-level root table. If the kept entry file is a routing file rather than a rulebook, move its table into `index.md` and replace the entry file content with the rulebook template from reference.md section 3 (Domain indexes table filled from the top-level folders). If no root entry file exists at all, ask the user which format to create per section 10: `AGENTS.md` only (recommended), `CLAUDE.md` only, or both. Never create `CLAUDE.md` unless the user explicitly chose it.
+6. At the root: ensure `index.md` exists and holds the two-level root table. If the kept entry file is a routing file rather than a rulebook, move its table into `index.md` and replace the entry file content with the rulebook template from reference.md section 3 (Domain indexes table filled from the top-level folders). If no root entry file exists, resolve its format through the [entry-file policy](../../reference.md#10-entry-file-policy) before scaffolding it.
 7. Rewrite every link in the registry that pointed at an old routing filename (`02-architecture/AGENTS.md` becomes `02-architecture/index.md`).
 
 Re-run the detection. It must find nothing before the passes below start.
@@ -105,20 +107,11 @@ Cross-links are the "This file answers:" / "Related:" blockquote under an articl
 
 ### 6. Entry-file check
 
-Verify the root entry file(s) exist and, when both twins exist, that they are byte-identical after this run's writes (`cmp AGENTS.md CLAUDE.md`); repair only divergence introduced by this run's own writes. Never rewrite the rulebook's content: it is human-owned. When no entry file exists at all, ask the user which format to create per reference.md section 10 and scaffold it from the section 3 template; never create `CLAUDE.md` unless the user explicitly chose it. When the user declines, create nothing and report the gap.
+Verify the root entry file(s) exist and, when both twins exist, that they are byte-identical after this run's writes (`cmp AGENTS.md CLAUDE.md`); repair only divergence introduced by this run's own writes. Never rewrite the rulebook's content: it is human-owned. When no entry file exists, follow the entry-file policy in reference.md section 10 and scaffold the section 3 template. When the user declines, create nothing and report the gap.
 
 ### 7. Report
 
 End with the Result block defined below, filled with real numbers. Success, stop, or declined migration, every run ends with it.
-
-## Output discipline
-
-The user sees exactly two kinds of messages from this skill: questions and the final Result block. Nothing else.
-
-- Work silently. No step-by-step narration, no file-by-file progress, no restating these instructions, no explaining the registry format.
-- Each question is one short message: one line of context, the options, nothing more.
-- The final message is the Result block, preceded by at most one sentence. Anything that does not fit the block does not belong in the final message.
-- Every run ends with the block, success or failure: Status says what happened, the body says what changed or why nothing did, Next steps give the user concrete actions or state `none`.
 
 ## Result block
 
