@@ -11,7 +11,7 @@ A context registry is a versioned folder of curated markdown knowledge: architec
 ## 2. Layout
 
 - Every folder, the root included, contains an `index.md`.
-- Only the root contains the entry file: `AGENTS.md`, optionally with a byte-identical `CLAUDE.md` twin. The entry file is the rulebook (section 3). Subfolders never contain an `AGENTS.md` or `CLAUDE.md`.
+- Only the root contains the entry file(s), selected by the [entry-file policy](#10-entry-file-policy). They hold the rulebook (section 3). Subfolders never contain an `AGENTS.md` or `CLAUDE.md`.
 - The root also carries a `README.md` written for humans maintaining the registry; agents skip it.
 - An otherwise-empty folder is kept in git by its `index.md`. Never add `.gitkeep` or dummy files.
 
@@ -68,7 +68,7 @@ Project knowledge for agent sessions, organised as an indexed knowledge base. Re
 - Every folder has an `index.md`: frontmatter (`type: index`, `scope`, `description`, `updated`) plus one Contents table.
 - Each index is **two levels deep**: the folder's own entries, and under every folder row its immediate contents marked with `├─`/`└─`. Redundant on purpose: navigation costs one read, not a chain of reads.
 - Folder rows link to the subfolder's `index.md`. Tables show real filenames including their prefix. Descriptions stay under ~80 characters; they drive relevance decisions.
-- Only the repository root has `AGENTS.md` and `CLAUDE.md` (this rulebook, byte-identical). Subfolders carry only their `index.md`.
+- Only the repository root has the chosen entry file(s) (this rulebook, twins byte-identical). Subfolders carry only their `index.md`.
 
 ## Cross-links
 
@@ -204,11 +204,12 @@ Template (the numbered procedure is exact text; the two list items are illustrat
 STOP: complete these steps before your first code, config, or documentation
 change in this session. They are mandatory.
 
-1. For every registry listed below, read its entry file (AGENTS.md) and its
-   root index.md. Use a local directory explicitly supplied for that
-   registry in this session read-only, without cloning or refreshing.
-   If its AGENTS.md or index.md is missing or unreadable, stop and report
-   the problem. Never search for alternative copies.
+1. For every registry listed below, read its entry file (AGENTS.md, or
+   CLAUDE.md if AGENTS.md is absent) and root index.md. Use a local
+   directory explicitly supplied for that registry in this session
+   read-only, without cloning or refreshing. If either required file is
+   missing or unreadable there, stop and report the problem. Never search
+   for alternative copies.
    Without a supplied directory, Git URLs live at .sdlc/context/<name>/
    where <name> is the URL's last segment without .git: clone the URL there
    when the folder is missing, otherwise refresh it first with
@@ -241,15 +242,16 @@ There are no precedence semantics between registries. Order in the list carries 
 
 ## 10. Entry-file policy
 
+Supported entry formats are `AGENTS.md` only, `CLAUDE.md` only, or byte-identical
+twins. When reading, select the entry file as the consumer procedure in section 9
+specifies. Use that filename for `<entry-file>` in scaffold templates.
+
 Which entry file to write (`AGENTS.md`, `CLAUDE.md`, or both) is decided by detection, never by default writing:
 
 1. **Detect before writing.** Check which entry files exist at the target root.
 2. **Mirror what exists.** Update every entry file that is present. When both `AGENTS.md` and `CLAUDE.md` exist, compare them before writing: if they already differ, that is a validation failure; report the differing regions and stop without writing anything. When they match, apply every change to both, verify byte-identity after writing, and repair only divergence introduced by this run's own writes.
 3. **Reuse settled choices.** When neither exists, use an entry-file choice already supplied by the user or authorized delivery setup. Only when that choice is missing, ask for `AGENTS.md` only (recommended default), `CLAUDE.md` only, or byte-identical twins, and wait for the answer. Unattended callers receive the missing choice as a blocker.
 4. **Never create `CLAUDE.md` unasked.** Only when the user explicitly chose it.
-
-An unattended delivery setup reuses a settled redirect-stub choice. If none was supplied,
-it skips that optional file and reports this; it does not block registry connection.
 
 ### The Copilot redirect stub
 
@@ -258,7 +260,12 @@ it skips that optional file and reports this; it does not block registry connect
 - A repo worked on with Copilot should carry a stub that redirects to the entry file, so every Copilot version lands on it: new versions merge both files, old versions follow the redirect.
 - An existing `.github/copilot-instructions.md` without the redirect actively hides the entry file from those Copilot versions. Tooling must detect that and offer to append the redirect.
 
-Rules: create the stub only with the user's consent; never overwrite or reorder existing content, append the redirect at the end when the file exists without one; point the redirect at the entry file that exists (`AGENTS.md`, else `CLAUDE.md`).
+Use the selected entry filename in the redirect template below. Inspect
+`.github/copilot-instructions.md`: an existing redirect needs no change. Otherwise,
+reuse a settled choice or offer to add the redirect and wait for consent. An
+unattended run without a settled choice skips the optional stub and reports this;
+it does not block registry connection. On consent, create the file when absent or
+append the redirect when missing. Never overwrite or reorder existing content.
 
 Template (exact text; substitute the entry filename):
 

@@ -1,7 +1,7 @@
 {
   "name": "sdlc-context",
   "description": "Context-registry lifecycle: scaffold registries, connect project or delivery roots, and maintain indexes and crosslinks.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": {
     "name": "Markus-Arndt"
   },

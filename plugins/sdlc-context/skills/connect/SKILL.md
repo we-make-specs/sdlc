@@ -4,7 +4,7 @@ description: Declare context registries for a project repository or delivery roo
 argument-hint: '[registry-url-or-path ...]'
 metadata:
   owner: Markus-Arndt
-  version: '0.3.2'
+  version: '0.3.3'
   tags: context-registry, wire-format, project-setup, sdlc
 ---
 
@@ -47,6 +47,7 @@ wire format from `../../reference.md` section 9 exactly.
 
 ## Required context
 
+- Read and follow the [shared skill rules](../../skill-rules.md) before starting the workflow.
 - `../../reference.md`: the registry format. Read section 9 (wire format) and section 10 (entry-file policy) before writing anything; validate registries against sections 2 to 4.
 
 ---
@@ -79,7 +80,7 @@ failure and any registry copies created or refreshed.
 **Path entries:**
 
 1. The directory exists.
-2. It contains a root `index.md` with `type: index` frontmatter or a `Name | Type | Description | Updated` table, and a root entry file (`AGENTS.md` or `CLAUDE.md`, the rulebook). Either missing: record the path as not a registry, naming what is absent, and continue checking the remaining entries.
+2. It contains a root `index.md` with `type: index` frontmatter or a `Name | Type | Description | Updated` table, and a root entry file per `../../reference.md` section 10. Either missing: record the path as not a registry, naming what is absent, and continue checking the remaining entries.
 3. If the root `index.md` exists, harvest the explainer line from its frontmatter: `description:` if present, else `scope:`. If the file is missing or both keys are missing, ask the user for a one-line explainer and wait for the answer.
 
 **URL entries:**
@@ -93,16 +94,9 @@ failure and any registry copies created or refreshed.
 
 ### 3. Determine which entry files to write
 
-Follow `../../reference.md` section 10 exactly:
-
-1. Detect what exists at the selected root: `AGENTS.md`, `CLAUDE.md`, both, or neither.
-2. Both exist: compare them first. If they already differ, that is a validation failure; report the differing regions and stop without writing. If they match, apply every change to both and verify byte-identity after writing.
-3. Exactly one exists: update that one.
-4. Neither exists: use the entry-file choice already supplied by the user or authorized setup. Otherwise ask which file to create: `AGENTS.md` only (recommended default), `CLAUDE.md` only, or byte-identical twins. Never create `CLAUDE.md` without that choice.
-5. **Copilot redirect stub** (`../../reference.md` section 10). Skip this step for a `- none` declaration. Reuse a settled stub choice. In unattended setup without one, skip this optional stub and record that it was not added. In interactive use, check `.github/copilot-instructions.md`:
-   - It exists but contains no redirect to the entry file: tell the user that some Copilot versions ignore AGENTS.md when this file is present, and offer to append the redirect template from reference.md section 10 (exact text, at the end, existing content untouched). Wait for the answer.
-   - It does not exist: ask "Add .github/copilot-instructions.md redirecting Copilot to <entry-file>? Recommended for repos worked on with Copilot." Wait for the answer; create it with exactly the redirect template on yes.
-   - It exists with the redirect: nothing to do.
+Apply the [entry-file policy](../../reference.md#10-entry-file-policy) to the selected
+root, including its Copilot redirect procedure. Skip the redirect for a `- none`
+declaration.
 
 ### 4. Upsert the `## Context Registries` section
 
@@ -112,38 +106,9 @@ Git root. For a delivery root, do not edit a parent ignore file or create Git me
 
 Replace the section if it exists (from its heading to the next same-or-higher-level heading or end of file); append it at the end of the file if it does not. Everything else in the file stays byte-for-byte untouched.
 
-The section follows the template in `../../reference.md` section 9. The numbered procedure is exact text, copied character for character; the list items are this repo's registries:
-
-```markdown
-## Context Registries
-
-STOP: complete these steps before your first code, config, or documentation
-change in this session. They are mandatory.
-
-1. For every registry listed below, read its entry file (AGENTS.md) and its
-   root index.md. Use a local directory explicitly supplied for that
-   registry in this session read-only, without cloning or refreshing.
-   If its AGENTS.md or index.md is missing or unreadable, stop and report
-   the problem. Never search for alternative copies.
-   Without a supplied directory, Git URLs live at .sdlc/context/<name>/
-   where <name> is the URL's last segment without .git: clone the URL there
-   when the folder is missing, otherwise refresh it first with
-   git -C .sdlc/context/<name> pull --ff-only. When the pull fails
-   (offline, auth), use the existing copy and append (stale) to that
-   registry's name in the Context loaded line.
-2. Follow the index tables to every article your current task touches and
-   read those articles.
-3. Begin your first working reply with one line:
-   Context loaded: <registry names, or "none applicable">
-4. When two registries give conflicting guidance, surface the conflict to
-   the user and ask which applies here. Never silently pick one; no
-   registry outranks another.
-
-- https://git.example.com/org/platform-context-registry.git
-  Platform-wide conventions: architecture, dev guidelines, domain glossary.
-- ./docs/context-registry
-  Repo-local knowledge for this service.
-```
+Copy the consumer template from `../../reference.md` section 9 character for
+character, replacing only its illustrative registry list with the validated entries.
+Write the complete procedure into the target entry files, not a link to the plugin.
 
 List rules:
 
@@ -158,15 +123,6 @@ List rules:
 After writing, verify the section parses back: the heading exists once, every item has its explainer (except `- none`), and twins are byte-identical when both exist. Then end with the Result block defined below. Success or failure, every run ends with it.
 
 ---
-
-## Output discipline
-
-The user sees exactly two kinds of messages from this skill: questions and the final Result block. Nothing else.
-
-- Work silently. No step-by-step narration, no file-by-file progress, no restating these instructions, no explaining the registry format.
-- Each question is one short message: one line of context, the options, nothing more.
-- The final message is the Result block, preceded by at most one sentence. Anything that does not fit the block does not belong in the final message.
-- Every run ends with the block, success or failure: Status says what happened, the body says what changed or why nothing did, Next steps give the user concrete actions or state `none`.
 
 ## Result block
 
