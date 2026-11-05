@@ -1,143 +1,110 @@
 # Agentic SDLC
 
-An architecture for agentic software delivery. Instead of treating an AI model as an
-autocomplete that a developer babysits, this project runs delivery as a controlled,
-multi-stage workflow in which agent sessions and humans take turns. Every stage has a
-defined input and a defined output, and nothing moves forward until that output meets
-its criteria.
+**From a ticket to an agreed solution, tested code, and a reviewed pull request.**
 
-The pipeline ships as a plugin for three agent runtimes: Codex, Claude Code, and GitHub
-Copilot (CLI and VS Code). The same skills run unchanged in all three.
+Agents do the research, planning, implementation, and code review. You shape the solution, approve the design and PR, and decide when to merge. Each step leaves files and decisions that the next step can use.
 
-## Why this exists
+For Codex, Claude Code, and GitHub Copilot CLI / VS Code.
 
-Most "AI in the SDLC" work stops at code completion. That leaves the hard parts, the
-understanding, the design decisions, the review, either unassisted or buried inside a
-single long chat that no one can audit later.
+[Where this fits](#where-this-fits) · [Steps and outputs](#steps-and-outputs) · [Try it](#try-it)
 
-This project takes a different position: the valuable output of software delivery is
-not the chat, it is the trail of artifacts. A current-state analysis, an agreed target
-design, test scenarios, a plan, a reviewed pull request. If each of those is a real
-file with a known shape, then agents can produce them, humans can approve them, and the
-next stage can build on them without re-reading a transcript.
+## Where this fits
 
-## Core concepts
+These plugins implement part of **AERA**, the **Agentic Engineering Reference Architecture for Software Delivery**. AERA brings human and agent work into an existing delivery process. Your workshops, refinement meetings, and architecture discussions remain part of that process.
 
-**Steps.** The atomic unit of work. Each step is a skill with one job: research the
-current solution, analyze the story, write the plan, and so on. A step reads named
-artifacts, does its work, and writes named artifacts.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/aera-layers-dark.svg">
+  <img src="docs/assets/aera-layers-light.svg" alt="AERA component map: a human connects through interaction surfaces to orchestration. Orchestration coordinates a delivery workflow and its autonomy. A requirements workflow is shown as an example only. Steps produce artifacts and use context, specification, and task registries. The sdlc plugin supplies orchestration and steps; sdlc-context supplies tools for the context registry." width="960">
+</picture>
 
-**Workflows.** Steps composed into an ordered pipeline. The workflow declares the
-order, which artifacts each step must produce, and who runs each step. The definition
-lives in `workflow.yml`.
+<table>
+<thead><tr><th align="left" width="33%">Context registry</th><th align="left" width="34%">Specification registry</th><th align="left" width="33%">Task registry</th></tr></thead>
+<tbody><tr valign="top">
+<td>Shared project knowledge: rules, architecture, and domain terms.<p><code>sdlc-context</code> creates and connects registries and maintains their indexes and links.</p></td>
+<td>Research, designs, decisions, and reviews for each feature.<p>Saved in the delivery folder. Reusable artifact definitions ship with <code>sdlc</code>.</p></td>
+<td>Work items, ownership, and progress across the delivery process.</td>
+</tr></tbody>
+</table>
 
-**The orchestrator.** What drives the workflow from one step to the next, validating
-each step's output before moving on. Today the orchestrator is the agent CLI itself:
-you run one command and it sequences the steps. The design does not depend on that. The
-same workflow file and artifacts could be driven by a script or a CI job, because the
-state lives on disk, not in a session.
+## Steps and outputs
 
-**Context Registry.** Project knowledge that agents read: development guidelines,
-architecture notes, domain language, testing conventions. It is plain Markdown in Git,
-kept separate from the pipeline so the same generic pipeline can serve any project. A
-repository declares which registries it uses in a `## Context Registries` section in its
-root instruction file, and each step consults the parts it needs by navigating the
-registry's index. The `sdlc-context` plugin's `connect` skill writes that declaration;
-the registry format is defined in `plugins/sdlc-context/reference.md`.
+**Agent** works independently. **Together** means discussion and decisions. **You approve** and **You instruct** mean the workflow waits for you.
 
-**Specification Registry.** The set of artifacts the pipeline produces for a feature,
-the filled-in chain from analysis through decisions. Each artifact type has one contract
-in `plugins/sdlc/artifact-definitions/` that defines its purpose, required sections, and
-quality criteria.
+<table>
+<thead><tr><th align="left" scope="col" width="160">Stage</th><th align="left" scope="col" width="280">Step</th><th align="left" scope="col" width="120">Who</th><th align="left" scope="col" width="380">Files and results</th></tr></thead>
+<tbody>
+<tr valign="top">
+<th rowspan="3" align="left" valign="top" scope="rowgroup">1. Understand<br><sub>00-02</sub></th>
+<td><img src="docs/assets/steps/workspace.svg" width="20" height="20" alt="">&nbsp; <strong>00</strong> <a href="plugins/sdlc/skills/00-create-workspace/SKILL.md">Set up the workspace</a></td><td>Agent</td>
+<td><ul><li>Repository checkouts (cloned or reused)</li><li><a href="plugins/sdlc/artifact-definitions/00-manifest.state.md">Workspace manifest</a></li><li><a href="plugins/sdlc/artifact-definitions/AGENTS.md">Workspace instructions</a></li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/research.svg" width="20" height="20" alt="">&nbsp; <strong>01</strong> <a href="plugins/sdlc/skills/01-research-current-solution/SKILL.md">Understand the current code</a></td><td>Agent</td>
+<td><ul><li><a href="plugins/sdlc/artifact-definitions/01-current-solution.research.md">Solution design (current), with code references</a></li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/questions.svg" width="20" height="20" alt="">&nbsp; <strong>02</strong> <a href="plugins/sdlc/skills/02-analyze/SKILL.md">Find gaps and questions</a></td><td>Agent</td>
+<td><ul><li><a href="plugins/sdlc/artifact-definitions/02-questions.inventory.md">Questions and open assumptions</a></li><li><a href="plugins/sdlc/artifact-definitions/02-work-breakdown.md">Proposed work breakdown</a></li></ul></td></tr>
+</tbody>
+<tbody>
+<tr valign="top">
+<th rowspan="2" align="left" valign="top" scope="rowgroup">2. Agree<br><sub>03-04</sub></th>
+<td><img src="docs/assets/steps/design.svg" width="20" height="20" alt="">&nbsp; <strong>03</strong> <a href="plugins/sdlc/skills/03-align/SKILL.md">Agree on the solution</a></td><td>Together</td>
+<td><ul><li><a href="plugins/sdlc/artifact-definitions/03-agreement.spec.md">Agreed requirements</a></li><li><a href="plugins/sdlc/artifact-definitions/03-target-solution.spec.md">Solution design (target)</a></li><li><a href="plugins/sdlc/artifact-definitions/03-test-scenarios.spec.md">Test scenarios</a></li><li>Decision record and approval pages</li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/approve.svg" width="20" height="20" alt="">&nbsp; <strong>04</strong> <a href="plugins/sdlc/skills/04-approve-target-solution/SKILL.md">Approve the design</a></td><td>You approve</td>
+<td><ul><li>Approval tied to the reviewed design and scenarios</li></ul></td></tr>
+</tbody>
+<tbody>
+<tr valign="top">
+<th rowspan="5" align="left" valign="top" scope="rowgroup">3. Build and review<br><sub>05-09</sub></th>
+<td><img src="docs/assets/steps/plan.svg" width="20" height="20" alt="">&nbsp; <strong>05</strong> <a href="plugins/sdlc/skills/05-plan/SKILL.md">Plan the work</a></td><td>Agent</td>
+<td><ul><li><a href="plugins/sdlc/artifact-definitions/05-implementation.plan.md">Implementation plan and work packages</a></li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/code.svg" width="20" height="20" alt="">&nbsp; <strong>06</strong> <a href="plugins/sdlc/skills/06-implement/SKILL.md">Build and test</a></td><td>Agent</td>
+<td><ul><li>Code, tests, and local commits</li><li><a href="plugins/sdlc/artifact-definitions/06-decisions.log.md">Implementation decisions</a></li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/review.svg" width="20" height="20" alt="">&nbsp; <strong>07</strong> <a href="plugins/sdlc/skills/07-review/SKILL.md">Check the implementation</a></td><td>Agent</td>
+<td><ul><li><a href="plugins/sdlc/artifact-definitions/07-review.state.schema.json">Review record with checked findings</a></li><li>Published pull request after review closes</li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/pr.svg" width="20" height="20" alt="">&nbsp; <strong>08</strong> <a href="plugins/sdlc/skills/08-review-pr/SKILL.md">Review the pull request</a></td><td>You approve</td>
+<td><ul><li>PR review page with checks and findings</li><li>Approval tied to the reviewed commit</li></ul></td></tr>
+<tr valign="top">
+<td><img src="docs/assets/steps/merge.svg" width="20" height="20" alt="">&nbsp; <strong>09</strong> <a href="plugins/sdlc/skills/09-merge/SKILL.md">Merge on your instruction</a></td><td>You instruct</td>
+<td><ul><li>Merged pull request and recorded merge commit</li></ul></td></tr>
+</tbody>
+<tbody>
+<tr valign="top">
+<th rowspan="1" align="left" valign="top" scope="rowgroup">4. Close and learn<br><sub>10</sub></th>
+<td><img src="docs/assets/steps/learn.svg" width="20" height="20" alt="">&nbsp; <strong>10</strong> <a href="plugins/sdlc/skills/10-post-mortem/SKILL.md">Close and learn</a></td><td>Together</td>
+<td><ul><li><a href="plugins/sdlc/artifact-definitions/10-post-mortem.md">Delivery summary and lessons</a></li><li>Settled assumptions and completed delivery record</li></ul></td></tr>
+</tbody>
+</table>
 
-**Human surfaces.** The points where a person joins the loop, either to make decisions
-alongside an agent or to approve before the work continues. These are first-class in the
-workflow, not an afterthought. Gate 04 renders the complete target solution as HTML and one
-short approval pack from canonical state. The pack orders every acceptance criterion by
-reading priority, then shows only open or changed choices and test scenarios. Lower-risk
-technical detail stays available without flooding the main reading path.
+**Steps 06-09 repeat for each work package.** PR approval and the instruction to merge are separate decisions.
 
-**Decision authority.** Ticket text, acceptance criteria, human decisions, registry rules,
-reference implementations, approved design, runtime evidence, and agent inferences are
-typed separately. Conflicts are checked with their trade-offs visible; no source wins
-merely because an agent quoted it confidently.
+Links open the current skills and artifact definitions. Each delivery creates its own filled-in files. The workflow can resume from those files in a new session.
 
-**Evidence-checked review.** A reviewer reports falsifiable findings, not change commands.
-An independent evidence checker marks each finding valid, wrong, partly right, or
-human-owned. Wrong or preference findings stop without code work. Compatible valid findings
-share one trial fix, and a separate final checker must prove it is a safe improvement over
-the untouched implementation before it can be integrated. Local corrections take a light
-path; semantic or cross-cutting changes take a full path; design conflicts stop for one
-focused human choice.
+## Recommended review tool
 
-The visual guide [SDLC 0.7.1 — review and design approval](plugins/sdlc/docs/sdlc-0.7.1-review-and-approval.html)
-explains the roles, four paths, test budget, human reading route, and state-file boundary with diagrams.
+**Recommended: [Plannotator](https://plannotator.ai).** Install it separately to comment on questions and design documents, and to review the actual PR diff. Chat and the PR platform's diff view are also supported.
 
-## Kinds of step
 
-Not every step is the same. The workflow marks each one with a type, and that type
-decides whether an agent runs alone, a human joins in, or the pipeline stops for a
-decision.
+## Try it
 
-**Autonomous (auto).** An agent runs the step on its own, in a fresh context, reading
-and writing artifacts. No human needed while it runs. Example: researching the current
-solution, or writing the implementation plan.
+You need Git, Python 3, and one supported runtime. Choose your installation:
 
-**Interactive (collab).** A human and an agent work the step together in the same
-session. Used where judgment and discussion matter, like aligning on the target design
-or merging the final pull request.
+<details open>
+<summary>GitHub Copilot CLI</summary>
 
-**Quality gate (gate).** The pipeline stops and waits for an explicit human approval
-before going on. A gate makes no model judgment of its own; it presents what to review
-and blocks until someone signs off. Example: approving the target solution before any
-planning starts.
+```bash
+copilot plugin marketplace add https://github.com/we-make-specs/sdlc.git
+copilot plugin install sdlc@agentic-sdlc-marketplace
+copilot plugin install sdlc-context@agentic-sdlc-marketplace
+```
 
-## The pipeline
+</details>
 
-Eleven steps, from an incoming ticket to a closed delivery.
-
-| # | Step | Type | Reads | Writes |
-|---|------|------|-------|--------|
-| 00 | create-workspace | auto | the ticket or free-text brief | `00-manifest.state.md` |
-| 01 | research-current-solution | auto | `00-manifest` | `01-current-solution.research.md` |
-| 02 | analyze | auto | `00-manifest`, `01-current-solution` | `02-questions.inventory.md` |
-| 03 | align | collab | `00-manifest`, `01-current-solution`, `02-questions`, registry rules | specifications, complete target-solution HTML, decision state, generated approval pack |
-| 04 | approve-target-solution | gate | full target solution, prioritized criteria, open choices and scenarios | hash-locked design approval |
-| 05 | plan | auto | the step-03 artifacts and the research | `05-implementation.plan.md` (optionally a technical analysis) |
-| 06 | implement | auto | `05-implementation.plan`, `03-target-solution`, `03-test-scenarios` | the code on a local package branch, `06-decisions.log.md` |
-| 07 | review | auto | approved specifications and decision state (not the plan) | validated finding/check/trial state, then a clean PR |
-| 08 | review-pr | gate | live PR facts, decision state, validated review state | generated human PR gate and approval |
-| 09 | merge | collab | `00-manifest`, `06-decisions.log` | the merged pull request |
-| 10 | post-mortem | collab | the ledgers, `02-questions`, `06-decisions.log` | reconciliation, settled assumptions, `10-post-mortem.md`, `status: done` |
-
-A few things worth calling out. Step 03 is where a human and the agent settle the
-design together, and step 04 refuses to continue until the complete design, criteria and
-scenarios are explicitly approved and hash-locked. Step 07 keeps the plan blinded and
-separates the reviewer, evidence checker, optional trial-fix builder, and final checker:
-review detects defects but cannot silently replace good code or spend a full worktree on a
-preference. Step 09 never merges on its own; a person gives the word.
-
-Each step names the artifacts it touches, and each artifact defines itself once in
-`plugins/sdlc/artifact-definitions/`. Steps do not restate an artifact's structure, they
-point at its contract. That keeps one source of truth per artifact instead of the same
-shape copied into every step that reads it.
-
-## Getting started
-
-### Prerequisites
-
-One of the supported runtimes:
-
-- Codex,
-- Claude Code, or
-- GitHub Copilot (CLI, or the VS Code extension with agent plugins enabled).
-
-### Install
-
-The pipeline is distributed as a plugin marketplace. You add the marketplace once, then
-install the two plugins from it.
-
-Codex:
+<details>
+<summary>Codex</summary>
 
 ```bash
 codex plugin marketplace add we-make-specs/sdlc
@@ -145,107 +112,46 @@ codex plugin add sdlc@we-make-specs
 codex plugin add sdlc-context@we-make-specs
 ```
 
-For an already registered marketplace, run `codex plugin marketplace upgrade we-make-specs` before installing or updating. Start a new Codex task after installation so it loads the new skill catalog.
+</details>
 
-GitHub Copilot CLI:
+<details>
+<summary>Claude Code</summary>
 
-```bash
-# add the marketplace
-copilot plugin marketplace add https://github.com/we-make-specs/sdlc.git
+Run these commands inside a session:
 
-# install the pipeline and the context-registry tooling
-copilot plugin install sdlc@agentic-sdlc-marketplace
-copilot plugin install sdlc-context@agentic-sdlc-marketplace
-```
-
-Claude Code, inside a session:
-
-```
+```text
 /plugin marketplace add https://github.com/we-make-specs/sdlc.git
 /plugin install sdlc@agentic-sdlc-marketplace
 /plugin install sdlc-context@agentic-sdlc-marketplace
 ```
 
-After install, use `/sdlc:...` for the pipeline and `/sdlc-context:...` for the registry
-commands. The packages include command aliases so these names also work in Copilot CLI,
-which otherwise exposes the shared skills as bare names such as `/run` and `/connect`.
+</details>
 
-Plugins are cached. If you change anything in this repo, re-run the install (or update)
-command to pick it up, then start a new session. In Copilot CLI, `copilot skill list`
-should include `sdlc:run` and `sdlc-context:connect` after the update.
+Start a fresh session in your project or ticket folder. Run `/sdlc-context:connect` and provide your registry's URL or local path. If the project has no registry, use `/sdlc-context:connect none`.
 
-### Use
+Publishing and merging also need authenticated access to your repositories and pull requests through the runtime's tools or a CLI such as `gh`.
 
-Run the whole pipeline on a ticket or a free-text description:
-
-```
-/sdlc:run <ticket-id | ticket-url | free-text description>
-```
-
-The orchestrator resumes from the feature folder, runs each step in order, validates its
-output, and stops wherever a human is required. You can also invoke a single step
-directly, from `/sdlc:00-create-workspace` through `/sdlc:10-post-mortem`, when you want to
-redo one stage.
-
-For a new delivery started from a ticket folder, setup uses this layout:
+Give the workflow a ticket ID, a ticket URL, or a short description:
 
 ```text
-<ticket-root>/
-  AGENTS.md
-  .sdlc/context/<registry>/
-  context/                         supplied input stays where it is
-  delivery/
-    00-manifest.state.md
-    AGENTS.md
-    1-research/
-    2-specification/
-    3-planning/
-  repositories/<repo>/             independent clone per new component
+/sdlc:run Add a CSV export for the currently filtered orders.
 ```
 
-This also applies to a single-repository ticket. Starting directly in a code repository
-still supports `docs/sdlc/features/`; existing deliveries keep their recorded layout.
-Resume from the ticket root, delivery directory, or a component below `repositories/`.
-Setup records component remotes and base commits, follows declared branch conventions,
-and keeps input material unchanged. Supplied ticket text or screenshots can be used when
-live lookup fails, with provenance and missing content recorded explicitly.
+It starts with workspace setup and pauses for your input at the human steps. Later, run `/sdlc:run` from the same delivery to resume from the recorded state. You can also invoke an individual step when you need to revisit it.
 
-At the PR gate, review the actual diff in the selected code-review surface or on the PR
-platform. The generated approval page supplies context; document annotation does not
-replace code review. Approval is recorded for the reviewed head and does not merge it.
+<details>
+<summary>Where are the files? How do updates work?</summary>
 
-If a step repeatedly waits after tools have already completed, inspect runtime integration
-timeouts before changing models. An unavailable connector can delay tool-list refreshes
-even during local file work; the shared workflow reports that condition without changing
-global connection settings.
+A delivery started in a ticket folder stores its artifacts in `delivery/` and its component clones in `repositories/`. Starting in a code repository supports `docs/sdlc/features/`. Existing deliveries keep their recorded layout.
 
-The `sdlc-context` plugin manages the knowledge side:
+Plugins are cached. Update or reinstall them, then start a new session. In Copilot CLI, `copilot skill list` should include `sdlc:run` and `sdlc-context:connect`.
 
-```
-/sdlc-context:create                     # scaffold a new context registry
-/sdlc-context:connect                    # declare which registries a repo uses
-/sdlc-context:update-index-and-crosslinks
-```
+</details>
 
-## What is in this repository
+## Go deeper
 
-```
-plugins/sdlc/            the pipeline: orchestrator, eleven steps, artifact contracts, workflow.yml
-plugins/sdlc-context/    the context-registry lifecycle plugin
-.claude-plugin/          marketplace manifest read by Claude Code
-.github/plugin/          marketplace manifest read by GitHub Copilot and VS Code
-.agents/plugins/         marketplace manifest read by Codex
-plugins/*/.codex-plugin/  native Codex plugin manifests
-AGENTS.md / CLAUDE.md    root instructions for agents working in this repo
-MARKETPLACE.md           how the marketplace and three-runtime setup fit together
-```
-
-Everything here is generic and project-independent. Project knowledge and filled-in
-specifications live in a context registry, never inside the pipeline.
-
-## Three runtimes, one source
-
-The skills and pipeline state are shared across Codex, Claude Code, and GitHub Copilot.
-Claude and Copilot require byte-identical mirrored manifests; Codex uses its native plugin
-and marketplace manifests. The details and validation commands are in `MARKETPLACE.md` and
-the root instruction files.
+- [Workflow and step order](plugins/sdlc/workflow.yml)
+- [Artifact definitions and workspace layout](plugins/sdlc/artifact-definitions/README.md)
+- [How implementation review works](plugins/sdlc/skills/07-review/SKILL.md)
+- [Context registry format](plugins/sdlc-context/reference.md)
+- [Marketplace setup](MARKETPLACE.md)
