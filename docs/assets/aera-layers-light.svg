@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 728" width="960" height="728" role="img" aria-labelledby="aera-layers-aera-light-title aera-layers-aera-light-desc" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif" id="aera-layers-aera-light-root">
+<title id="aera-layers-aera-light-title">AERA conceptual component map</title>
+<desc id="aera-layers-aera-light-desc">A human connects through interaction surfaces to SDLC orchestration, which coordinates a delivery workflow and its autonomy, runs steps with defined artifacts, and uses context, specification, and task registries. A requirements workflow is shown as an example only.</desc>
+<defs>
+      <style>#aera-layers-aera-light-root { color: #1f2328; font-family: system-ui,sans-serif; }
+      #aera-layers-aera-light-root .diagram-container { width:100%;overflow-x:auto }
+      @media print {
+#aera-layers-aera-light-root .diagram-container { overflow-x:visible }
+}</style>
+<marker id="aera-layers-aera-light-aera-layers-aera-light-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 1 9 5 0 9" fill="none" stroke="#1071e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+</marker>
+<marker id="aera-layers-aera-light-human-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 1 9 5 0 9" fill="none" stroke="#d916a8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+</marker>
+</defs>
+<rect width="960" height="728" fill="#ffffff" />
+<text x="48" y="46" font-size="24" font-weight="600" fill="#635dff" letter-spacing="2">AERA</text>
+<text x="48" y="68" font-size="14" fill="#59636e">conceptual component map</text>
+<path d="M48 84H912" stroke="#d1d9e0" />
+
+<g fill="#ffffff" stroke="#d1d9e0">
+<rect x="48" y="100" width="864" height="96" rx="10" />
+<rect x="48" y="592" width="272" height="112" rx="10" />
+<rect x="344" y="592" width="272" height="112" rx="10" />
+<rect x="640" y="592" width="272" height="112" rx="10" />
+</g>
+
+<g stroke="#d916a8" stroke-width="1.6" fill="none">
+<circle cx="84" cy="140" r="6.5" />
+<path d="M72.5 160a11.5 11.5 0 0 1 23 0" />
+</g>
+<text x="108" y="155" font-size="20" fill="#1f2328">Human</text>
+<g fill="#f6f8fa" stroke="#d1d9e0">
+<rect x="540" y="132" width="108" height="32" rx="16" fill="#ffd6f5" stroke="#d916a8" />
+<rect x="660" y="132" width="108" height="32" rx="16" fill="#ffd6f5" stroke="#d916a8" />
+<rect x="780" y="132" width="108" height="32" rx="16" fill="#ffd6f5" stroke="#d916a8" />
+</g>
+<g font-size="14" fill="#59636e" text-anchor="middle">
+<text x="594" y="153" fill="#86106b">discuss</text><text x="714" y="153" fill="#86106b">decide</text><text x="834" y="153" fill="#86106b">approve</text>
+</g>
+
+<rect x="48" y="320" width="864" height="224" rx="12" fill="#cfe4ff" stroke="#1071e5" />
+<g stroke="#1071e5" fill="none" stroke-linecap="round">
+<path d="M480 196V212" marker-end="url(#aera-layers-aera-light-human-arrow)" stroke="#d916a8" />
+<path d="M480 284V312" marker-end="url(#aera-layers-aera-light-aera-layers-aera-light-arrow)" />
+<path d="M424 432H534" marker-end="url(#aera-layers-aera-light-aera-layers-aera-light-arrow)" />
+<g opacity=".75">
+<path d="M480 544V572" /><path d="M184 572H776" />
+<path d="M184 572V584" marker-end="url(#aera-layers-aera-light-aera-layers-aera-light-arrow)" />
+<path d="M480 572V584" marker-end="url(#aera-layers-aera-light-aera-layers-aera-light-arrow)" />
+<path d="M776 572V584" marker-end="url(#aera-layers-aera-light-aera-layers-aera-light-arrow)" />
+</g>
+</g>
+<rect x="316" y="220" width="328" height="64" rx="10" fill="#ffffff" stroke="#1071e5" />
+<text x="480" y="246" font-size="18" fill="#1f2328" text-anchor="middle">Interaction surfaces</text>
+<text x="480" y="269" font-size="14" fill="#59636e" text-anchor="middle">Chat · review pages · Plannotator</text>
+<g fill="#ffffff" stroke="#d1d9e0">
+<rect x="92" y="368" width="320" height="148" rx="10" fill="#f6f8fa" stroke="#1071e5" />
+<rect x="548" y="368" width="320" height="148" rx="10" fill="#f6f8fa" stroke="#1071e5" />
+</g>
+<rect x="68" y="304" width="88" height="32" rx="16" fill="#1071e5" />
+<text x="113" y="326" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="1" font-weight="600">sdlc</text>
+<g text-anchor="middle" fill="#1f2328" font-size="20">
+<text x="252" y="402">Orchestration</text>
+<text x="708" y="402">Steps + artifacts</text>
+</g>
+<g fill="#cfe4ff" stroke="#1071e5">
+<rect x="108" y="420" width="156" height="32" rx="16" />
+<rect x="108" y="468" width="156" height="28" rx="14" />
+</g>
+<rect x="276" y="420" width="120" height="32" rx="8" stroke-dasharray="4 3" fill="#ffffff" stroke="#d1d9e0" />
+<g text-anchor="middle" font-size="14" fill="#0759b5">
+<text x="186" y="441">Delivery workflow</text>
+<text x="186" y="487">Autonomy</text>
+</g>
+<text x="336" y="441" text-anchor="middle" font-size="14" fill="#59636e">Req. workflow</text>
+<text x="336" y="487" text-anchor="middle" font-size="12" fill="#59636e">example only</text>
+<g text-anchor="middle" fill="#59636e" font-size="14">
+<text x="708" y="441">the work and what it produces</text>
+</g>
+
+<rect x="456" y="396" width="48" height="24" fill="#cfe4ff" />
+<text x="480" y="414" font-size="14" fill="#0759b5" text-anchor="middle">runs</text>
+
+<g fill="#1071e5">
+<g><rect x="168" y="604" width="32" height="5" rx="2.5" fill="#216e36" /><rect x="168" y="613" width="32" height="5" rx="2.5" opacity=".6" fill="#216e36" /><rect x="168" y="622" width="32" height="5" rx="2.5" opacity=".35" fill="#216e36" /></g>
+<g><rect x="464" y="604" width="32" height="5" rx="2.5" fill="#216e36" /><rect x="464" y="613" width="32" height="5" rx="2.5" opacity=".6" fill="#216e36" /><rect x="464" y="622" width="32" height="5" rx="2.5" opacity=".35" fill="#216e36" /></g>
+<g><rect x="760" y="604" width="32" height="5" rx="2.5" fill="#216e36" /><rect x="760" y="613" width="32" height="5" rx="2.5" opacity=".6" fill="#216e36" /><rect x="760" y="622" width="32" height="5" rx="2.5" opacity=".35" fill="#216e36" /></g>
+</g>
+<g text-anchor="middle" font-size="20" fill="#1f2328">
+<text x="184" y="650">Context registry</text>
+<text x="480" y="650">Specification registry</text>
+<text x="776" y="650">Task registry</text>
+</g>
+<g fill="#f6f8fa" stroke="#d1d9e0">
+<rect x="104" y="664" width="160" height="28" rx="14" fill="#c3f7c8" stroke="#7dc48b" />
+<rect x="400" y="664" width="160" height="28" rx="14" fill="#c3f7c8" stroke="#7dc48b" />
+<rect x="696" y="664" width="160" height="28" rx="14" fill="#c3f7c8" stroke="#7dc48b" />
+</g>
+<g text-anchor="middle" font-size="14" fill="#1071e5">
+<text x="184" y="683" fill="#216e36">sdlc-context</text>
+<text x="480" y="683" fill="#216e36">Designs and evidence</text>
+<text x="776" y="683" fill="#216e36">Work and ownership</text>
+</g>
+</svg>
