@@ -4,7 +4,7 @@ description: Pipeline step 02 (AUTO) — read the story the way a skeptical impl
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.4'
+  version: '0.7.5'
   tags: sdlc, step, analysis, questions, gap-hunting
 ---
 
