@@ -16,6 +16,24 @@ It mirrors the current-state research's structure, projected into the future sta
 
 It carries the approval status in its header — approval lives in the artifact, not only in the ticket system.
 
+## Reading structure
+
+Explain concepts and relationships in domain language before field names and layer mappings.
+Group affected components by responsibility, using the research names where useful. Keep the
+main table scannable; when paths crowd it, use short references to a file map in this document.
+The file map names exact repository-relative paths and marks planned files as planned, not as
+evidence of current behaviour. Use the shared evidence system for factual code claims: short
+IDs in the body resolve to exact locations in source roots and a source map. Identify the code
+revision; do not cite planned files as evidence of future behaviour.
+
+Use named, numbered flows. Give each step one responsibility and make the input, result, failure
+boundary and relevant unchanged behaviour visible. Define each material policy once in its owning
+section; link to it from other sections while keeping brief orientation where useful.
+
+Keep the approval header compact. Show the latest recorded approval and any pending amendment
+separately; retain dated approval and amendment history without presenting a pending change as
+approved. Follow the existing amendment protocol and approval state.
+
 ## Required sections
 
 | Section | Required | Content |
@@ -28,12 +46,15 @@ It carries the approval status in its header — approval lives in the artifact,
 | `## Target flows` | yes | the named flows as they will run, step by step; reuse the research's flow names where the flow exists today |
 | `## Target data structures` | yes | the layer projection per concept; when persisted data changes, the per-layer table: current shape, agreed change, migration and compatibility |
 | `## Migration / Rollout` | if applicable | migrations, flags, backward compatibility, phased rollout — or "not applicable" |
+| `## Source roots` and `## Source map` | for factual code claims | declared roots, exact locations and baseline revisions under the shared evidence rules |
 | `## Testing Strategy` | yes | the *technical* strategy: which test type on which layer, what needs a harness or fixture. The **functional scenarios live in [`03-test-scenarios.spec.md`](03-test-scenarios.spec.md)** — do not duplicate them here |
 
 ## Quality criteria
 
 - [ ] Someone who did not attend the discussion could implement from this without further questions. That is the bar.
-- [ ] Component claims name **concrete paths**, not areas.
+- [ ] Component claims resolve to **concrete paths**, not areas; planned paths are not evidence of current code.
+- [ ] Each affected flow has numbered steps, observable results and failure boundaries where relevant.
+- [ ] Current code facts identify their baseline and resolve to exact locations; recheck affected claims when the baseline changes.
 - [ ] Flows and concepts reuse the research document's names where they exist today, so the two documents diff cleanly.
 - [ ] Data-model claims (migration numbers, schema state) are verified against the repository, not carried over from another document.
 - [ ] When persisted data changes, the data-model part is a per-layer table: layer, current shape, agreed change, migration and compatibility, covering omitted, null, and legacy-data semantics. A rollback line appears only when the story has a real rollback question. The underlying semantics decisions live in the agreement; this table is their design.
@@ -104,7 +125,9 @@ whether an acceptance criterion is binding.
 
 ### <flow name, as in the research>
 
-<step-by-step trace: trigger → entry point → processing → persistence → output>
+1. <trigger and input>
+2. <processing and resulting state>
+3. <output; failure boundary and unchanged behaviour where relevant>
 
 ## Target data structures
 
@@ -124,4 +147,16 @@ whether an acceptance criterion is binding.
 - **Integration:** <…>
 - **Harness / fixtures needed:** <…>
 - **Functional scenarios:** see [03-test-scenarios.spec.md](03-test-scenarios.spec.md)
+
+## Source roots
+
+| Prefix | Repository root and verified revision |
+|---|---|
+| `<root>` | `<repository-folder>/` at `<commit>` |
+
+## Source map
+
+| ID | Exact source location | Supports |
+|---|---|---|
+| F1 | `<root>/path/to/file:42-60` | <current code fact, cited in the body> |
 ```

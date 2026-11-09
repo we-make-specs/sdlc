@@ -52,9 +52,10 @@ The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; tw
 
 The catalog also carries `sdlc-context`, the registry lifecycle plugin (`/sdlc-context:create`, `/sdlc-context:connect`, `/sdlc-context:update-index-and-crosslinks`). It installs alongside any pipeline copy.
 
-Marketplace 0.9.3 pairs `sdlc` 0.7.4 with `sdlc-context` 0.3.3. Registry skills share
-their templates and policies, support either entry-file format, and accept explicitly
-supplied registry directories. Workspace setup is defined by step 00.
+Marketplace 0.9.4 pairs `sdlc` 0.7.5 with `sdlc-context` 0.3.3. The pipeline now
+renders questions for annotation, embeds revision-pinned code excerpts, and checks
+approval state before writing. Shared artifact rules keep designs, scenarios, and plans
+easy to scan.
 The mirrored catalog records both versions;
 the native catalog resolves the same plugin directories and reads their native manifests.
 Existing deliveries retain their recorded layout when either plugin is updated.

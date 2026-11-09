@@ -21,7 +21,7 @@ This artifact exists because of a specific failure: tests get written, but *what
 | Section | Required | Content |
 |---|---|---|
 | header block | yes | ticket, created, **status** (`DRAFT` / `IN REVIEW` / `APPROVED`), approved-by, approved-on; after approval, dated `Correction:` / `Amendment:` entries per the amendment protocol (catalog README, rule 8) when a change happens |
-| `## Happy Path Scenarios` | yes | the normal business cases, numbered, one line each |
+| `## Happy Path Scenarios` | yes | normal business cases with explicit Given, When and Then |
 | `## Exceptional Scenarios` | yes | error, conflict, empty, boundary and permission cases |
 | `## Test Data` | yes | rough data per scenario — enough to recognise it, not a fixture file |
 | `## Out of Scope` | yes | scenarios deliberately **not** covered, with a reason |
@@ -30,6 +30,8 @@ This artifact exists because of a specific failure: tests get written, but *what
 ## Quality criteria
 
 - [ ] Every acceptance criterion from `03-agreement.spec.md` maps to at least one scenario.
+- [ ] Each case separates Given, When and Then. Split compound operations into cases under the same scenario ID when that clarifies their distinct results; include unchanged values only when required.
+- [ ] The latest approval and any pending amendment are distinct; dated history remains available under the amendment protocol.
 - [ ] Scenarios are phrased in **domain language**, not in terms of methods or classes. A product person must be able to read them.
 - [ ] Exceptional scenarios exist and are specific. "Handles errors" is not a scenario.
 - [ ] Permission and role cases are covered where the feature is role-dependent — see `05-domain/roles-and-permissions.md`.
@@ -69,15 +71,15 @@ rough data and details remain canonical in this file.
 
 ## Happy Path Scenarios
 
-| # | Scenario | Covers AC |
-|---|---|---|
-| H1 | <given … when … then …, in domain language> | AC-1 |
+| # | Given | When | Then | Covers AC |
+|---|---|---|---|---|
+| H1 | <setup in domain language> | <action> | <observable result> | AC-1 |
 
 ## Exceptional Scenarios
 
-| # | Scenario | Expected behaviour | Covers AC |
-|---|---|---|---|
-| E1 | <the error, conflict, empty, boundary or permission case> | <what must happen> | AC-3 |
+| # | Given | When | Then | Covers AC |
+|---|---|---|---|---|
+| E1 | <setup> | <error, conflict, empty, boundary or permission case> | <observable result> | AC-3 |
 
 ## Test Data
 

@@ -43,6 +43,10 @@ verification adds a dated provenance note and routes conflicts through alignment
 silently replaces Original input. A usable snapshot permits research; missing requirements
 or source conflicts must be settled before design approval.
 
+`Start here` is navigation only. Current package status, PR, dependencies and blockers live in
+the owned work-package ledger row; update that row when they change. Keep dated progress history
+in existing logs rather than duplicating stale status in navigation.
+
 The package row's `Human review` starts as `pending`. Step 08 records the outcome and,
 for approval, the human, date, PR URL and reviewed head commit there. Add this column to a
 legacy ledger when recording its next review, not merely on resume. A changed head makes

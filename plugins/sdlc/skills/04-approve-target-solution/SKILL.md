@@ -4,7 +4,7 @@ description: Pipeline step 04 (GATE) — guide the human through the complete ta
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.4'
+  version: '0.7.5'
   tags: sdlc, step, gate, approval, human, decision-manifest
 ---
 
@@ -66,6 +66,9 @@ advance to planning.
    Check Original input and its provenance too. Unresolved missing requirements or source
    conflicts return to alignment. A supplied snapshot can be the agreed source without a
    live ticket lookup; record that human decision and keep the unverified label honest.
+   Keep `activeSemanticChangeIds` limited to this review's existing `SC-*` entries, including accepted
+   changes still awaiting the overall gate. Unresolved changes remain visible even outside that list.
+   Earlier changes stay in history. A missing list uses conservative legacy visibility.
 2. **Present only the orientation in chat:**
 
    ```text
@@ -104,7 +107,8 @@ advance to planning.
    the decision or artifact that must change." Non-committal praise is not approval.
 8. **On approval**, set the manifest approval to `APPROVED`, with the human's actual name/handle, date,
    and all resolved human decision IDs. Write matching approval headers into target solution and test
-   scenarios. Then record exact hashes and validate:
+   scenarios. Update only the current header; preserve dated approval and amendment history. Then
+   record exact hashes and validate:
 
    ```bash
    python3 <plugin>/scripts/record_approval_hashes.py \
@@ -113,10 +117,17 @@ advance to planning.
      2-specification/03-decision-manifest.state.json --phase approved
    ```
 
-   The script atomically regenerates the target-solution HTML and both approval-pack views. The hashes
+   The script checks both current headers against the approval status, name and date before hashing
+   or writing anything. A missing, duplicate or mismatched field fails without edits; repair the
+   canonical record from the actual approval, never infer a new approval from older history. After
+   those checks, it closes `activeSemanticChangeIds` to `[]` before computing hashes and views, while
+   retaining every semantic-change record. It prepares all outputs before writing any of them.
+   The script atomically replaces the target-solution HTML and both approval-pack views. The hashes
    cover the agreement (including exact criteria), target solution, exact target-solution HTML, test
    scenarios, and decision content; validation also compares the approval page with a fresh rendering.
    Any later source or human-view edit fails downstream validation and requires a focused reapproval.
+   An unchanged approved target view remains valid across renderer updates when every recorded source,
+   view and decision hash still matches. Alignment and approval recording always use a fresh render.
    Only successful validation passes the gate.
 
 ## Output contract

@@ -27,7 +27,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 | `## Out of Scope` | yes | **verbatim** from `03-agreement.spec.md` |
 | `## Work Packages` | yes | one section per package, at least one; tasks live inside their package |
 | `## Advisor Checks` | yes | verification beyond the ACs |
-| `## Release Readiness Gates` | if applicable | delivery gates that are not pull requests: each names its condition, its owner, and what it blocks |
+| `## Release Readiness Gates` | if applicable | delivery gates that are not pull requests: each names its condition, owner, blocker and completion evidence |
 | `## Progress Log` | yes | empty placeholder at creation; step 06 appends |
 
 ### Package fields
@@ -67,6 +67,7 @@ The plan is also where **progress is recorded** — implementation ticks its tas
 - [ ] Genuine ambiguity is encoded as an advisor check, not silently decided.
 - [ ] Changed public response/event contracts have a focused serialized-result check against the published schema or consumer contract, including relevant empty/missing/null cases.
 - [ ] A progress-log entry that claims verification names the exact command and its result. A failing check believed unrelated is attributed against the base branch before it is called pre-existing: the same failure there makes it a recorded baseline failure, never a reason to touch unrelated source. Superseded entries stay in the log under a preamble note; nothing is deleted.
+- [ ] Release gates make their done-when, owner and blocked work easy to find; completion links evidence for the full condition.
 - [ ] A condition outside the repository (a deployment precondition, an external party's confirmation, post-release verification) is a release readiness gate with a named owner. It is never a task, and never silently assumed; a merged branch with an unmet gate is not done.
 - [ ] Progress log is empty at creation — step 05 never pre-fills it.
 

@@ -14,6 +14,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from artifact_view import FENCE
 from schema_validation import validate_schema_instance
 from render_decision_gate import render_html as render_decision_gate_html, render_markdown as render_decision_gate_markdown
 from render_target_solution import render_html as render_target_solution_html
@@ -43,6 +44,81 @@ def decision_content_hash(data: dict[str, object]) -> str:
         content["approval"] = {key: value for key, value in approval.items() if key != "artifactHashes"}
     canonical = json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def approval_header_errors(approval: object, source: str, artifact_name: str) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(approval, dict):
+        return ["approval is required"]
+    fields: dict[str, list[str]] = {"status": [], "approved by": [], "on": []}
+    fence: str | None = None
+    for line in source.splitlines():
+        stripped = line.strip()
+        if fence is not None:
+            if re.fullmatch(re.escape(fence[0]) + f"{{{len(fence)},}}", stripped):
+                fence = None
+            continue
+        opening = FENCE.match(stripped)
+        if opening:
+            fence = opening.group(1)
+            continue
+        if re.match(r"^#{2,6}\s", stripped):
+            break
+        plain_line = re.sub(r"^[-*+]\s+", "", stripped.replace("**", ""))
+        if not re.match(r"^(Status|Approved by|on):", plain_line, re.IGNORECASE):
+            continue
+        for part in re.split(r"\s+[|·]\s+", plain_line):
+            match = re.fullmatch(r"(Status|Approved by|on):\s*(.*?)\s*", part, re.IGNORECASE)
+            if match:
+                fields[match.group(1).lower()].append(match.group(2))
+    for label, key in (("status", "status"), ("approved by", "approvedBy"), ("on", "approvedAt")):
+        expected = approval.get(key)
+        require(text(expected), f"approval.{key} is required", errors)
+        values = fields[label]
+        if len(values) != 1:
+            errors.append(f"{artifact_name}: current header must contain exactly one {label} field")
+        elif text(expected) and values[0] != expected:
+            errors.append(f"{artifact_name}: current header {label} must match approval.{key} ({expected})")
+    return errors
+
+
+def active_scope_errors(data: dict[str, object]) -> list[str]:
+    if "activeSemanticChangeIds" not in data:
+        return []
+    scope = data["activeSemanticChangeIds"]
+    if not isinstance(scope, list) or any(not isinstance(item, str) for item in scope):
+        return ["activeSemanticChangeIds must be an array of semantic change IDs"]
+    errors: list[str] = []
+    require(len(scope) == len(set(scope)), "activeSemanticChangeIds must not repeat an ID", errors)
+    changes = data.get("semanticChanges")
+    if not isinstance(changes, list):
+        return ["semanticChanges must be an array"]
+    known = {
+        item["id"] for item in changes
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    for change_id in scope:
+        require(change_id in known, f"activeSemanticChangeIds references unknown semantic change {change_id}", errors)
+    return errors
+
+
+def approved_artifact_hashes_match(data: dict[str, object], artifact_dir: Path) -> bool:
+    approval = data.get("approval")
+    if not isinstance(approval, dict) or approval.get("status") != "APPROVED":
+        return False
+    hashes = approval.get("artifactHashes")
+    if not isinstance(hashes, dict) or hashes.get("decisionContent") != decision_content_hash(data):
+        return False
+    names = {
+        "agreement": "03-agreement.spec.md",
+        "targetSolution": "03-target-solution.spec.md",
+        "targetSolutionView": "03-target-solution.view.html",
+        "testScenarios": "03-test-scenarios.spec.md",
+    }
+    try:
+        return all(hashes.get(key) == sha256_file(artifact_dir / name) for key, name in names.items())
+    except OSError:
+        return False
 
 
 def unique_ids(items: object, label: str, errors: list[str]) -> set[str]:
@@ -88,6 +164,7 @@ def validate_decision_manifest(data: object, phase: str, artifact_dir: Path | No
     decision_ids = unique_ids(decisions, "decisions", errors)
     rule_ids = unique_ids(rules, "applicableRules", errors)
     change_ids = unique_ids(changes, "semanticChanges", errors)
+    errors.extend(active_scope_errors(data))
     unique_ids(batches, "feedbackBatches", errors)
     require(bool(ac_ids), "at least one acceptance criterion is required", errors)
     require(bool(scenario_ids), "at least one test scenario is required", errors)
@@ -275,19 +352,29 @@ def validate_decision_manifest(data: object, phase: str, artifact_dir: Path | No
                 require(counts.get("classified") == classified, f"coverage.{key}.classified must be {classified}", errors)
 
     if artifact_dir is not None:
+        if phase in {"approved", "downstream"}:
+            for name in ("03-target-solution.spec.md", "03-test-scenarios.spec.md"):
+                try:
+                    source = (artifact_dir / name).read_text(encoding="utf-8")
+                except OSError as exc:
+                    errors.append(f"approval header unreadable: {name}: {exc}")
+                else:
+                    errors.extend(approval_header_errors(data.get("approval"), source, name))
         target_source = artifact_dir / "03-target-solution.spec.md"
         target_view = artifact_dir / "03-target-solution.view.html"
-        try:
-            expected_target_view = render_target_solution_html(target_source.read_text(encoding="utf-8"))
-            actual_target_view = target_view.read_text(encoding="utf-8")
-        except OSError as exc:
-            errors.append(f"human target-solution view unreadable: {exc}")
-        else:
-            require(
-                actual_target_view == expected_target_view,
-                "03-target-solution.view.html is stale or was edited; regenerate it from the target solution",
-                errors,
-            )
+        keep_approved_view = phase in {"approved", "downstream"} and approved_artifact_hashes_match(data, artifact_dir)
+        if not keep_approved_view:
+            try:
+                expected_target_view = render_target_solution_html(target_source.read_text(encoding="utf-8"))
+                actual_target_view = target_view.read_text(encoding="utf-8")
+            except (OSError, ValueError) as exc:
+                errors.append(f"human target-solution view unreadable: {exc}")
+            else:
+                require(
+                    actual_target_view == expected_target_view,
+                    "03-target-solution.view.html is stale or was edited; regenerate it from the target solution",
+                    errors,
+                )
 
         gate_view = artifact_dir / "03-human-decision-gate.view.html"
         try:

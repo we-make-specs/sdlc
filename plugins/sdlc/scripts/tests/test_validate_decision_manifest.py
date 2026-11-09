@@ -3,6 +3,7 @@ import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 MODULE_PATH = Path(__file__).parents[1] / "validate_decision_manifest.py"
@@ -127,6 +128,39 @@ def valid_manifest():
     return data
 
 
+def approved_source(title):
+    return (
+        f"# {title}\n\n"
+        "- **Status:** APPROVED · **Approved by:** human@example · **on:** 2026-01-01\n\n"
+        "## Design\n\nThe export keeps the approved behavior.\n"
+    )
+
+
+def write_approved_artifacts(folder, data, overrides=None, legacy_view=False):
+    sources = {
+        "agreement": "03-agreement.spec.md",
+        "targetSolution": "03-target-solution.spec.md",
+        "testScenarios": "03-test-scenarios.spec.md",
+    }
+    for key, name in sources.items():
+        path = folder / name
+        path.write_text((overrides or {}).get(key, approved_source(key)), encoding="utf-8")
+        data["approval"]["artifactHashes"][key] = MODULE.sha256_file(path)
+    rendered = MODULE.render_target_solution_html((folder / sources["targetSolution"]).read_text())
+    if legacy_view:
+        rendered = rendered.replace("<main", '<main data-renderer="previous"', 1)
+    target_view = folder / "03-target-solution.view.html"
+    target_view.write_text(rendered, encoding="utf-8")
+    data["approval"]["artifactHashes"]["targetSolutionView"] = MODULE.sha256_file(target_view)
+    data["approval"]["artifactHashes"]["decisionContent"] = MODULE.decision_content_hash(data)
+    (folder / "03-human-decision-gate.view.html").write_text(
+        MODULE.render_decision_gate_html(data, "alignment"), encoding="utf-8"
+    )
+    (folder / "03-human-decision-gate.view.md").write_text(
+        MODULE.render_decision_gate_markdown(data, "alignment"), encoding="utf-8"
+    )
+
+
 class DecisionManifestValidationTest(unittest.TestCase):
     def test_valid_approved_manifest_passes(self):
         self.assertEqual([], MODULE.validate_decision_manifest(valid_manifest(), "approved"))
@@ -153,7 +187,7 @@ class DecisionManifestValidationTest(unittest.TestCase):
                 "testScenarios": folder / "03-test-scenarios.spec.md",
             }
             for name, path in files.items():
-                path.write_text(f"# {name}\n", encoding="utf-8")
+                path.write_text(approved_source(name), encoding="utf-8")
                 data["approval"]["artifactHashes"][name] = MODULE.sha256_file(path)
             target_view = folder / "03-target-solution.view.html"
             target_view.write_text(MODULE.render_target_solution_html(files["targetSolution"].read_text()), encoding="utf-8")
@@ -186,10 +220,120 @@ class DecisionManifestValidationTest(unittest.TestCase):
             data["approval"]["artifactHashes"]["targetSolutionView"] = MODULE.sha256_file(target_view)
             (folder / "03-human-decision-gate.view.html").write_text("<p>stale</p>", encoding="utf-8")
             (folder / "03-human-decision-gate.view.md").write_text("# Fake approval\n", encoding="utf-8")
-            errors = MODULE.validate_decision_manifest(data, "approved", folder)
+            errors = MODULE.validate_decision_manifest(data, "alignment", folder)
             self.assertTrue(any("target-solution.view.html is stale" in error for error in errors))
             self.assertTrue(any("human-decision-gate.view.html is stale" in error for error in errors))
             self.assertTrue(any("human-decision-gate.view.md is stale" in error for error in errors))
+
+    def test_approved_headers_must_match_even_when_every_hash_matches(self):
+        changes = (
+            ("APPROVED", "DRAFT", "status"),
+            ("human@example", "another-reviewer", "approved by"),
+            ("2026-01-01", "2025-12-31", "on"),
+        )
+        for key in ("targetSolution", "testScenarios"):
+            for old, new, field in changes:
+                with self.subTest(artifact=key, field=field), tempfile.TemporaryDirectory() as temp:
+                    folder = Path(temp)
+                    data = valid_manifest()
+                    source = approved_source(key).replace(old, new)
+                    write_approved_artifacts(folder, data, {key: source})
+                    for phase in ("approved", "downstream"):
+                        errors = MODULE.validate_decision_manifest(data, phase, folder)
+                        self.assertTrue(any(f"current header {field} must match" in error for error in errors))
+
+    def test_current_header_cannot_be_supplied_by_history_or_code_example(self):
+        data = valid_manifest()
+        header = approved_source("Example").split("## Design")[0]
+        for source in ("# Example\n\n## Approval history\n" + header, "# Example\n\n```markdown\n" + header + "```\n"):
+            with self.subTest(source=source):
+                errors = MODULE.approval_header_errors(data["approval"], source, "example.spec.md")
+                self.assertEqual(3, len(errors))
+        errors = MODULE.approval_header_errors(
+            data["approval"], header + "- **Status:** APPROVED\n", "example.spec.md"
+        )
+        self.assertTrue(any("exactly one status" in error for error in errors))
+
+    def test_only_a_marker_line_closes_a_header_code_fence(self):
+        approval = valid_manifest()["approval"]
+        header = approved_source("Example").splitlines()[2]
+        for marker in ("```", "~~~"):
+            with self.subTest(marker=marker):
+                example = f"# Example\n\n{marker}text\n{marker}yaml\n{header}\n{marker}\n\n"
+                errors = MODULE.approval_header_errors(approval, example + "## Design\n", "example.spec.md")
+                self.assertEqual(3, len(errors))
+                self.assertTrue(all("current header must contain exactly one" in error for error in errors))
+                source = f"{example}{header}\n\n## Design\n"
+                self.assertEqual([], MODULE.approval_header_errors(approval, source, "example.spec.md"))
+
+    def test_current_header_allows_separate_fields_and_preserves_old_amendments(self):
+        source = (
+            "# Example\n\n- **Status:** APPROVED\n- **Approved by:** human@example\n- **on:** 2026-01-01\n"
+            '- **Amendment:** 2025-12-01, supersedes "Status: IN REVIEW | Approved by: former | on: 2025-11-01".\n'
+            "\n## Approval history\n\n- **Status:** APPROVED · **Approved by:** former · **on:** 2025-11-01\n"
+        )
+        self.assertEqual([], MODULE.approval_header_errors(valid_manifest()["approval"], source, "example.spec.md"))
+
+    def test_hash_locked_target_view_survives_a_renderer_update(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            data = valid_manifest()
+            write_approved_artifacts(folder, data, legacy_view=True)
+            with patch.object(MODULE, "render_target_solution_html", side_effect=AssertionError("must keep approved bytes")):
+                for phase in ("approved", "downstream"):
+                    self.assertEqual([], MODULE.validate_decision_manifest(data, phase, folder))
+            errors = MODULE.validate_decision_manifest(data, "alignment", folder)
+            self.assertTrue(any("target-solution.view.html is stale" in error for error in errors))
+
+    def test_legacy_target_view_does_not_hide_changed_sources_or_approved_html(self):
+        names = ("03-agreement.spec.md", "03-target-solution.spec.md", "03-test-scenarios.spec.md", "03-target-solution.view.html")
+        for name in names:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                folder = Path(temp)
+                data = valid_manifest()
+                write_approved_artifacts(folder, data, legacy_view=True)
+                path = folder / name
+                path.write_text(path.read_text() + "\nChanged content.\n", encoding="utf-8")
+                errors = MODULE.validate_decision_manifest(data, "downstream", folder)
+                self.assertTrue(any(f"approved artifact changed after approval: {name}" in error for error in errors))
+
+    def test_legacy_target_view_does_not_hide_changed_decision_content(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            data = valid_manifest()
+            write_approved_artifacts(folder, data, legacy_view=True)
+            data["acceptanceCriteria"][0]["text"] = "A changed promise."
+            errors = MODULE.validate_decision_manifest(data, "downstream", folder)
+            self.assertTrue(any("approved decision content changed" in error for error in errors))
+            self.assertTrue(any("target-solution.view.html is stale" in error for error in errors))
+
+    def test_invalid_target_render_is_reported_without_a_traceback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            data = valid_manifest()
+            write_approved_artifacts(folder, data)
+            with patch.object(MODULE, "render_target_solution_html", side_effect=ValueError("Invalid source preview")):
+                errors = MODULE.validate_decision_manifest(data, "alignment", folder)
+            self.assertTrue(any("Invalid source preview" in error for error in errors))
+
+    def test_active_review_scope_is_optional_and_checked(self):
+        data = valid_manifest()
+        self.assertEqual([], MODULE.validate_decision_manifest(data, "alignment"))
+        data["activeSemanticChangeIds"] = []
+        self.assertEqual([], MODULE.validate_decision_manifest(data, "alignment"))
+        data["activeSemanticChangeIds"] = ["SC-999", "SC-999"]
+        errors = MODULE.validate_decision_manifest(data, "alignment")
+        self.assertTrue(any("references unknown semantic change SC-999" in error for error in errors))
+        self.assertTrue(any("must not repeat" in error for error in errors))
+        data["activeSemanticChangeIds"] = "SC-1"
+        errors = MODULE.validate_decision_manifest(data, "alignment")
+        self.assertTrue(any("must be an array" in error for error in errors))
+
+    def test_active_review_scope_is_hash_locked(self):
+        data = valid_manifest()
+        data["activeSemanticChangeIds"] = []
+        errors = MODULE.validate_decision_manifest(data, "downstream")
+        self.assertTrue(any("approved decision content changed" in error for error in errors))
 
     def test_human_required_change_cannot_bypass_decision(self):
         data = valid_manifest()

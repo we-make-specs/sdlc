@@ -22,6 +22,11 @@ Experience says a substantial share of decisions is not anticipated by any plan.
 
 The `beyond this feature` field in each entry forces that judgment instead of leaving it implicit.
 
+If a later decision changes approved behaviour, identify the affected decision, agreement,
+design, scenarios and plan, and use the existing amendment and focused approval route. A log
+entry alone does not amend approval. Record pending confirmation separately and retain prior
+answers and approved text as history.
+
 ## Required fields per entry
 
 | Field | Required | Content |

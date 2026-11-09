@@ -77,6 +77,12 @@
     "decisions": { "type": "array", "items": { "$ref": "#/$defs/decision" } },
     "applicableRules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
     "semanticChanges": { "type": "array", "items": { "$ref": "#/$defs/semanticChange" } },
+    "activeSemanticChangeIds": {
+      "description": "Semantic changes in the current gate review, including accepted changes awaiting overall approval. Missing means conservative legacy visibility; approval recording closes the scope to an empty array without removing history.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^SC-[0-9]+$" }
+    },
     "feedbackBatches": { "type": "array", "items": { "$ref": "#/$defs/feedbackBatch" } },
     "coverage": {
       "type": "object",
