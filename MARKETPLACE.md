@@ -52,7 +52,7 @@ The catalog carries the pipeline plugin `sdlc`. Install one copy per machine; tw
 
 The catalog also carries `sdlc-context`, the registry lifecycle plugin (`/sdlc-context:create`, `/sdlc-context:connect`, `/sdlc-context:update-index-and-crosslinks`). It installs alongside any pipeline copy.
 
-Marketplace 0.9.4 pairs `sdlc` 0.7.5 with `sdlc-context` 0.3.3. The pipeline now
+Marketplace 0.9.5 pairs `sdlc` 0.7.6 with `sdlc-context` 0.3.3. The pipeline now
 renders questions for annotation, embeds revision-pinned code excerpts, and checks
 approval state before writing. Shared artifact rules keep designs, scenarios, and plans
 easy to scan.

@@ -274,6 +274,24 @@ class DecisionManifestValidationTest(unittest.TestCase):
         )
         self.assertEqual([], MODULE.approval_header_errors(valid_manifest()["approval"], source, "example.spec.md"))
 
+    def test_list_item_code_examples_cannot_supply_approval_headers(self):
+        approval = valid_manifest()["approval"]
+        header = approved_source("Example").splitlines()[2]
+        for prefix in ("- ", "1. ", "12) ", "- Example\n  - "):
+            indent = " " * len(prefix.rsplit("\n", 1)[-1])
+            for marker in ("```", "~~~~"):
+                for closed in (False, True):
+                    with self.subTest(prefix=prefix, marker=marker, closed=closed):
+                        example = f"# Example\n\n{prefix}{marker}text\n{indent}{header}\n"
+                        if closed:
+                            example += f"{indent}{marker}\n"
+                        example += "\n"
+                        errors = MODULE.approval_header_errors(approval, example + "## Design\n", "example.spec.md")
+                        self.assertEqual(3, len(errors))
+                        self.assertTrue(all("current header must contain exactly one" in error for error in errors))
+                        source = example + header + "\n\n## Design\n"
+                        self.assertEqual([], MODULE.approval_header_errors(approval, source, "example.spec.md"))
+
     def test_hash_locked_target_view_survives_a_renderer_update(self):
         with tempfile.TemporaryDirectory() as temp:
             folder = Path(temp)

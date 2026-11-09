@@ -129,6 +129,52 @@ class QuestionsRenderingTest(unittest.TestCase):
         entries = MODULE.question_entries(source)
         self.assertEqual([(item["id"], item["status"]) for item in entries], [("Q1", "Open")])
 
+    def test_wrapping_answers_and_verification_preserves_status(self):
+        cases = (
+            ({"Answer": "CSV. Confirmed by reviewer on 2026-11-09."}, "Answered"),
+            ({"Answer": "Assumed: UTC.", "Confirmation": "pending"}, "Needs confirmation"),
+            ({"Answer": "Assumed: UTC.", "Confirmation": "verified by reviewer on 2026-11-09"}, "Answered"),
+            ({"Category": "Missing inputs", "Answer": "Use the supplied schema.",
+              "Input verification": "verified by reviewer on 2026-11-09; schema committed"}, "Answered"),
+            ({"Category": "Missing inputs", "Answer": "Keep the current format.",
+              "Input verification": "not required by reviewer on 2026-11-09; redesign deferred"}, "Answered"),
+            ({"Answer": "<open>"}, "Open"),
+        )
+        for fields, expected in cases:
+            for wrapped in (False, True):
+                with self.subTest(fields=fields, wrapped=wrapped):
+                    source = "### Q1: Format\n\n"
+                    for key, value in fields.items():
+                        value = "\n  " + value.replace(" by ", " by\n  ") if wrapped else value
+                        source += f"- **{key}:** {value}\n"
+                    self.assertEqual(MODULE.question_entries(source)[0]["status"], expected)
+                    self.assertIn("Format", MODULE.render_html(source))
+
+    def test_empty_answer_does_not_include_another_fields_continuation(self):
+        source = "### Q1: Format\n- **Answer:**\n- **Context:**\n  CSV is one possible option.\n"
+        self.assertEqual(MODULE.question_entries(source)[0]["status"], "Open")
+
+    def test_list_item_code_examples_do_not_change_counts_or_navigation(self):
+        for prefix in ("- ", "1. ", "12) ", "- Example\n  - "):
+            indent = " " * len(prefix.rsplit("\n", 1)[-1])
+            for marker in ("```", "~~~~"):
+                for closed in (False, True):
+                    with self.subTest(prefix=prefix, marker=marker, closed=closed):
+                        source = (
+                            f"### Q1: First question\n\n{prefix}{marker}text\n"
+                            f"{indent}### Q99: Example question\n"
+                            f"{indent}Answer: This is only an example.\n"
+                        )
+                        if closed:
+                            source += f"{indent}{marker}\n"
+                        source += "\n### Q2: Second question\n\n- **Answer:** Open\n"
+                        entries = MODULE.question_entries(source)
+                        self.assertEqual([(item["id"], item["status"]) for item in entries], [("Q1", "Open"), ("Q2", "Open")])
+                        page = MODULE.render_html(source)
+                        self.assertIn("<b>2</b> open", page)
+                        self.assertIn('href="#q2-second-question"', page)
+                        self.assertNotIn('href="#q99-example-question"', page)
+
     def test_non_question_heading_ends_answer_scope(self):
         source = "### Q1: Title\n\n- **Answer:** Open\n\n## Notes\n\n- **Confirmation:** pending\n"
         self.assertEqual(MODULE.question_entries(source)[0]["status"], "Open")

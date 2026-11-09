@@ -116,6 +116,21 @@ class ApprovalHashRecordingTest(unittest.TestCase):
                         MODULE.record_hashes(manifest)
                     write.assert_not_called()
 
+    def test_list_fenced_approval_example_does_not_hash_or_change_files(self):
+        for name in ("03-target-solution.spec.md", "03-test-scenarios.spec.md"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                folder = Path(temp)
+                manifest = self.make_workspace(folder)
+                example = "\n".join("  " + line for line in approved_source("Example").splitlines())
+                (folder / name).write_text(f"# Design\n\n- ```markdown\n{example}\n  ```\n", encoding="utf-8")
+                before = {path.name: path.read_bytes() for path in folder.iterdir()}
+                with patch.object(MODULE, "atomic_write") as write, patch.object(MODULE.hashlib, "sha256") as hash_bytes:
+                    with self.assertRaisesRegex(ValueError, "current header"):
+                        MODULE.record_hashes(manifest)
+                    write.assert_not_called()
+                    hash_bytes.assert_not_called()
+                self.assertEqual(before, {path.name: path.read_bytes() for path in folder.iterdir()})
+
     def test_missing_source_does_not_replace_an_existing_view(self):
         for name in ("03-agreement.spec.md", "03-target-solution.spec.md", "03-test-scenarios.spec.md"):
             with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:

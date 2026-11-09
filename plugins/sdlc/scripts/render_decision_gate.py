@@ -170,9 +170,13 @@ def pending_design_work(manifest: dict[str, Any]) -> str | None:
     ]
     batches = [item for item in manifest.get("feedbackBatches", []) if item.get("status") == "OPEN"]
     scenarios = [item for item in manifest.get("testScenarios", []) if item.get("status") != "HUMAN_CONFIRMED"]
-    if attention or conflicts or batches or scenarios:
+    rules = [item for item in manifest.get("applicableRules", []) if item.get("status") == "UNRESOLVED"]
+    criteria = [item for item in manifest.get("acceptanceCriteria", []) if item.get("status") != "MAPPED"]
+    if attention or conflicts or batches or scenarios or rules or criteria:
+        criterion_label = "criterion" if len(criteria) == 1 else "criteria"
         return (
             f"Check {len(attention)} open or changed choice(s), {len(conflicts)} source conflict(s), "
+            f"{len(rules)} unresolved rule(s), {len(criteria)} unresolved acceptance {criterion_label}, "
             f"{len(scenarios)} unconfirmed test scenario(s), and {len(batches)} incomplete feedback batch(es)."
         )
     return None

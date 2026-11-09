@@ -30,26 +30,28 @@ def plain_value(value: str) -> str:
 
 
 def question_fields(lines: list[str]) -> dict[str, str]:
-    fields: dict[str, str] = {}
-    fence: str | None = None
-    for line in lines:
-        stripped = line.strip()
-        opening = artifact_view.FENCE.match(stripped)
-        if fence:
-            if re.fullmatch(re.escape(fence[0]) + "{" + str(len(fence)) + r",}\s*", stripped):
-                fence = None
-            continue
-        if opening:
-            fence = opening.group(1)
-            continue
+    fields: dict[str, list[str]] = {}
+    current: str | None = None
+    field_indent = 0
+    for index, line in artifact_view.markdown_content_lines(lines):
+        indent = len(lines[index]) - len(lines[index].lstrip())
         match = FIELD.match(line)
         if match:
             key = (match.group(1) or match.group(2)).strip().rstrip(": ").casefold()
             if key in {"answer", "confirmation", "input verification", "category", "needed from"}:
                 if key in fields:
                     raise ValueError(f"duplicate {key} field in one question; append corrections as a new Q<n> entry")
-                fields[key] = plain_value(match.group(3))
-    return fields
+                fields[key] = [match.group(3)]
+                current = key
+                field_indent = indent
+                continue
+        if not line.strip():
+            continue
+        if current is not None and indent > field_indent and not artifact_view.HEADING.match(line):
+            fields[current].append(line.strip())
+        else:
+            current = None
+    return {key: plain_value(" ".join(parts)) for key, parts in fields.items()}
 
 
 def answer_status(fields: dict[str, str]) -> str:
@@ -72,17 +74,7 @@ def answer_status(fields: dict[str, str]) -> str:
 def question_entries(source: str) -> list[dict[str, str]]:
     lines = source.splitlines()
     headings: list[tuple[int, int, str]] = []
-    fence: str | None = None
-    for index, line in enumerate(lines):
-        stripped = line.strip()
-        opening = artifact_view.FENCE.match(stripped)
-        if fence:
-            if re.fullmatch(re.escape(fence[0]) + "{" + str(len(fence)) + r",}\s*", stripped):
-                fence = None
-            continue
-        if opening:
-            fence = opening.group(1)
-            continue
+    for index, line in artifact_view.markdown_content_lines(lines):
         heading = artifact_view.HEADING.match(line)
         if heading:
             headings.append((index, len(heading.group(1)), re.sub(r"[*_`]", "", heading.group(2)).strip()))

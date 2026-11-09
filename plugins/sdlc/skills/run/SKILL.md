@@ -4,7 +4,7 @@ description: Drive a ticket or free-text brain dump through the agentic delivery
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.5'
+  version: '0.7.6'
   tags: orchestration, pipeline, sdlc, workflow
 ---
 <!-- prework:orchestration-design -->

@@ -245,6 +245,8 @@ class DecisionGateRenderingTest(unittest.TestCase):
             lambda data: data["decisions"][1]["conflicts"].append({"status": "OPEN", "issue": "Changed input", "consequence": "Different result"}),
             lambda data: data["feedbackBatches"].append({"id": "F-1", "status": "OPEN"}),
             lambda data: data["semanticChanges"][0].update(status="NEEDS_HUMAN_DECISION", affectedDecisionIds=[], decisionId=None),
+            lambda data: data["applicableRules"][0].update(status="UNRESOLVED"),
+            lambda data: data["acceptanceCriteria"][0].update(status="UNRESOLVED"),
         )
         for index, mutate in enumerate(mutations):
             with self.subTest(pending=index):
@@ -258,6 +260,15 @@ class DecisionGateRenderingTest(unittest.TestCase):
                     page = render(data, "alignment")
                     self.assertNotIn("Design approved by reviewer", page)
                     self.assertIn("I approve the target solution", page)
+
+    def test_unresolved_rules_and_criteria_are_in_the_action_summary(self):
+        data = manifest_with_changes()
+        data["applicableRules"][0]["status"] = "UNRESOLVED"
+        data["acceptanceCriteria"][0]["status"] = "UNRESOLVED"
+        for render in (MODULE.render_html, MODULE.render_markdown):
+            page = render(data, "alignment")
+            self.assertIn("1 unresolved rule(s)", page)
+            self.assertIn("1 unresolved acceptance criterion", page)
 
     def test_empty_scope_cannot_hide_a_pending_human_change(self):
         data = manifest_with_changes()

@@ -14,7 +14,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from artifact_view import FENCE
+from artifact_view import markdown_content_lines
 from schema_validation import validate_schema_instance
 from render_decision_gate import render_html as render_decision_gate_html, render_markdown as render_decision_gate_markdown
 from render_target_solution import render_html as render_target_solution_html
@@ -51,17 +51,8 @@ def approval_header_errors(approval: object, source: str, artifact_name: str) ->
     if not isinstance(approval, dict):
         return ["approval is required"]
     fields: dict[str, list[str]] = {"status": [], "approved by": [], "on": []}
-    fence: str | None = None
-    for line in source.splitlines():
+    for _, line in markdown_content_lines(source.splitlines()):
         stripped = line.strip()
-        if fence is not None:
-            if re.fullmatch(re.escape(fence[0]) + f"{{{len(fence)},}}", stripped):
-                fence = None
-            continue
-        opening = FENCE.match(stripped)
-        if opening:
-            fence = opening.group(1)
-            continue
         if re.match(r"^#{2,6}\s", stripped):
             break
         plain_line = re.sub(r"^[-*+]\s+", "", stripped.replace("**", ""))

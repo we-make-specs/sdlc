@@ -5,7 +5,7 @@ from __future__ import annotations
 import html
 import re
 import shlex
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from itertools import groupby
 from urllib.parse import unquote, urlsplit
 
@@ -221,15 +221,20 @@ def table_html(lines: list[str]) -> str:
     return f"<div class=table-wrap><table><thead><tr>{head}</tr></thead><tbody>{rendered_rows}</tbody></table></div>"
 
 
-def list_html(lines: list[str], index: int, render_blocks: Callable[[list[str]], list[str]]) -> tuple[str, int]:
+def fenced_code_end(lines: list[str], index: int, marker: str) -> int:
+    closing = re.compile(re.escape(marker[0]) + f"{{{len(marker)},}}")
+    index += 1
+    while index < len(lines) and not closing.fullmatch(lines[index].strip()):
+        index += 1
+    return index
+
+
+def list_items(lines: list[str], index: int) -> tuple[list[tuple[int, list[str]]], int, bool]:
     first = LIST_ITEM.match(lines[index])
     assert first
     indent = len(first.group(1))
     ordered = first.group(2)[0].isdigit()
-    tag = "ol" if ordered else "ul"
-    start = int(first.group(2)[:-1]) if ordered else 1
-    opening = f'<ol start="{start}">' if start != 1 else f"<{tag}>"
-    items: list[tuple[list[str], bool]] = []
+    items: list[tuple[int, list[str]]] = []
     loose = False
     while index < len(lines):
         item = LIST_ITEM.match(lines[index])
@@ -237,6 +242,7 @@ def list_html(lines: list[str], index: int, render_blocks: Callable[[list[str]],
             break
         content = [item.group(4)]
         content_indent = item.start(4)
+        start = index
         index += 1
         while index < len(lines):
             line = lines[index]
@@ -262,10 +268,40 @@ def list_html(lines: list[str], index: int, render_blocks: Callable[[list[str]],
                 break
             content.append(line[min(content_indent, line_indent):])
             index += 1
-        items.append((render_blocks(content), any(not line.strip() for line in content)))
+        items.append((start, content))
+
+    return items, index, loose
+
+
+def markdown_content_lines(lines: list[str], offset: int = 0) -> Iterator[tuple[int, str]]:
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        fence = FENCE.match(line.strip())
+        if fence:
+            index = fenced_code_end(lines, index, fence.group(1)) + 1
+        elif LIST_ITEM.match(line):
+            items, index, _ = list_items(lines, index)
+            for start, content in items:
+                yield from markdown_content_lines(content, offset + start)
+        else:
+            yield offset + index, line
+            index += 1
+
+
+def list_html(lines: list[str], index: int, render_blocks: Callable[[list[str]], list[str]]) -> tuple[str, int]:
+    first = LIST_ITEM.match(lines[index])
+    assert first
+    ordered = first.group(2)[0].isdigit()
+    tag = "ol" if ordered else "ul"
+    start = int(first.group(2)[:-1]) if ordered else 1
+    opening = f'<ol start="{start}">' if start != 1 else f"<{tag}>"
+    items, index, loose = list_items(lines, index)
 
     rendered = []
-    for blocks, has_paragraph_break in items:
+    for _, content in items:
+        blocks = render_blocks(content)
+        has_paragraph_break = any(not line.strip() for line in content)
         if not loose and not has_paragraph_break and blocks and blocks[0].startswith("<p>"):
             blocks[0] = blocks[0][3:-4]
         rendered.append("<li>" + "\n".join(blocks) + "</li>")
@@ -300,11 +336,8 @@ def markdown_body(source: str, *, default_title: str = "Target solution") -> tup
             if fence:
                 flush_paragraph()
                 marker, language = fence.group(1), fence.group(2).strip()
-                closing = re.compile(re.escape(marker[0]) + f"{{{len(marker)},}}")
-                index += 1
-                start = index
-                while index < len(lines) and not closing.fullmatch(lines[index].strip()):
-                    index += 1
+                start = index + 1
+                index = fenced_code_end(lines, index, marker)
                 snippet = lines[start:index]
                 tokens = reference_tokens(language)
                 if tokens is not None:
