@@ -51,6 +51,35 @@ class Elements(HTMLParser):
 
 
 class QuestionsRenderingTest(unittest.TestCase):
+    def test_question_leads_supporting_fields_and_preserves_inline_content(self):
+        for label in ("**Question:**", "**Question**:", "Question:"):
+            for prefix in ("- ", ""):
+                with self.subTest(label=label, prefix=prefix):
+                    source = (
+                        "### Q1: Export size\n\n- **Category:** Limits\n- **Context:** Large exports need a limit.\n\n"
+                        + prefix + label + " Should `CSV` exports use the [existing limit](limits.md)\n"
+                        "  or **a new limit**?\n\n- **Evidence:** Current export settings.\n- **Answer:** Open\n"
+                    )
+                    page = MODULE.render_html(source).split("<main>", 1)[1]
+                    prompt = page.split('<div class="question-prompt">', 1)[1].split("</div>", 1)[0]
+                    self.assertIn('<p>Should <code>CSV</code> exports use the <a href="limits.md">existing limit</a> or <strong>a new limit</strong>?</p>', prompt)
+                    self.assertLess(page.index("Should <code>CSV"), page.index("Category:"))
+                    self.assertEqual(page.count("Should <code>CSV"), 1)
+                    self.assertIn("Current export settings.", page)
+                    self.assertNotIn("<ul></ul>", page)
+
+    def test_question_does_not_move_out_of_its_entry_or_out_of_code(self):
+        source = (
+            "### Q1: Format\n\n- **Question:** Which format should we use?\n\n"
+            "```markdown\n- **Question:** This is only an example.\n```\n\n"
+            "### Q2: Missing question\n\n- **Answer:** Open\n\n"
+            "## Notes\n\n- **Question:** Who owns these notes?\n"
+        )
+        page = MODULE.render_html(source).split("<main>", 1)[1]
+        self.assertEqual(page.count('<div class="question-prompt">'), 1)
+        self.assertIn("<pre><code class='language-markdown'>- **Question:** This is only an example.</code></pre>", page)
+        self.assertIn("<li><strong>Question:</strong> Who owns these notes?</li>", page)
+
     def test_counts_and_entry_labels_come_from_answers(self):
         entries = MODULE.question_entries(SOURCE)
         self.assertEqual([item["status"] for item in entries], ["Open", "Needs confirmation", "Answered"])

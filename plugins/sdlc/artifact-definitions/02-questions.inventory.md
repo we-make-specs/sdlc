@@ -55,10 +55,10 @@ A question that is genuinely both is `functional` — what-questions outrank how
 | Field | Required | Content |
 |---|---|---|
 | title line | yes | `Q<n> — [tier] [track] <short name>` |
+| Question | yes | one answerable sentence, directly below the title and outside the supporting bullet list |
 | Category | yes | the hunt category that found it (see step 02's hunt table) |
 | Context | yes | 1–2 sentences of background a newcomer needs |
 | Evidence | yes | the claim IDs this entry probes, plus story quote and/or evidence IDs per the shared evidence rules — what makes this a real question |
-| Question | yes | one sentence, answerable |
 | Options | yes | each result and its benefits and costs, using a compact comparison where useful |
 | Recommendation | yes | the agent's own pick, with the reason — never a menu without a pick |
 | Needed from | missing-inputs entries | who or what can deliver the input — person, team, system; becomes the routing target if a later step blocks on it |
@@ -83,6 +83,9 @@ the chosen option needs the input. Append a later pending correction as a new `Q
 linked to the historical answer; do not overwrite it. Counts and navigation use these same states, including appended
 questions. These labels do not replace the gate rules.
 
+Put the question directly below the entry title, above Category, Context and Evidence.
+Keep it outside the supporting bullet list. In the HTML view, show it as a prominent callout
+with larger, bold text. Preserve the exact question wording when moving it for display.
 Keep questions, context, options, recommendation and answer distinct. For a meaningful choice,
 use one row per option with a single Trade-offs column containing separate Benefit and Cost
 bullets. Do not invent a benefit or cost: use `none identified` where appropriate. Simple entries
@@ -95,6 +98,7 @@ One line per hunt category: `<n> findings (Q…)` or `none found`. This is what 
 ## Quality criteria
 
 - [ ] Every entry passes the stranger test: someone who never saw the analysis session could ask it well from the file alone.
+- [ ] The question leads each entry, outside its supporting bullet list, and stands out in the HTML view.
 - [ ] The atomic-claims table is present, and every entry's Evidence names the claims it probes.
 - [ ] Evidence resolves per the shared evidence rules: every body ID exactly once in the source map, no absolute paths.
 - [ ] A **missing-inputs** entry is answered only when the input itself is available and verified — the file in the repo, the schema resolvable, the access confirmed. A policy or a promise ("use the official one") keeps the entry open; implementation cannot execute a promise. Every missing-inputs entry carries `Needed from:`.
@@ -142,10 +146,12 @@ python3 <plugin>/scripts/render_questions.py \
 
 ### Q1 — [Critical] [technical] <short name>
 
+**Question:** <one sentence>
+
 - **Category:** <hunt category>
 - **Context:** <1–2 sentences a newcomer needs>
 - **Evidence:** C1 · "<story quote>" · [B1]
-- **Question:** <one sentence>
+
 **Options:**
 
 | Option | Result | Trade-offs |

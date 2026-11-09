@@ -4,7 +4,7 @@ description: Pipeline step 00 (AUTO) — parse a ticket ID, ticket URL, or free-
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.6'
+  version: '0.7.7'
   tags: sdlc, step, workspace, bootstrap
 ---
 

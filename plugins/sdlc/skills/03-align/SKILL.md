@@ -4,7 +4,7 @@ description: Pipeline step 03 (COLLAB) — work through the question inventory w
 metadata:
   owner: Markus-Arndt
   author: '@Markus-Arndt'
-  version: '0.7.6'
+  version: '0.7.7'
   tags: sdlc, step, alignment, discussion, collaborative
 ---
 
