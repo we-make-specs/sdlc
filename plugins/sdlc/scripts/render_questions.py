@@ -18,6 +18,11 @@ import artifact_view
 
 
 QUESTION = re.compile(r"^Q([0-9]+)(?=\s|[:.])", re.IGNORECASE)
+QUESTION_TEXT = re.compile(
+    r"<(?P<tag>li|p)>(?:<p>)?(?:<strong>Question:?</strong>:?|Question:)\s*"
+    r"(?P<text>(?:[^<]|</?(?:strong|em|code|a|br)\b[^>]*>)+?)(?:</p>)?</(?P=tag)>",
+    re.IGNORECASE,
+)
 FIELD = re.compile(r"^\s*(?:[-*+]\s+)?(?:\*\*([^*]+?)\*\*\s*:?|([^:*]+):)\s*(.*)$")
 PLACEHOLDER = re.compile(r"^(?:open|unanswered|pending|tbd|todo|not answered)(?:\s*[:.].*)?$", re.IGNORECASE)
 VERIFIED = re.compile(r"^(?:verified|confirmed)\s+by\s+\S(?:.*?\S)?\s+on\s+\d{4}-\d{2}-\d{2}(?:\b|$)", re.IGNORECASE)
@@ -100,22 +105,44 @@ def badge(status: str) -> str:
     return f'<span class="status {style}">{status}</span>'
 
 
+def promote_question(content: str) -> str:
+    match = QUESTION_TEXT.search(content)
+    if not match:
+        return content
+    supporting_content = content[:match.start()] + content[match.end():]
+    supporting_content = re.sub(r"<ul>\s*</ul>", "", supporting_content)
+    return (
+        '<div class="question-prompt"><span class="question-label">Question</span>'
+        f'<p>{match.group("text").strip()}</p></div>\n{supporting_content}'
+    )
+
+
 def render_html(source: str, *, title: str | None = None) -> str:
     entries = question_entries(source)
     body, headings, source_title = artifact_view.markdown_body(source, default_title="Questions")
     by_title = {entry["title"]: entry for entry in entries}
     navigation = []
-    for level, text, slug in headings:
+    for position, (level, text, slug) in enumerate(headings):
         entry = by_title.get(text)
         if entry:
             label = re.sub(r"\[[^]]+]\s*", "", text)
             navigation.append(f'<li><a href="#{slug}"><span>{html.escape(label)}</span>{badge(entry["status"])}</a></li>')
             opening = f"<h{level} id='{slug}'>"
-            body = body.replace(opening, opening + '<span class="question-icon" aria-hidden="true">?</span>', 1)
             ending = f"</h{level}>"
             start = body.index(opening)
             end = body.index(ending, start)
-            body = body[:end] + " " + badge(entry["status"]) + body[end:]
+            content_start = end + len(ending)
+            content_end = next(
+                (body.index(f"<h{next_level} id='{next_slug}'>", content_start)
+                 for next_level, _, next_slug in headings[position + 1:] if next_level <= level),
+                len(body),
+            )
+            heading = (
+                f'<h{level} id="{slug}" class="question-heading">'
+                '<span class="question-icon" aria-hidden="true">?</span>'
+                + body[start + len(opening):end] + " " + badge(entry["status"]) + ending
+            )
+            body = body[:start] + heading + "\n" + promote_question(body[content_start:content_end]) + body[content_end:]
 
     counts = Counter(entry["status"] for entry in entries)
     summary = "".join(f'<span><b>{counts[status]}</b> {status.lower()}</span>' for status in STATUSES)
@@ -133,6 +160,7 @@ def render_html(source: str, *, title: str | None = None) -> str:
 .layout{{display:grid;grid-template-columns:245px minmax(0,920px);gap:24px;max-width:1240px;margin:auto;padding:24px}}nav{{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto}}nav h2{{font-size:14px;margin:0 0 10px}}nav ul{{list-style:none;padding:0;margin:0}}nav li{{margin:4px 0}}nav a{{display:flex;flex-wrap:wrap;gap:5px 10px;padding:8px;text-decoration:none;color:var(--ink);font-size:12px;border:1px solid transparent;border-radius:4px}}nav a:hover{{background:var(--card);border-color:var(--line)}}nav a>span:first-child{{flex-basis:100%}}nav .sections{{border-top:1px solid var(--line);padding-top:12px;margin-top:20px}}
 main{{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:28px 32px 40px;overflow-wrap:break-word}}h1{{font-size:28px;line-height:1.25}}h2{{font-size:22px;margin:36px 0 15px;border-bottom:1px solid var(--line);padding-bottom:8px}}h3{{font-size:18px;line-height:1.5;margin:30px 0 12px;scroll-margin-top:20px}}h4{{font-size:16px}}p{{max-width:85ch}}li{{margin:5px 0}}code{{background:var(--paper);border-radius:3px;padding:2px 4px;overflow-wrap:anywhere;font-size:.88em}}pre{{overflow:auto;background:var(--paper);border:1px solid var(--line);padding:14px}}pre code{{padding:0;background:none}}.code-label{{font-size:12px;color:var(--muted)}}.table-wrap{{overflow:auto;margin:16px 0}}table{{width:100%;border-collapse:collapse;font-size:13px;line-height:1.55}}th,td{{border:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}}th{{background:var(--paper)}}td ul{{padding-left:20px;margin:5px 0 10px}}td ul:last-child{{margin-bottom:0}}blockquote{{margin:16px 0;border-left:3px solid var(--line);padding:8px 14px;color:var(--muted)}}
 .progress{{display:flex;flex-wrap:wrap;gap:12px 24px;padding-bottom:15px;border-bottom:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums}}.progress b{{font-size:20px;color:var(--accent);margin-right:4px}}.status{{display:inline-block;white-space:nowrap;font-size:11px;line-height:1.5;padding:2px 6px;border:1px solid var(--line);border-radius:3px;font-weight:500;vertical-align:middle}}.status.open{{background:var(--soft);color:var(--accent)}}.status.confirmation{{background:var(--pink-soft);color:var(--pink)}}.status.answered{{background:var(--green-soft);color:var(--green)}}.question-icon{{display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--accent);border-radius:50%;width:21px;height:21px;margin-right:7px;color:var(--accent);font-size:14px;vertical-align:middle}}.note{{font-size:12px;color:var(--muted);margin:12px 0 24px}}
+.question-heading{{font-size:16px;color:var(--muted)}}.question-prompt{{margin:12px 0 22px;padding:16px 20px;border-left:4px solid var(--accent);border-radius:0 6px 6px 0;background:var(--soft)}}.question-label{{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}}.question-prompt p{{margin:6px 0 0;font-size:16px;line-height:1.4;font-weight:700}}
 {preview_css}
 @media(max-width:850px){{.layout{{display:block;padding:12px}}nav{{position:static;max-height:none;margin-bottom:20px}}nav>ul{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}}main{{padding:20px}}}}@media(max-width:480px){{nav>ul{{display:block}}table{{min-width:420px}}h1{{font-size:24px}}}}@media print{{nav{{display:none}}.layout{{display:block;padding:0}}main{{border:0}}body{{background:white}}}}
 </style></head><body><div class="layout"><nav aria-label="Question progress"><h2>Questions</h2><ul>{''.join(navigation)}</ul><ul class="sections">{sections}</ul></nav><main>
