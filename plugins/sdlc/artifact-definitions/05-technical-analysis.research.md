@@ -25,6 +25,11 @@ The bridge from "what should happen functionally" to "what the code for it looks
 | `## Risks` | yes | risk, impact, handling |
 | `## Planning uncertainty` | yes | facts that must be re-verified immediately before execution, each with the reason it is perishable; `none` is a valid entry |
 
+A current-state analysis is a dated snapshot tied to its verified code revisions. When a base
+changes, recheck affected interfaces and behaviour against the new revision and reconcile dependent
+claims. Link later status rather than presenting an older snapshot as current; keep the snapshot
+and its original evidence as history.
+
 ## The reference-pattern comparison
 
 The most valuable section. It compares the target code against the reference implementation named in the development guidelines, row by row, and marks each as `Aligned` / `Deviation` / `Gap`.

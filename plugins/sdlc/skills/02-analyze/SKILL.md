@@ -63,7 +63,7 @@ This step **finds** the questions; it never asks them. Asking is step 03's job, 
 4. **Write each finding as a self-contained entry** per the contract: tier, track, category, context, evidence per the shared evidence rules (claim IDs plus evidence IDs resolving in the inventory's source map), the question itself, options with trade-offs, your own recommendation — and, where you can answer with high confidence yourself, a proposed answer for the human to merely confirm.
 5. **Record coverage.** Every category ends with findings or an explicit `none found` line. A category without a line means the hunt is unfinished, not that nothing was found.
 6. **Draft the work breakdown** per its contract: vertical slices with completion boundaries, the candidate package cut, conditional slices. Every decision that would change the cut becomes an inventory entry, referenced from the breakdown. A story with nothing to cut gets the single-package one-liner — never invent slices to look thorough.
-7. **Write the artifacts** and mark them present in the manifest ledger.
+7. **Write the artifacts** per their contracts, generate the question view with `render_questions.py` as specified in the inventory contract, and mark them present in the manifest ledger.
 
 ### The hunt table
 

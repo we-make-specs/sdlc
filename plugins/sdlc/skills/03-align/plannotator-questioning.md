@@ -8,9 +8,10 @@ over dialogue, or wants to work through a large inventory in one sitting.
 
 ## The round loop
 
-1. **Hand over the inventory.** Point the annotation tool at
-   `02-questions.inventory.md` (the view page serves as the pre-read). Say
-   clearly what a useful annotation looks like: pick an option, answer in free
+1. **Hand over the inventory.** Generate `02-questions.view.html` from the inventory
+   and open it in the annotation tool. Questions, options and recorded answers stay
+   expanded. Use `02-questions.inventory.md` as the fallback if the tool cannot show
+   HTML. Say what a useful annotation looks like: pick an option, answer in free
    text, or push back on the question itself.
 2. **Open a feedback batch before ingestion.** Add an `OPEN` entry to the
    decision manifest's `feedbackBatches`: stable batch ID, annotation source,
@@ -20,13 +21,15 @@ over dialogue, or wants to work through a large inventory in one sitting.
    the entry it belongs to — answer, rationale, and who/when (for example
    "User via annotation, <date>")—and update the corresponding decision state.
    Increment `processedItems` only after both writes succeed. An annotation that
-   pushes back on a question rewrites nothing; the response is appended under
-   the entry.
+   pushes back on a question rewrites nothing; append the response under the entry.
+   A correction to an existing answer becomes a new linked question per the inventory
+   contract, preserving the historical answer.
 4. **Reconcile the batch before interpreting the result.** `processedItems`
    must equal `expectedItems`. Then mark it `COMPLETE` with no unresolved items,
    or `DEFERRED` with every intentionally deferred annotation named. An `OPEN`
    batch blocks gate 04. If the session stops midway, the next session resumes
-   the same batch instead of starting a replacement.
+   the same batch instead of starting a replacement. Regenerate the question view from
+   the updated inventory before the next annotation round.
 5. **Keep hunting between rounds.** Answers create new gaps: append them as new
    entries in the same format, and include them in the next round.
 6. **Iterate** until every Critical and Important entry is answered or

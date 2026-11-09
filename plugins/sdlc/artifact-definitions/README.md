@@ -203,6 +203,57 @@ Any artifact that states facts may use the evidence system the current-state res
 
 ---
 
+## Readability and evidence
+
+Write for a reader entering the delivery without the discussion. Use domain terms and reuse
+concept and flow names across research, design and scenarios. Separate observed facts, agreed
+behaviour and proposals. Use short paragraphs or bullets for independent ideas, numbered steps
+for sequences and small tables for comparisons. Keep each section focused on its own job.
+
+Define a material rule fully in its owning section and link to it elsewhere. Keep short
+orientation and self-contained questions or scenarios where useful. Do not force every artifact
+into the same shape or duplicate complete rules. Put long paths and exact evidence in a source
+map when that improves reading; distinguish existing code from planned files. Date and identify
+code baselines for factual snapshots. When a base changes, recheck the affected code and its
+claims, record the difference and reconcile dependent artifacts. Preserve the old snapshot.
+
+For code evidence a human needs to inspect, embed a short excerpt in the artifact. The question
+and target-solution views show it inline, with an optional link to the original source. Use a
+fenced block with a language and `ref`, `path`, `lines` and `revision` attributes. `path` is a
+repository-relative path, `lines` is an inclusive line range, and `revision` is the full verified
+40-character commit SHA. Optionally add a `url` pinned to that same commit and line range. The
+block must contain the exact cited lines, checked against that commit; never invent a snippet.
+Quote paths containing spaces. Cite the block with a link such as `[B1](#ref-B1)`. For example:
+
+````markdown
+```python ref=B1 path=src/example.py lines=42-45 revision=<full-40-character-commit-sha>
+<the exact four source lines>
+```
+````
+
+These excerpts supplement the source map; they do not replace exact locations or require code
+copies for every fact. Avoid secrets and private content in artifacts shared beyond their source.
+
+The read-only capture helper can produce this block from a local Git commit:
+
+```bash
+python3 <plugin>/scripts/capture_code_reference.py \
+  --repo <checkout> --ref B1 --path src/example.py --lines 42-45 \
+  --revision <commit> --language python \
+  --repository-url https://github.com/<owner>/<repository>
+```
+
+Omit `--repository-url` when there is no verified browser URL. The helper resolves the commit,
+reads those exact lines from Git and prints the block. Rendering uses the embedded text and
+makes no repository or network requests.
+
+Show current status and unresolved changes before dated history. When a later decision affects
+approved behaviour, use the existing amendment protocol and identify affected decisions, design,
+scenarios and plans. Preserve superseded text and never present a pending change as approved. For a new alignment or focused reopen, populate `activeSemanticChangeIds` with the
+current change IDs, including accepted changes awaiting overall approval. Preserve all semantic
+change history. After explicit approval, the approval script closes that scope; an absent scope
+in a legacy state keeps conservative visibility.
+
 ## Cross-cutting rules
 
 These hold for every artifact and are not repeated in the individual contracts.

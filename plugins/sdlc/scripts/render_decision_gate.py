@@ -122,14 +122,35 @@ def chosen_label(decision: dict[str, Any], option_id: object) -> str:
     return str(option_id or "not decided")
 
 
+def semantic_change_groups(manifest: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    changes = sorted(manifest.get("semanticChanges", []), key=lambda item: natural_id(item.get("id")))
+    scope = manifest.get("activeSemanticChangeIds")
+    if not isinstance(scope, list) or any(not isinstance(item, str) for item in scope):
+        return changes, []
+    active_ids = set(scope)
+    active = [
+        item for item in changes
+        if item.get("id") in active_ids or item.get("status") == "NEEDS_HUMAN_DECISION"
+    ]
+    history = [item for item in changes if item not in active]
+    return active, history
+
+
 def attention_decisions(manifest: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     decisions = sorted(manifest.get("decisions", []), key=decision_key)
+    active_changes, _ = semantic_change_groups(manifest)
     changed_ids = {
         decision_id
-        for change in manifest.get("semanticChanges", [])
+        for change in active_changes
         if change.get("status") != "REJECTED"
         for decision_id in change.get("affectedDecisionIds", [])
     }
+    if isinstance(manifest.get("activeSemanticChangeIds"), list):
+        changed_ids.update(
+            change["decisionId"]
+            for change in active_changes
+            if change.get("status") != "REJECTED" and change.get("decisionId") is not None
+        )
     attention = [
         item for item in decisions
         if item.get("riskClass") == "HUMAN_REQUIRED"
@@ -137,6 +158,40 @@ def attention_decisions(manifest: dict[str, Any]) -> tuple[list[dict[str, Any]],
     ]
     quiet = [item for item in decisions if item not in attention]
     return attention, quiet
+
+
+def pending_design_work(manifest: dict[str, Any]) -> str | None:
+    attention, _ = attention_decisions(manifest)
+    conflicts = [
+        conflict
+        for decision in manifest.get("decisions", [])
+        for conflict in decision.get("conflicts", [])
+        if conflict.get("status") == "OPEN"
+    ]
+    batches = [item for item in manifest.get("feedbackBatches", []) if item.get("status") == "OPEN"]
+    scenarios = [item for item in manifest.get("testScenarios", []) if item.get("status") != "HUMAN_CONFIRMED"]
+    if attention or conflicts or batches or scenarios:
+        return (
+            f"Check {len(attention)} open or changed choice(s), {len(conflicts)} source conflict(s), "
+            f"{len(scenarios)} unconfirmed test scenario(s), and {len(batches)} incomplete feedback batch(es)."
+        )
+    return None
+
+
+def recorded_design_approval(manifest: dict[str, Any], phase: str) -> str | None:
+    approval = manifest.get("approval")
+    if (
+        phase == "alignment"
+        and manifest.get("activeSemanticChangeIds") == []
+        and isinstance(approval, dict)
+        and approval.get("status") == "APPROVED"
+        and approval.get("approvedBy")
+        and approval.get("approvedAt")
+        and not pending_design_work(manifest)
+        and not any(item.get("status") == "NEEDS_HUMAN_DECISION" for item in manifest.get("semanticChanges", []))
+    ):
+        return f"Design approved by {approval['approvedBy']} on {approval['approvedAt']}."
+    return None
 
 
 def gate_action(
@@ -157,20 +212,12 @@ def gate_action(
             return f"Stop: the pull request state is {pr_state or 'not supplied'}, not open."
         if str(mergeability or "").upper() not in {"MERGEABLE", "CLEAN"}:
             return f"Stop: the pull request is {mergeability or 'not supplied'}, not confirmed mergeable."
-    attention, _ = attention_decisions(manifest)
-    conflicts = [
-        conflict
-        for decision in manifest.get("decisions", [])
-        for conflict in decision.get("conflicts", [])
-        if conflict.get("status") == "OPEN"
-    ]
-    batches = [item for item in manifest.get("feedbackBatches", []) if item.get("status") == "OPEN"]
-    scenarios = [item for item in manifest.get("testScenarios", []) if item.get("status") != "HUMAN_CONFIRMED"]
-    if attention or conflicts or batches or scenarios:
-        return (
-            f"Check {len(attention)} open or changed choice(s), {len(conflicts)} source conflict(s), "
-            f"{len(scenarios)} unconfirmed test scenario(s), and {len(batches)} incomplete feedback batch(es)."
-        )
+    pending = pending_design_work(manifest)
+    if pending:
+        return pending
+    recorded_approval = recorded_design_approval(manifest, phase)
+    if recorded_approval:
+        return recorded_approval
     if phase == "review" and review:
         if review.get("verdict") == "ASK_HUMAN":
             return "Resolve the focused human question. The original implementation has been preserved."
@@ -192,9 +239,10 @@ def render_markdown(
     criteria = sorted(manifest.get("acceptanceCriteria", []), key=criterion_key)
     scenarios = sorted(manifest.get("testScenarios", []), key=lambda item: natural_id(item.get("id")))
     rules = sorted(manifest.get("applicableRules", []), key=lambda item: natural_id(item.get("id")))
-    changes = sorted(manifest.get("semanticChanges", []), key=lambda item: natural_id(item.get("id")))
+    changes, change_history = semantic_change_groups(manifest)
     batches = sorted(manifest.get("feedbackBatches", []), key=lambda item: natural_id(item.get("id")))
     detail_prefix = "" if phase == "alignment" else "../2-specification/"
+    recorded_approval = recorded_design_approval(manifest, phase)
     title = "PR approval pack" if phase == "review" else "Design approval pack"
     review_ac = {
         item.get("id"): item
@@ -210,9 +258,11 @@ def render_markdown(
         "",
         f"1. Read the [full target solution]({detail_prefix}03-target-solution.view.html).",
         "2. Check every acceptance criterion below, starting with Critical.",
-        "3. Resolve only the open or changed choices.",
-        "4. Challenge the test scenarios.",
-        "5. Give the explicit final decision.",
+        *(["3. Read the recorded choices and confirmed scenarios."] if recorded_approval else [
+            "3. Resolve only the open or changed choices.",
+            "4. Challenge the test scenarios.",
+            "5. Give the explicit final decision.",
+        ]),
         "",
     ]
     if phase == "review":
@@ -347,9 +397,9 @@ def render_markdown(
         lines.append("")
 
     lines.extend([
-        "## Test-scenario challenge",
+        "## Test scenarios" if recorded_approval else "## Test-scenario challenge",
         "",
-        "**Which of these are wrong, and what is missing?**",
+        "**Confirmed scenarios**" if recorded_approval else "**Which of these are wrong, and what is missing?**",
         "",
         "| Scenario | Expected behavior | State |",
         "|---|---|---|",
@@ -370,6 +420,8 @@ def render_markdown(
             "- **A:** I approve this package and continue to the explicit merge step.",
             "- **B:** I request changes to: `<name the item>`.",
         ]
+    elif recorded_approval:
+        final_choices = [md(recorded_approval)]
     else:
         final_choices = [
             "- **A:** I approve the target solution, acceptance criteria, recorded choices, and test scenarios.",
@@ -392,6 +444,10 @@ def render_markdown(
         lines.append(f"- Changed files: {len(changed_files)}")
     if checks:
         lines.append(f"- Extra checks: {'; '.join(md(item) for item in sorted(checks))}")
+    if change_history:
+        lines.extend(["", "### Earlier semantic changes", ""])
+        for change in change_history:
+            lines.append(f"- **{md(change.get('id'))} / {md(plain(change.get('status')))}:** {md(change.get('summary'))}")
     lines.extend([
         "",
         f"- [Agreement]({detail_prefix}03-agreement.spec.md)",
@@ -420,9 +476,10 @@ def render_html(
     criteria = sorted(manifest.get("acceptanceCriteria", []), key=criterion_key)
     scenarios = sorted(manifest.get("testScenarios", []), key=lambda item: natural_id(item.get("id")))
     rules = sorted(manifest.get("applicableRules", []), key=lambda item: natural_id(item.get("id")))
-    changes = sorted(manifest.get("semanticChanges", []), key=lambda item: natural_id(item.get("id")))
+    changes, change_history = semantic_change_groups(manifest)
     batches = sorted(manifest.get("feedbackBatches", []), key=lambda item: natural_id(item.get("id")))
     detail_prefix = "" if phase == "alignment" else "../2-specification/"
+    recorded_approval = recorded_design_approval(manifest, phase)
     esc = lambda value: html.escape(str(value), quote=True)
     review_ac = {
         item.get("id"): item
@@ -466,6 +523,13 @@ def render_html(
                 attention_items.append(f"<li><b>{esc(decision.get('id'))}:</b> {esc(conflict.get('issue'))} — {esc(conflict.get('consequence'))}</li>")
     for change in changes:
         attention_items.append(f"<li><b>{esc(change.get('id'))} / {esc(plain(change.get('status')))}:</b> {esc(change.get('summary'))}</li>")
+    history_section = ""
+    if change_history:
+        history_items = "".join(
+            f"<li><b>{esc(change.get('id'))} / {esc(plain(change.get('status')))}:</b> {esc(change.get('summary'))}</li>"
+            for change in change_history
+        )
+        history_section = f"<details><summary>Earlier semantic changes ({len(change_history)})</summary><ul>{history_items}</ul></details>"
     for rule in rules:
         if rule.get("status") in {"DEVIATION_APPROVED", "UNRESOLVED"} or rule.get("classification") in {"MISSING", "CONFLICTING"}:
             attention_items.append(
@@ -543,25 +607,35 @@ def render_html(
             "<p><b>A:</b> I approve this package and continue to the explicit merge step.</p>"
             "<p><b>B:</b> I request changes to: <code>&lt;name the item&gt;</code>.</p>"
         )
+    elif recorded_approval:
+        final_decision = f"<p>{esc(recorded_approval)}</p>"
     else:
         final_decision = (
             "<p><b>A:</b> I approve the target solution, acceptance criteria, recorded choices, and test scenarios.</p>"
             "<p><b>B:</b> I request changes to: <code>&lt;name the item&gt;</code>.</p>"
         )
+    route_steps = (
+        "<li>Read the recorded choices and confirmed scenarios.</li>"
+        if recorded_approval else
+        "<li>Resolve only the open or changed choices.</li>"
+        "<li>Challenge the test scenarios.</li><li>Give the explicit final decision.</li>"
+    )
+    scenario_heading = "Test scenarios" if recorded_approval else "Test-scenario challenge"
+    scenario_question = "Confirmed scenarios" if recorded_approval else "Which of these are wrong, and what is missing?"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)} — {esc(manifest.get('ticket'))}</title><style>
 :root{{--ink:#18212f;--muted:#667085;--line:#d0d5dd;--paper:#f7f9fc;--card:#fff;--critical:#b42318;--important:#b54708;--supporting:#175cd3;--accent:#175cd3}}*{{box-sizing:border-box}}body{{margin:0;background:var(--paper);color:var(--ink);font:16px/1.58 system-ui,-apple-system,sans-serif}}main{{max-width:1040px;margin:auto;padding:32px 20px 64px}}h1{{font-size:32px;margin:0 0 12px}}h2{{margin-top:40px;border-bottom:1px solid var(--line);padding-bottom:8px}}h3{{margin:.25rem 0 .5rem}}a{{color:var(--accent)}}.action{{background:#fff4ed;border-left:5px solid #f79009;padding:16px 18px;font-size:17px}}.route{{background:#eef4ff;border:1px solid #b2ccff;border-radius:12px;padding:16px 20px;margin:18px 0}}.route li{{margin:7px 0}}.promise,.choice{{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:14px 0}}.promise.critical{{border-left:6px solid var(--critical)}}.promise.important{{border-left:6px solid var(--important)}}.promise.supporting{{border-left:6px solid var(--supporting)}}.choice{{border-left:6px solid var(--critical)}}.eyebrow{{font-weight:750;color:#475467;font-size:12px;letter-spacing:.05em;text-transform:uppercase}}.question{{font-size:17px}}.muted{{color:var(--muted);font-size:13px}}.blocker{{background:#fef3f2;border:1px solid #fecdca;padding:14px}}.stats{{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:18px 0}}.stats div{{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}}.stats b{{display:block;overflow-wrap:anywhere}}.stats span{{color:var(--muted);font-size:13px}}table{{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card)}}th,td{{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}}th{{background:#eef2f6}}details{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0}}summary{{cursor:pointer;font-weight:700}}code{{overflow-wrap:anywhere}}
 </style></head><body><main><h1>{esc(title)} — {esc(manifest.get('ticket'))}</h1><div class=action><b>What to do:</b> {esc(gate_action(manifest, phase, review, checks, pr_state, mergeability))}</div>
-<section class=route><h2>Reading route</h2><ol><li><a href="{detail_prefix}03-target-solution.view.html"><b>Read the full target solution.</b></a></li><li>Check every acceptance criterion, starting with Critical.</li><li>Resolve only the open or changed choices.</li><li>Challenge the test scenarios.</li><li>Give the explicit final decision.</li></ol></section>
+<section class=route><h2>Reading route</h2><ol><li><a href="{detail_prefix}03-target-solution.view.html"><b>Read the full target solution.</b></a></li><li>Check every acceptance criterion, starting with Critical.</li>{route_steps}</ol></section>
 {pr_facts}
 <section><h2>Acceptance criteria — what the delivery promises</h2>{criterion_cards}</section>
 {review_section}
 <section><h2>Open or changed human choices</h2>{''.join(decision_cards) or '<p>No open or changed human choices.</p>'}</section>
 {f"<section><h2>Changes and conflicts that need attention</h2><ul>{''.join(attention_items)}</ul></section>" if attention_items else ''}
-<section><h2>Test-scenario challenge</h2><p class=question><b>Which of these are wrong, and what is missing?</b></p><table><thead><tr><th>Scenario</th><th>Expected behavior</th><th>State</th></tr></thead><tbody>{scenario_rows}</tbody></table></section>
+<section><h2>{scenario_heading}</h2><p class=question><b>{scenario_question}</b></p><table><thead><tr><th>Scenario</th><th>Expected behavior</th><th>State</th></tr></thead><tbody>{scenario_rows}</tbody></table></section>
 <section><h2>Final decision</h2>{final_decision}</section>
-<details><summary>Technical record — optional drill-down</summary><p>Lower-risk decisions: {len(quiet)} · applicable rules: {len(rules)} · feedback batches: {len(batches)} · changed files supplied: {len(changed_files or [])}</p><ul><li><a href="{detail_prefix}03-agreement.spec.md">Agreement</a></li><li><a href="{detail_prefix}03-target-solution.spec.md">Target solution source</a></li><li><a href="{detail_prefix}03-test-scenarios.spec.md">Test scenarios</a></li><li><a href="{detail_prefix}03-decision-manifest.state.json">Machine state</a></li></ul></details>
+{history_section}<details><summary>Technical record — optional drill-down</summary><p>Lower-risk decisions: {len(quiet)} · applicable rules: {len(rules)} · feedback batches: {len(batches)} · changed files supplied: {len(changed_files or [])}</p><ul><li><a href="{detail_prefix}03-agreement.spec.md">Agreement</a></li><li><a href="{detail_prefix}03-target-solution.spec.md">Target solution source</a></li><li><a href="{detail_prefix}03-test-scenarios.spec.md">Test scenarios</a></li><li><a href="{detail_prefix}03-decision-manifest.state.json">Machine state</a></li></ul></details>
 <p class=muted>This view is generated; do not edit it.</p></main></body></html>"""
 
 
